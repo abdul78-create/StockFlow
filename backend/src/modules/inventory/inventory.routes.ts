@@ -78,6 +78,26 @@ router.get('/history', authenticate, controller.getHistory);
 
 /**
  * @openapi
+ * /api/v1/inventory/health:
+ *   get:
+ *     summary: Get stock health metrics
+ *     description: Retrieve health score and values of inventory.
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: warehouseId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Health metrics returned.
+ */
+router.get('/health', authenticate, controller.getHealth);
+
+/**
+ * @openapi
  * /api/v1/inventory/adjust:
  *   post:
  *     summary: Manual stock adjustment

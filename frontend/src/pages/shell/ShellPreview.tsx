@@ -5,8 +5,16 @@ import { Icons } from '../../lib/icons';
 import { StatCard } from '../../components/ui/stat-card';
 import { motion } from 'framer-motion';
 import { pageTransition, interact } from '../../lib/motion';
+import { useSalesOrders } from '../../lib/hooks/useSalesOrders';
+import { usePurchaseOrders } from '../../lib/hooks/usePurchaseOrders';
+import { useStockHealth } from '../../lib/hooks/useInventory';
+import { QueryStateWrapper } from '../../components/ui/query-state-wrapper';
 
 export function ShellPreview() {
+  const { data: sales, isLoading: isSalesLoading, error: salesError } = useSalesOrders({ limit: 1 });
+  const { data: purchases, isLoading: isPurchasesLoading, error: purchasesError } = usePurchaseOrders({ limit: 1 });
+  const { data: health, isLoading: isHealthLoading, error: healthError } = useStockHealth();
+
   return (
     <motion.div
       variants={pageTransition}
@@ -15,8 +23,8 @@ export function ShellPreview() {
       exit="exit"
     >
       <PageTemplate
-        title="Dashboard"
-        subtitle="Overview of your business metrics"
+        title="Dashboard Overview"
+        subtitle="Live metrics from your business operations"
         breadcrumbs={[
           { label: 'Home', href: '/' },
           { label: 'Dashboard' },
@@ -38,40 +46,57 @@ export function ShellPreview() {
           </>
         }
       >
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatCard
-            title="Total Revenue"
-            value="$45,231.89"
-            description="+20.1% from last month"
-            icon={Icons.trendUp}
-            trend={{ value: 20.1 }}
-          />
-          <StatCard
-            title="Active Orders"
-            value="356"
-            description="+12 since last hour"
-            icon={Icons.salesOrders}
-            trend={{ value: 3.5 }}
-          />
-          <StatCard
-            title="Low Stock Items"
-            value="12"
-            description="Needs immediate attention"
-            icon={Icons.warning}
-            trend={{ value: -15 }}
-          />
-          <StatCard
-            title="Active Customers"
-            value="2,345"
-            description="+180 this week"
-            icon={Icons.customers}
-            trend={{ value: 8.3 }}
-          />
-        </div>
+        <QueryStateWrapper
+          isLoading={isSalesLoading || isPurchasesLoading || isHealthLoading}
+          error={salesError || purchasesError || healthError}
+          data={{ sales, purchases, health }}
+          isEmpty={(d) => false}
+        >
+          {({ sales: sData, purchases: pData, health: hData }) => (
+            <>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                  title="Inventory Value"
+                  value={`$${(hData?.totalValue || 0).toLocaleString()}`}
+                  description="Total stock worth"
+                  icon={Icons.inventory}
+                  trend={{ value: 2.1 }}
+                />
+                <StatCard
+                  title="Total Sales Orders"
+                  value={sData?.total?.toString() || "0"}
+                  description="All recorded sales"
+                  icon={Icons.salesOrders}
+                  trend={{ value: 5.4 }}
+                />
+                <StatCard
+                  title="Low Stock Alerts"
+                  value={hData?.lowStockCount?.toString() || "0"}
+                  description="Items needing replenishment"
+                  icon={Icons.warning}
+                  trend={{ value: (hData?.lowStockCount || 0) > 5 ? -15 : 0 }}
+                />
+                <StatCard
+                  title="Total Purchase Orders"
+                  value={pData?.total?.toString() || "0"}
+                  description="Incoming replenishments"
+                  icon={Icons.purchaseOrders}
+                  trend={{ value: 1.2 }}
+                />
+              </div>
 
-        <div className="mt-6 h-96 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-center">
-          <p className="text-muted-foreground">Chart Placeholder</p>
-        </div>
+              <div className="mt-6 h-96 rounded-xl border bg-card text-card-foreground shadow-sm flex items-center justify-center p-8">
+                <div className="text-center space-y-4">
+                  <Icons.trendUp className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+                  <h3 className="text-lg font-medium">Advanced Reports Coming Soon</h3>
+                  <p className="text-muted-foreground max-w-sm mx-auto">
+                    Phase 8 will introduce real-time charts, revenue forecasting, and detailed sales analytics right here on your dashboard.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+        </QueryStateWrapper>
       </PageTemplate>
     </motion.div>
   );

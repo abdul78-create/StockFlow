@@ -1,113 +1,133 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api';
-import { useAuthStore } from '../../store/auth';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useAuthStore } from '@/store/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/components/ui/sonner';
-import { Boxes } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Icons } from '@/lib/icons';
+import { motion } from 'framer-motion';
+import { pageTransition } from '@/lib/motion';
+
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  rememberMe: z.boolean().default(false).optional(),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 export function Login() {
   const navigate = useNavigate();
-  const { checkAuth } = useAuthStore();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  const location = useLocation();
+  const { login, isLoading, error } = useAuthStore();
+  const from = location.state?.from?.pathname || '/';
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      rememberMe: false,
+    },
+  });
 
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      if (response.data.success) {
-        await checkAuth();
-        toast.success('Successfully logged in!');
-        navigate('/');
-      }
-    } catch (err) {
-      const error = err as { response?: { data?: { message?: string } } };
-      toast.error(error.response?.data?.message || 'Failed to login. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  const rememberMe = watch('rememberMe');
+
+  const onSubmit = async (data: LoginValues) => {
+    await login(data.email, data.password);
+    // Note: In a real app, successful login state update will cause a re-render
+    // and the ProtectedRoute will automatically let the user through.
+    // For this mock, we just navigate.
+    navigate(from, { replace: true });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center justify-center text-center">
-          <div className="rounded-full bg-indigo-100 p-3 mb-4">
-            <Boxes className="h-10 w-10 text-indigo-600" />
+    <motion.div
+      variants={pageTransition}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="rounded-xl border bg-card text-card-foreground shadow p-8"
+    >
+      <div className="flex flex-col space-y-2 text-center mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Sign in to your account
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Enter your email and password to access the ERP
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive flex items-center gap-2">
+            <Icons.error className="h-4 w-4" />
+            {error}
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to StockFlow
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            The enterprise inventory management platform
-          </p>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            {...register('email')}
+            className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
+          />
+          {errors.email && (
+            <p className="text-sm text-destructive">{errors.email.message}</p>
+          )}
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
-            <CardDescription>Enter your credentials to access your account.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="space-y-6" onSubmit={handleLogin}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email Address
-                  </label>
-                  <Input 
-                    type="email" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
-                    placeholder="admin@test.com"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password
-                  </label>
-                  <Input 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
-                  />
-                </div>
-              </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              to="/forgot-password"
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <Input
+            id="password"
+            type="password"
+            {...register('password')}
+            className={errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
+          />
+          {errors.password && (
+            <p className="text-sm text-destructive">{errors.password.message}</p>
+          )}
+        </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                    Remember me
-                  </label>
-                </div>
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-indigo-600 hover:text-indigo-500">
-                    Forgot your password?
-                  </a>
-                </div>
-              </div>
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id="rememberMe" 
+            checked={rememberMe} 
+            onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
+          />
+          <Label
+            htmlFor="rememberMe"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Remember me for 30 days
+          </Label>
+        </div>
 
-              <Button type="submit" className="w-full" loading={isLoading}>
-                Sign in
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+        <Button className="w-full" type="submit" disabled={isLoading}>
+          {isLoading && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
+          Sign In
+        </Button>
+      </form>
+    </motion.div>
   );
 }

@@ -1,0 +1,111 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+import { toast } from 'sonner';
+
+export type PurchaseOrderStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'COMPLETED' | 'CANCELLED';
+
+export interface PurchaseOrderItem {
+  id?: string;
+  productId: string;
+  quantity: number;
+  unitPrice: number;
+  receivedQuantity?: number;
+  product?: {
+    name: string;
+    sku: string;
+  };
+}
+
+export interface PurchaseOrder {
+  id: string;
+  poNumber: string;
+  supplierId: string;
+  status: PurchaseOrderStatus;
+  totalAmount: number;
+  createdAt: string;
+  supplier: {
+    companyName: string;
+  };
+  items: PurchaseOrderItem[];
+}
+
+export interface PaginatedPurchaseOrders {
+  data: PurchaseOrder[];
+  total: number;
+}
+
+export function usePurchaseOrders(params?: { status?: string; search?: string; page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: ['purchase-orders', params],
+    queryFn: async () => {
+      const response = await api.get('/purchase-orders', { params });
+      return response.data as PaginatedPurchaseOrders;
+    },
+  });
+}
+
+export function usePurchaseOrder(id: string) {
+  return useQuery({
+    queryKey: ['purchase-order', id],
+    queryFn: async () => {
+      const response = await api.get(`/purchase-orders/${id}`);
+      return response.data.data as PurchaseOrder;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCreatePurchaseOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { supplierId: string; items: PurchaseOrderItem[] }) => {
+      const poNumber = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+      return api.post('/purchase-orders', { ...data, poNumber });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+      toast.success('Purchase Order created successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create Purchase Order');
+    },
+  });
+}
+
+export function useUpdatePurchaseOrderStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: string; status: PurchaseOrderStatus }) => {
+      return api.patch(`/purchase-orders/${data.id}/status`, { status: data.status });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-order', variables.id] });
+      toast.success(`Purchase Order status updated to ${variables.status}`);
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update Purchase Order status');
+    },
+  });
+}
+
+export function useReceivePurchaseOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { id: string; warehouseId: string; items: { productId: string; quantity: number }[] }) => {
+      return api.post(`/purchase-orders/${data.id}/receive`, {
+        warehouseId: data.warehouseId,
+        items: data.items,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-order', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      toast.success('Goods received successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to receive goods');
+    },
+  });
+}

@@ -21,6 +21,8 @@ import salesOrderRouter from './modules/sales-orders/sales-order.routes';
 import dashboardRouter from './modules/dashboard/dashboard.routes';
 import reportsRouter from './modules/reports/reports.routes';
 import systemRouter from './modules/system/system.routes';
+import supplierRouter from './modules/suppliers/supplier.routes';
+import warehouseRouter from './modules/warehouses/warehouse.routes';
 
 const app = express();
 
@@ -80,6 +82,8 @@ app.use('/api/v1/customers', customerRouter);
 app.use('/api/v1/sales-orders', salesOrderRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/reports', reportsRouter);
+app.use('/api/v1/suppliers', supplierRouter);
+app.use('/api/v1/warehouses', warehouseRouter);
 app.use('/api/v1', systemRouter);
 
 // Global Error Handler

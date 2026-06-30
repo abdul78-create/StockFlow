@@ -1,0 +1,74 @@
+import { SupplierRepository } from './supplier.repository';
+import { NotFoundError } from '../../common/errors/app-error';
+import logger from '../../infra/logger';
+
+export class SupplierService {
+  private repository: SupplierRepository;
+
+  constructor() {
+    this.repository = new SupplierRepository();
+  }
+
+  async createSupplier(data: {
+    companyName: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    organizationId: string;
+  }) {
+    logger.info({ organizationId: data.organizationId }, 'Creating new supplier');
+    return this.repository.create(data);
+  }
+
+  async getSuppliers(
+    organizationId: string,
+    params: { search?: string; page?: number; limit?: number },
+  ) {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    
+    return this.repository.findMany(organizationId, { search: params.search, page, limit });
+  }
+
+  async getSupplierById(id: string, organizationId: string) {
+    const supplier = await this.repository.findById(id, organizationId);
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+    return supplier;
+  }
+
+  async updateSupplier(
+    id: string,
+    organizationId: string,
+    data: {
+      companyName?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+    },
+  ) {
+    logger.info({ supplierId: id }, 'Updating supplier');
+    
+    // verify existence
+    const supplier = await this.repository.findById(id, organizationId);
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+
+    await this.repository.update(id, organizationId, data);
+    return this.repository.findById(id, organizationId);
+  }
+
+  async deleteSupplier(id: string, organizationId: string) {
+    logger.info({ supplierId: id }, 'Soft deleting supplier');
+    
+    const supplier = await this.repository.findById(id, organizationId);
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+
+    await this.repository.softDelete(id, organizationId);
+    return true;
+  }
+}

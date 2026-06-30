@@ -59,6 +59,23 @@ export class InventoryController {
     }
   };
 
+  getHealth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { warehouseId } = req.query;
+
+      const result = await this.inventoryService.getHealth(orgId, warehouseId as string);
+      ResponseFormatter.success(
+        res,
+        200,
+        'Inventory health metrics retrieved successfully',
+        result,
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
   adjust = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { orgId, userId } = this.getSessionContext(req);

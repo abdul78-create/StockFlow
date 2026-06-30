@@ -113,6 +113,67 @@ export class InventoryRepository {
     return { transactions, total };
   }
 
+  async getStockHealth(organizationId: string, warehouseId?: string) {
+    const productWhere: Prisma.ProductWhereInput = {
+      organizationId,
+      deletedAt: null,
+    };
+
+    const inventoryWhere: Prisma.InventoryWhereInput = {
+      product: productWhere,
+    };
+
+    if (warehouseId) {
+      inventoryWhere.warehouseId = warehouseId;
+    }
+
+    // Get all relevant inventory with product details
+    const inventories = await prisma.inventory.findMany({
+      where: inventoryWhere,
+      include: {
+        product: true,
+      },
+    });
+
+    let totalValue = 0;
+    let lowStockCount = 0;
+    let outOfStockCount = 0;
+    let overstockedCount = 0;
+
+    for (const inv of inventories) {
+      totalValue += Number(inv.product.costPrice) * inv.quantity;
+      
+      if (inv.quantity === 0) {
+        outOfStockCount++;
+      } else if (inv.quantity <= inv.product.minimumStock) {
+        lowStockCount++;
+      } else if (inv.product.maximumStock && inv.quantity > inv.product.maximumStock) {
+        overstockedCount++;
+      }
+    }
+
+    const totalProducts = inventories.length;
+    // Basic score calculation: start at 100, deduct for issues
+    let score = 100;
+    if (totalProducts > 0) {
+      const outOfStockPenalty = (outOfStockCount / totalProducts) * 30; // up to 30 points
+      const lowStockPenalty = (lowStockCount / totalProducts) * 15; // up to 15 points
+      const overstockPenalty = (overstockedCount / totalProducts) * 10; // up to 10 points
+      score = Math.max(0, Math.round(100 - outOfStockPenalty - lowStockPenalty - overstockPenalty));
+    } else {
+      score = 0;
+    }
+
+    return {
+      score,
+      totalValue,
+      lowStockCount,
+      outOfStockCount,
+      overstockedCount,
+      totalProducts,
+    };
+  }
+
   // Transactions-safe DB operations (passing the transaction context 'tx')
   async createInventoryEntry(
     tx: Prisma.TransactionClient,

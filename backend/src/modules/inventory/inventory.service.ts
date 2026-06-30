@@ -34,6 +34,10 @@ export class InventoryService {
     return this.inventoryRepository.findTransactionsHistory(organizationId, query, type);
   }
 
+  async getHealth(organizationId: string, warehouseId?: string) {
+    return this.inventoryRepository.getStockHealth(organizationId, warehouseId);
+  }
+
   private async verifyProductAndWarehouse(
     organizationId: string,
     productId: string,

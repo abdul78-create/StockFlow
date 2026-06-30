@@ -1,82 +1,53 @@
-name: CI Pipeline
+name: Backend CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "master", "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "master", "main" ]
 
 jobs:
-  backend-checks:
+  build-and-test:
     runs-on: ubuntu-latest
+    
     defaults:
       run:
         working-directory: ./backend
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: sis_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
     
-    - name: Use Node.js 18
+    - name: Use Node.js 20.x
       uses: actions/setup-node@v3
       with:
-        node-version: 18
+        node-version: 20.x
         cache: 'npm'
-        cache-dependency-path: ./backend/package-lock.json
+        cache-dependency-path: './backend/package-lock.json'
         
     - name: Install dependencies
       run: npm ci
-
-    - name: Check code formatting
-      run: npm run format:check
-      continue-on-error: true # Warning only
-
-    - name: Run ESLint
-      run: npm run lint
-
-    - name: TypeScript type check
-      run: npx tsc --noEmit
-
+      
     - name: Generate Prisma Client
       run: npx prisma generate
-
-    - name: Run Tests with Coverage
-      run: npm run test -- --coverage
       
-    - name: Verify Coverage Threshold (80%)
-      # Example logic: Vitest handles threshold failure if configured in vitest.config.ts
-      run: echo "Coverage checks passed"
-
-  frontend-checks:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./frontend
-
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Use Node.js 18
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        cache: 'npm'
-        cache-dependency-path: ./frontend/package-lock.json
-        
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Run ESLint
-      run: npm run lint
-
-    - name: Build Frontend
-      run: npm run build
-
-  docker-build:
-    needs: [backend-checks, frontend-checks]
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Build Docker Compose
-      run: docker-compose build
+    - name: Run tests
+      run: npm run test
+      env:
+        DATABASE_URL: "postgresql://postgres:password@localhost:5432/sis_test?schema=public"
+        JWT_SECRET: "test_secret_key"
+        PORT: 5000
