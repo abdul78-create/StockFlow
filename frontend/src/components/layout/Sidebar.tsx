@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/auth';
 import { Icons } from '../../lib/icons';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface SidebarProps {
   isOpen: boolean;

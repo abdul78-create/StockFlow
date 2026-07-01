@@ -8,6 +8,7 @@ export interface DashboardMetrics {
   inventoryValue: number;
   lowStockCount: number;
   monthlyTransactionsCount: number;
+  dailyTransactions: { date: string; transactions: number }[];
   recentActivity: any[]; // Using any for AuditLog to avoid importing missing types
 }
 
