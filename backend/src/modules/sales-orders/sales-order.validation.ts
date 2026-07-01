@@ -27,6 +27,7 @@ export const updateSOStatusSchema = z.object({
     'DELIVERED',
     'CANCELLED',
   ]),
+  warehouseId: z.string().uuid().optional(),
 });
 
 export const dispatchSOSchema = z.object({
