@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icons } from '../../lib/icons';
 import { Button } from '../ui/button';
 import {
@@ -11,10 +12,23 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { mockUser } from '../../lib/auth-guard';
+import { useAuthStore } from '../../store/auth';
+import { useTheme } from '../theme-provider';
 
 export function UserMenu() {
-  const initials = mockUser.email.substring(0, 2).toUpperCase();
+  const { logout, user } = useAuthStore();
+  const initials = user?.email?.substring(0, 2).toUpperCase() || 'U';
+  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const toggleTheme = () => {
+    setTheme(theme === 'light' ? 'dark' : 'light');
+  };
 
   return (
     <DropdownMenu>
@@ -30,27 +44,31 @@ export function UserMenu() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">Admin User</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {mockUser.email}
+              {user?.email || 'User'}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem disabled>
             <Icons.user className="mr-2 h-4 w-4" />
-            <span>Profile</span>
+            <span>Profile (Soon)</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem disabled>
             <Icons.settings className="mr-2 h-4 w-4" />
-            <span>Settings</span>
+            <span>Settings (Soon)</span>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Icons.moon className="mr-2 h-4 w-4" />
-            <span>Theme</span>
+          <DropdownMenuItem onClick={toggleTheme}>
+            {theme === 'light' ? (
+              <Icons.moon className="mr-2 h-4 w-4" />
+            ) : (
+              <Icons.sun className="mr-2 h-4 w-4" />
+            )}
+            <span>Toggle Theme</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-red-600 focus:text-red-600">
+        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={handleLogout}>
           <Icons.logout className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

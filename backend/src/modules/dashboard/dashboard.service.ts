@@ -8,6 +8,7 @@ export interface DashboardMetrics {
   inventoryValue: number;
   lowStockCount: number;
   monthlyTransactionsCount: number;
+  dailyTransactions: { date: string; transactions: number }[];
   recentActivity: AuditLog[];
 }
 
@@ -59,6 +60,37 @@ export class DashboardService {
       },
     });
 
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+    
+    const recentTx = await prisma.inventoryTransaction.findMany({
+      where: {
+        inventory: {
+          product: { organizationId },
+        },
+        createdAt: { gte: fourteenDaysAgo },
+      },
+      select: { createdAt: true },
+    });
+
+    // Group by localized short date
+    const dailyMap: Record<string, number> = {};
+    // Initialize last 14 days with 0
+    for(let i=13; i>=0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      dailyMap[d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })] = 0;
+    }
+    
+    recentTx.forEach(tx => {
+      const dateStr = tx.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      if (dailyMap[dateStr] !== undefined) {
+        dailyMap[dateStr]++;
+      }
+    });
+
+    const dailyTransactions = Object.entries(dailyMap).map(([date, transactions]) => ({ date, transactions }));
+
     // 4. Retrieve recent activity audit logs
     const recentActivity = await prisma.auditLog.findMany({
       where: { organizationId },
@@ -73,6 +105,7 @@ export class DashboardService {
       inventoryValue,
       lowStockCount,
       monthlyTransactionsCount,
+      dailyTransactions,
       recentActivity,
     };
   }

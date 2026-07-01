@@ -2,7 +2,8 @@ import * as React from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { navigationConfig, NavItem } from '../../config/navigation';
-import { filterNavItems, mockUser } from '../../lib/auth-guard';
+import { filterNavItems } from '../../lib/auth-guard';
+import { useAuthStore } from '../../store/auth';
 import { Icons } from '../../lib/icons';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { Button } from '../ui/button';
@@ -14,7 +15,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
-  const allowedNav = filterNavItems(navigationConfig, mockUser.role);
+  const { user } = useAuthStore();
+  const allowedNav = user ? filterNavItems(navigationConfig, user.role) : [];
 
   return (
     <>
@@ -70,6 +72,8 @@ export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
 function SidebarItem({ item, isOpen }: { item: NavItem; isOpen: boolean }) {
   const Icon = item.icon ? Icons[item.icon] : null;
   const [isExpanded, setIsExpanded] = React.useState(false);
+  
+  if (item.disabled) return null;
 
   if (item.children) {
     return (
@@ -94,22 +98,25 @@ function SidebarItem({ item, isOpen }: { item: NavItem; isOpen: boolean }) {
         </button>
         {isExpanded && isOpen && (
           <div className="space-y-1 pl-10 pr-2">
-            {item.children.map((child) => (
-              <NavLink
-                key={child.title}
-                to={child.href!}
-                className={({ isActive }) =>
-                  cn(
-                    'block rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                    isActive
-                      ? 'bg-muted font-semibold text-foreground'
-                      : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-                  )
-                }
-              >
-                {child.title}
-              </NavLink>
-            ))}
+            {item.children.map((child) => {
+              if (child.disabled) return null;
+              return (
+                <NavLink
+                  key={child.title}
+                  to={child.href!}
+                  className={({ isActive }) =>
+                    cn(
+                      'block rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-muted font-semibold text-foreground'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                    )
+                  }
+                >
+                  {child.title}
+                </NavLink>
+              );
+            })}
           </div>
         )}
       </div>
@@ -117,21 +124,35 @@ function SidebarItem({ item, isOpen }: { item: NavItem; isOpen: boolean }) {
   }
 
   return (
-    <NavLink
-      to={item.href!}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
-          isActive
-            ? 'bg-primary/10 font-semibold text-primary'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-          isOpen ? 'justify-start' : 'justify-center'
-        )
-      }
-      title={!isOpen ? item.title : undefined}
-    >
-      {Icon && <Icon className={cn('h-5 w-5 flex-shrink-0', isOpen && 'mr-3')} />}
-      {isOpen && <span>{item.title}</span>}
-    </NavLink>
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <NavLink
+            to={item.href!}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary/10 font-semibold text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                isOpen ? 'justify-start' : 'justify-center'
+              )
+            }
+          >
+            {Icon && <Icon className={cn('h-5 w-5 flex-shrink-0', isOpen && 'mr-3')} />}
+            {isOpen && (
+              <div className="flex flex-1 items-center justify-between">
+                <span>{item.title}</span>
+              </div>
+            )}
+          </NavLink>
+        </TooltipTrigger>
+        {!isOpen && (
+          <TooltipContent side="right">
+            {item.title}
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
   );
 }

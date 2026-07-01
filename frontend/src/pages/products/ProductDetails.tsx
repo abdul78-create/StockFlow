@@ -15,7 +15,7 @@ import { ProductDrawer } from './components/ProductDrawer';
 export function ProductDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { data: product, isLoading, error, refetch } = useProduct(id);
+  const { data: product, isLoading, error } = useProduct(id);
   const deleteMutation = useDeleteProduct();
 
   const [isEditDrawerOpen, setIsEditDrawerOpen] = React.useState(false);
@@ -35,24 +35,6 @@ export function ProductDetails() {
     }
   };
 
-  // Mock timeline events for demonstration
-  const mockTimelineEvents = [
-    {
-      id: '1',
-      title: 'Product Created',
-      description: 'Admin User created this product.',
-      date: new Date(product?.createdAt || Date.now()).toLocaleDateString(),
-      icon: 'add' as const,
-      status: 'success' as const,
-    },
-    {
-      id: '2',
-      title: 'Price Updated',
-      description: `Selling price was set to $${product?.sellingPrice || 0}`,
-      date: new Date(product?.updatedAt || Date.now()).toLocaleDateString(),
-      icon: 'edit' as const,
-    },
-  ];
 
   return (
     <QueryStateWrapper
@@ -93,7 +75,7 @@ export function ProductDetails() {
           <Tabs defaultValue="details" className="space-y-4">
             <TabsList>
               <TabsTrigger value="details">Overview</TabsTrigger>
-              <TabsTrigger value="timeline">Audit Timeline</TabsTrigger>
+
             </TabsList>
             <TabsContent value="details" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -141,16 +123,7 @@ export function ProductDetails() {
                 </CardContent>
               </Card>
             </TabsContent>
-            <TabsContent value="timeline">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Activity History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Timeline events={mockTimelineEvents} />
-                </CardContent>
-              </Card>
-            </TabsContent>
+
           </Tabs>
 
           <ProductDrawer 

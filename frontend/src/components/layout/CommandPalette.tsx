@@ -50,9 +50,9 @@ export function CommandPalette({
         <CommandEmpty>No results found.</CommandEmpty>
         
         <CommandGroup heading="Navigation">
-          {navigationConfig.map((item) => {
+          {navigationConfig.filter(item => !item.disabled).map((item) => {
             if (item.children) {
-              return item.children.map((child) => (
+              return item.children.filter(child => !child.disabled).map((child) => (
                 <CommandItem
                   key={child.title}
                   value={`Go to ${child.title}`}

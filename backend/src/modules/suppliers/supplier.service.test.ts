@@ -18,7 +18,7 @@ describe('SupplierService', () => {
     service = new SupplierService();
     
     // Get the mocked instance injected into the service
-    mockRepository = (service as any).repository;
+    mockRepository = (service as unknown as { repository: Mocked<SupplierRepository> }).repository;
   });
 
   describe('createSupplier', () => {

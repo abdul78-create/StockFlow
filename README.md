@@ -46,7 +46,7 @@ git clone https://github.com/yourusername/stockflow.git
 cd stockflow
 
 # 2. Start the stack
-docker-compose up --build
+docker compose up --build
 ```
 
 - **Frontend**: http://localhost:5173
@@ -58,9 +58,9 @@ docker-compose up --build
 If you prefer to run the services locally without Docker:
 
 ### 1. Database
-Ensure PostgreSQL is running locally, or start it via docker-compose:
+Ensure PostgreSQL is running locally, or start it via docker compose:
 ```bash
-docker-compose up -d db redis
+docker compose up -d db redis
 ```
 
 ### 2. Backend
@@ -79,6 +79,15 @@ npm install
 # Setup env vars
 npm run dev
 ```
+
+## Documentation
+
+For deep dives into the system, refer to the following RC1 documents:
+- [Architecture](ARCHITECTURE.md)
+- [API Documentation](API.md)
+- [Deployment Guide](DEPLOYMENT.md)
+- [Internship Demo Script](INTERNSHIP_DEMO.md)
+- [Production Readiness Report](PRODUCTION_READINESS_REPORT.md)
 
 ## Architecture
 

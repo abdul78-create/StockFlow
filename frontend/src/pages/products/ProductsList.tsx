@@ -21,7 +21,7 @@ import {
 
 export function ProductsList() {
   const navigate = useNavigate();
-  const { data, isLoading, error, refetch } = useProducts({});
+  const { data, isLoading, error } = useProducts({});
   const deleteMutation = useDeleteProduct();
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = React.useState(false);
@@ -149,11 +149,6 @@ export function ProductsList() {
             enableExport={true}
             exportFilename="products-export.csv"
             onRowClick={(row) => navigate(`/products/${row.id}`)}
-            bulkActions={
-              <Button variant="outline" size="sm" className="h-8">
-                <Icons.delete className="mr-2 h-4 w-4" /> Archive Selected
-              </Button>
-            }
           />
         )}
       </QueryStateWrapper>

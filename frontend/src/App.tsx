@@ -5,7 +5,8 @@ import { DesignSystemShowcase } from '@/pages/design-system/DesignSystemShowcase
 import { DashboardLayout } from '@/components/layout/layouts/DashboardLayout';
 import { AuthLayout } from '@/components/layout/layouts/AuthLayout';
 import { BlankLayout } from '@/components/layout/layouts/BlankLayout';
-import { ShellPreview } from '@/pages/shell/ShellPreview';
+import { DashboardPage } from '@/pages/dashboard/DashboardPage';
+import { ReportsPage } from '@/pages/reports/ReportsPage';
 import { Login } from '@/pages/auth/Login';
 import { PurchaseOrderList } from '@/pages/purchase-orders/PurchaseOrderList';
 import { PurchaseOrderForm } from '@/pages/purchase-orders/PurchaseOrderForm';
@@ -45,8 +46,9 @@ function App() {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              <Route path="/" element={<Navigate to="/shell-preview" replace />} />
-              <Route path="/shell-preview" element={<ShellPreview />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/reports" element={<ReportsPage />} />
               
               {/* Product Management */}
               <Route path="/products" element={<ProductsList />} />

@@ -14,7 +14,7 @@ describe('CustomerService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     service = new CustomerService();
-    mockRepository = (service as any).customerRepository;
+    mockRepository = (service as unknown as { customerRepository: Mocked<CustomerRepository> }).customerRepository;
   });
 
   describe('createCustomer', () => {
@@ -36,7 +36,7 @@ describe('CustomerService', () => {
       };
 
       mockRepository.create.mockResolvedValue(mockResponse);
-      (AuditService.log as any).mockResolvedValue(true);
+      (AuditService.log as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 
       const result = await service.createCustomer('org-1', 'user-1', mockInput);
 

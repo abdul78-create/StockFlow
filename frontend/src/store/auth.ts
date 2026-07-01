@@ -34,13 +34,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   checkAuth: async () => {
     try {
       set({ isLoading: true, error: null });
-      // In a real app, this hits /auth/me
-      // For this UX mock, we assume not authenticated unless set manually
       const response = await api.get('/auth/me').catch(() => null);
       if (response?.data?.success) {
         set({ user: response.data.data, isAuthenticated: true });
-      } else {
-        // We do not overwrite if user is already set (for mock purposes)
       }
     } catch (error) {
       // Ignore
@@ -52,25 +48,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email, password) => {
     try {
       set({ isLoading: true, error: null });
-      // Simulate network request
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await api.post('/auth/login', { email, password });
       
-      // Mock validation
-      if (email === 'admin@test.com' && password === 'password') {
-        const mockUser: User = {
-          id: '1',
-          email,
-          firstName: 'Admin',
-          lastName: 'User',
-          role: 'ADMIN',
-          organizationId: 'org_1',
-        };
-        set({ user: mockUser, isAuthenticated: true });
-      } else {
-        set({ error: 'Invalid email or password. Try admin@test.com / password' });
+      if (response.data?.success) {
+        const user = response.data.data.user;
+        set({ user, isAuthenticated: true });
       }
-    } catch (err) {
-      set({ error: 'A network error occurred. Please try again later.' });
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Invalid email or password.';
+      set({ error: errorMessage });
     } finally {
       set({ isLoading: false });
     }
@@ -79,10 +65,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     try {
       set({ isLoading: true });
-      // await api.post('/auth/logout');
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await api.post('/auth/logout');
       set({ user: null, isAuthenticated: false, error: null });
-      // window.location.href = '/login';
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout failed', error);
     } finally {

@@ -87,18 +87,6 @@ export function GlobalQuickCreate() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => navigate('/customers/new')}>
-            <Icons.customers className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span>New Customer</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/suppliers/new')}>
-            <Icons.warehouse className="mr-2 h-4 w-4 text-muted-foreground" />
-            <span>New Supplier</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
 
       </DropdownMenuContent>
     </DropdownMenu>

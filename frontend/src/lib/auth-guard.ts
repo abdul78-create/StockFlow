@@ -8,12 +8,6 @@ export interface CurrentUser {
   organizationId: string;
 }
 
-export const mockUser: CurrentUser = {
-  id: '1',
-  email: 'admin@stockflow.com',
-  role: 'ADMIN',
-  organizationId: 'org_1',
-};
 
 /**
  * Checks if the user's role is authorized against a list of required roles.

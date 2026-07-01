@@ -8,6 +8,7 @@ export interface NavItem {
   icon?: keyof typeof Icons;
   roles?: Role[];
   children?: NavItem[];
+  disabled?: boolean;
 }
 
 export const navigationConfig: NavItem[] = [
@@ -32,6 +33,7 @@ export const navigationConfig: NavItem[] = [
         title: 'Warehouses',
         href: '/warehouses',
         roles: ['ADMIN', 'MANAGER'],
+        disabled: true,
       },
     ],
   },
@@ -46,6 +48,7 @@ export const navigationConfig: NavItem[] = [
       {
         title: 'Suppliers',
         href: '/suppliers',
+        disabled: true,
       },
     ],
   },
@@ -60,6 +63,7 @@ export const navigationConfig: NavItem[] = [
       {
         title: 'Customers',
         href: '/customers',
+        disabled: true,
       },
     ],
   },
@@ -74,5 +78,6 @@ export const navigationConfig: NavItem[] = [
     href: '/settings',
     icon: 'settings',
     roles: ['ADMIN'],
+    disabled: true,
   },
 ];

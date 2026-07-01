@@ -77,13 +77,6 @@ export function WorkspaceSwitcher() {
             )}
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="p-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md border bg-background">
-            <Icons.add className="h-4 w-4" />
-          </div>
-          <span className="ml-2 font-medium">Create Workspace</span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

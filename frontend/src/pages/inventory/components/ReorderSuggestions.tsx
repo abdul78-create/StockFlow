@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useInventoryBalances } from '@/lib/hooks/useInventory';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ interface ReorderSuggestionsProps {
 }
 
 export function ReorderSuggestions({ warehouseId }: ReorderSuggestionsProps) {
+  const navigate = useNavigate();
   // In a real scenario, there might be a dedicated endpoint for suggestions.
   // We'll use the balances endpoint and filter client-side for this demo.
   const { data, isLoading, isError } = useInventoryBalances({ warehouseId, limit: 100 });
@@ -81,7 +83,12 @@ export function ReorderSuggestions({ warehouseId }: ReorderSuggestionsProps) {
                     <td className="py-3 text-muted-foreground">{item.product.minimumStock}</td>
                     <td className="py-3 text-success font-medium">+{suggestedQty}</td>
                     <td className="py-3 text-right">
-                      <Button variant="outline" size="sm" className="h-8">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-8"
+                        onClick={() => navigate('/purchase-orders/new')}
+                      >
                         Create PO
                       </Button>
                     </td>
