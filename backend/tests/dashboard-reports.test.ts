@@ -11,7 +11,7 @@ vi.mock('../src/infra/database/prisma', () => ({
     warehouse: { count: vi.fn() },
     supplier: { count: vi.fn() },
     inventory: { findMany: vi.fn() },
-    inventoryTransaction: { count: vi.fn() },
+    inventoryTransaction: { count: vi.fn(), findMany: vi.fn() },
     auditLog: { findMany: vi.fn() },
     category: { findMany: vi.fn() },
     salesOrder: { groupBy: vi.fn() },
@@ -45,6 +45,7 @@ describe('Dashboard and Reports Service Unit Tests', () => {
       ]);
 
       (prisma.inventoryTransaction.count as any).mockResolvedValue(50);
+      (prisma.inventoryTransaction.findMany as any).mockResolvedValue([]);
       (prisma.auditLog.findMany as any).mockResolvedValue([]);
 
       const result = await dashboardService.getMetrics(orgId);

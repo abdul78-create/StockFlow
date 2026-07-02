@@ -22,6 +22,9 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ProductsList } from '@/pages/products/ProductsList';
 import { ProductDetails } from '@/pages/products/ProductDetails';
 import { InventoryDashboard } from '@/pages/inventory/InventoryDashboard';
+import { WarehousesList } from '@/pages/warehouses/WarehousesList';
+import { SuppliersList } from '@/pages/suppliers/SuppliersList';
+import { CustomersList } from '@/pages/customers/CustomersList';
 
 function App() {
   return (
@@ -56,6 +59,11 @@ function App() {
               
               {/* Inventory Management */}
               <Route path="/inventory" element={<InventoryDashboard />} />
+              <Route path="/warehouses" element={<WarehousesList />} />
+
+              {/* CRM / Suppliers */}
+              <Route path="/suppliers" element={<SuppliersList />} />
+              <Route path="/customers" element={<CustomersList />} />
 
               {/* Purchase Orders */}
               <Route path="/purchase-orders" element={<PurchaseOrderList />} />

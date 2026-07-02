@@ -1,21 +1,35 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { Customer, CustomerFormValues } from '../types/customer';
+import { toast } from 'sonner';
 
-export interface Customer {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  gst?: string;
-}
-
-export function useCustomers(params?: { search?: string; page?: number; limit?: number }) {
+export function useCustomers(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+}) {
   return useQuery({
     queryKey: ['customers', params],
     queryFn: async () => {
       const response = await api.get('/customers', { params });
-      return response.data.data as Customer[];
+      return response.data.data.customers as Customer[];
     },
+  });
+}
+
+export function useCreateCustomer() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: CustomerFormValues) => {
+      return api.post('/customers', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
+      toast.success('Customer created successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to create customer');
+    }
   });
 }

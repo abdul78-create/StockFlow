@@ -33,7 +33,6 @@ export const navigationConfig: NavItem[] = [
         title: 'Warehouses',
         href: '/warehouses',
         roles: ['ADMIN', 'MANAGER'],
-        disabled: true,
       },
     ],
   },
@@ -48,7 +47,6 @@ export const navigationConfig: NavItem[] = [
       {
         title: 'Suppliers',
         href: '/suppliers',
-        disabled: true,
       },
     ],
   },
@@ -63,7 +61,6 @@ export const navigationConfig: NavItem[] = [
       {
         title: 'Customers',
         href: '/customers',
-        disabled: true,
       },
     ],
   },
