@@ -17,6 +17,32 @@ export function useCustomers(params?: {
   });
 }
 
+export function useCustomer(id: string) {
+  return useQuery({
+    queryKey: ['customer', id],
+    queryFn: async () => {
+      const response = await api.get(`/customers/${id}`);
+      return response.data.data as Customer;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useCustomerStats(id: string) {
+  return useQuery({
+    queryKey: ['customer-stats', id],
+    queryFn: async () => {
+      const response = await api.get(`/customers/${id}/stats`);
+      return response.data.data as {
+        totalOrders: number;
+        totalRevenue: number;
+        lastOrderDate: string | null;
+      };
+    },
+    enabled: !!id,
+  });
+}
+
 export function useCreateCustomer() {
   const queryClient = useQueryClient();
   

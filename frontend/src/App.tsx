@@ -23,10 +23,38 @@ import { ProductsList } from '@/pages/products/ProductsList';
 import { ProductDetails } from '@/pages/products/ProductDetails';
 import { InventoryDashboard } from '@/pages/inventory/InventoryDashboard';
 import { WarehousesList } from '@/pages/warehouses/WarehousesList';
+import { WarehouseDetails } from '@/pages/warehouses/WarehouseDetails';
 import { SuppliersList } from '@/pages/suppliers/SuppliersList';
+import { SupplierDetails } from '@/pages/suppliers/SupplierDetails';
 import { CustomersList } from '@/pages/customers/CustomersList';
+import { CustomerDetails } from '@/pages/customers/CustomerDetails';
+import { Signup } from '@/pages/auth/Signup';
+import { VerifyEmail } from '@/pages/onboarding/VerifyEmail';
+import { CreateWorkspace } from '@/pages/onboarding/CreateWorkspace';
+import { WorkspaceIndustry } from '@/pages/onboarding/WorkspaceIndustry';
+import { WorkspaceInvite } from '@/pages/onboarding/WorkspaceInvite';
+import { SettingsLayout } from '@/pages/settings/SettingsLayout';
+import { WorkspaceSettings } from '@/pages/settings/WorkspaceSettings';
+import { TeamSettings } from '@/pages/settings/TeamSettings';
+import { SecuritySettings } from '@/pages/settings/SecuritySettings';
+import { ProfileSettings } from '@/pages/settings/ProfileSettings';
+import { BillingSettings } from '@/pages/settings/BillingSettings';
+import { InvitationAcceptance } from '@/pages/onboarding/InvitationAcceptance';
+
+import { useAuthStore } from '@/store/auth';
 
 function App() {
+  const { checkAuth } = useAuthStore();
+  const [isInitializing, setIsInitializing] = React.useState(true);
+
+  React.useEffect(() => {
+    checkAuth().finally(() => setIsInitializing(false));
+  }, [checkAuth]);
+
+  if (isInitializing) {
+    return null; // Or a global loading spinner
+  }
+
   return (
     <AppProviders>
       <BrowserRouter>
@@ -34,7 +62,14 @@ function App() {
           {/* Public / Auth Routes */}
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Onboarding Routes - In a real app these might have a specific ProtectedRoute variant */}
+            <Route path="/onboarding/verify-email" element={<VerifyEmail />} />
+            <Route path="/onboarding/workspace" element={<CreateWorkspace />} />
+            <Route path="/onboarding/industry" element={<WorkspaceIndustry />} />
+            <Route path="/onboarding/invite" element={<WorkspaceInvite />} />
           </Route>
 
           <Route element={<BlankLayout />}>
@@ -60,10 +95,13 @@ function App() {
               {/* Inventory Management */}
               <Route path="/inventory" element={<InventoryDashboard />} />
               <Route path="/warehouses" element={<WarehousesList />} />
+              <Route path="/warehouses/:id" element={<WarehouseDetails />} />
 
               {/* CRM / Suppliers */}
               <Route path="/suppliers" element={<SuppliersList />} />
+              <Route path="/suppliers/:id" element={<SupplierDetails />} />
               <Route path="/customers" element={<CustomersList />} />
+              <Route path="/customers/:id" element={<CustomerDetails />} />
 
               {/* Purchase Orders */}
               <Route path="/purchase-orders" element={<PurchaseOrderList />} />
@@ -74,8 +112,20 @@ function App() {
               <Route path="/sales-orders" element={<SalesOrderList />} />
               <Route path="/sales-orders/new" element={<SalesOrderForm />} />
               <Route path="/sales-orders/:id" element={<SalesOrderDetails />} />
+              {/* Settings */}
+              <Route path="/settings" element={<SettingsLayout />}>
+                <Route index element={<Navigate to="/settings/workspace" replace />} />
+                <Route path="workspace" element={<WorkspaceSettings />} />
+                <Route path="team" element={<TeamSettings />} />
+                <Route path="security" element={<SecuritySettings />} />
+                <Route path="profile" element={<ProfileSettings />} />
+                <Route path="billing" element={<BillingSettings />} />
+              </Route>
             </Route>
           </Route>
+
+          {/* Invitation Acceptance (Public/Protected hybrid) */}
+          <Route path="/invite/:token" element={<InvitationAcceptance />} />
 
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/unauthorized" replace />} />

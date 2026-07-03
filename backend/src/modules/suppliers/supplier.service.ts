@@ -1,6 +1,7 @@
 import { SupplierRepository } from './supplier.repository';
 import { NotFoundError } from '../../common/errors/app-error';
 import logger from '../../infra/logger';
+import prisma from '../../infra/database/prisma';
 
 export class SupplierService {
   private repository: SupplierRepository;
@@ -36,6 +37,47 @@ export class SupplierService {
       throw new NotFoundError('Supplier not found');
     }
     return supplier;
+  }
+
+  async getSupplierStats(id: string, organizationId: string) {
+    const supplier = await this.repository.findById(id, organizationId);
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+
+    const aggregations = await prisma.purchaseOrder.aggregate({
+      where: {
+        organizationId,
+        supplierId: id,
+        deletedAt: null,
+      },
+      _count: {
+        id: true,
+      },
+      _max: {
+        createdAt: true,
+      },
+    });
+
+    const spendAggregations = await prisma.purchaseOrder.aggregate({
+      where: {
+        organizationId,
+        supplierId: id,
+        deletedAt: null,
+        status: {
+          not: 'CANCELLED',
+        },
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    return {
+      totalOrders: aggregations._count.id,
+      lastOrderDate: aggregations._max.createdAt,
+      totalSpend: spendAggregations._sum.totalAmount || 0,
+    };
   }
 
   async updateSupplier(

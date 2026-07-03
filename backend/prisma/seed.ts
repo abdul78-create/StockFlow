@@ -30,9 +30,23 @@ async function main() {
       firstName: 'Abdul',
       lastName: 'Admin',
       passwordHash,
-      role: 'ADMIN',
-      organizationId: organization.id,
       isActive: true,
+    },
+  });
+
+  await prisma.organizationMember.upsert({
+    where: {
+      userId_organizationId: {
+        userId: admin.id,
+        organizationId: organization.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: admin.id,
+      organizationId: organization.id,
+      role: 'OWNER',
+      status: 'ACTIVE',
     },
   });
   console.log(`Created Admin User: ${admin.email}`);

@@ -6,7 +6,7 @@ import {
   customerIdParamSchema,
 } from './customer.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new CustomerController();
@@ -65,6 +65,31 @@ router.get(
 
 /**
  * @openapi
+ * /api/v1/customers/{id}/stats:
+ *   get:
+ *     summary: Get Customer stats
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Customer stats returned.
+ */
+router.get(
+  '/:id/stats',
+  authenticate,
+  validateRequest({ params: customerIdParamSchema }),
+  controller.getCustomerStats,
+);
+
+/**
+ * @openapi
  * /api/v1/customers:
  *   post:
  *     summary: Create new customer
@@ -101,7 +126,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('customers.create'),
   validateRequest({ body: createCustomerSchema }),
   controller.createCustomer,
 );
@@ -133,7 +158,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('customers.update'),
   validateRequest({ params: customerIdParamSchema, body: updateCustomerSchema }),
   controller.updateCustomer,
 );
@@ -159,7 +184,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('customers.update'),
   validateRequest({ params: customerIdParamSchema }),
   controller.deleteCustomer,
 );
@@ -185,7 +210,7 @@ router.delete(
 router.post(
   '/:id/restore',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('customers.update'),
   validateRequest({ params: customerIdParamSchema }),
   controller.restoreCustomer,
 );

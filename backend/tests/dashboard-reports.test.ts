@@ -10,11 +10,13 @@ vi.mock('../src/infra/database/prisma', () => ({
     product: { count: vi.fn() },
     warehouse: { count: vi.fn() },
     supplier: { count: vi.fn() },
+    customer: { count: vi.fn() },
+    purchaseOrder: { count: vi.fn(), findMany: vi.fn() },
     inventory: { findMany: vi.fn() },
     inventoryTransaction: { count: vi.fn(), findMany: vi.fn() },
     auditLog: { findMany: vi.fn() },
     category: { findMany: vi.fn() },
-    salesOrder: { groupBy: vi.fn() },
+    salesOrder: { count: vi.fn(), findMany: vi.fn(), groupBy: vi.fn() },
   },
 }));
 
@@ -35,6 +37,11 @@ describe('Dashboard and Reports Service Unit Tests', () => {
       (prisma.product.count as any).mockResolvedValue(10);
       (prisma.warehouse.count as any).mockResolvedValue(2);
       (prisma.supplier.count as any).mockResolvedValue(5);
+      (prisma.customer.count as any).mockResolvedValue(3);
+      (prisma.salesOrder.count as any).mockResolvedValue(4);
+      (prisma.purchaseOrder.count as any).mockResolvedValue(6);
+      (prisma.salesOrder.findMany as any).mockResolvedValue([{ totalAmount: 250 }]);
+      (prisma.purchaseOrder.findMany as any).mockResolvedValue([{ totalAmount: 125 }]);
 
       // Mock inventory valuation (2 items with costPrice 100, quantity 5 -> total 1000)
       // One has minStock 10 (qty 5 <= 10 -> low stock warning)
@@ -53,6 +60,11 @@ describe('Dashboard and Reports Service Unit Tests', () => {
       expect(result.totalProducts).toBe(10);
       expect(result.totalWarehouses).toBe(2);
       expect(result.totalSuppliers).toBe(5);
+      expect(result.totalCustomers).toBe(3);
+      expect(result.totalSalesOrders).toBe(4);
+      expect(result.totalPurchaseOrders).toBe(6);
+      expect(result.revenue).toBe(250);
+      expect(result.expenses).toBe(125);
       expect(result.inventoryValue).toBe(1000);
       expect(result.lowStockCount).toBe(1);
       expect(result.monthlyTransactionsCount).toBe(50);

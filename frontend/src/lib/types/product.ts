@@ -21,6 +21,7 @@ export interface Product {
   organizationId: string;
   createdAt: string;
   updatedAt: string;
+  variants?: any[];
 }
 
 // Zod schemas for forms

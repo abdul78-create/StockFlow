@@ -3,13 +3,12 @@ import { Inventory, InventoryTransaction, Prisma, TransactionType } from '@prism
 import { ParsedQuery } from '../../common/utils/query';
 
 export class InventoryRepository {
-  async findEntry(warehouseId: string, productId: string): Promise<Inventory | null> {
-    return prisma.inventory.findUnique({
+  async findEntry(warehouseId: string, productId: string, variantId: string | null = null): Promise<Inventory | null> {
+    return prisma.inventory.findFirst({
       where: {
-        warehouseId_productId: {
-          warehouseId,
-          productId,
-        },
+        warehouseId,
+        productId,
+        variantId,
       },
     });
   }
@@ -18,6 +17,7 @@ export class InventoryRepository {
     organizationId: string,
     query: ParsedQuery,
     categoryId?: string,
+    warehouseId?: string,
   ): Promise<{ balances: unknown[]; total: number }> {
     const productWhere: Prisma.ProductWhereInput = {
       organizationId,
@@ -38,6 +38,10 @@ export class InventoryRepository {
     const whereClause: Prisma.InventoryWhereInput = {
       product: productWhere,
     };
+
+    if (warehouseId) {
+      whereClause.warehouseId = warehouseId;
+    }
 
     const [balances, total] = await prisma.$transaction([
       prisma.inventory.findMany({
@@ -68,6 +72,7 @@ export class InventoryRepository {
     organizationId: string,
     query: ParsedQuery,
     type?: TransactionType,
+    warehouseId?: string,
   ): Promise<{ transactions: unknown[]; total: number }> {
     const productWhere: Prisma.ProductWhereInput = {
       organizationId,
@@ -83,6 +88,10 @@ export class InventoryRepository {
     const inventoryWhere: Prisma.InventoryWhereInput = {
       product: productWhere,
     };
+
+    if (warehouseId) {
+      inventoryWhere.warehouseId = warehouseId;
+    }
 
     const whereClause: Prisma.InventoryTransactionWhereInput = {
       inventory: inventoryWhere,
@@ -180,11 +189,13 @@ export class InventoryRepository {
     warehouseId: string,
     productId: string,
     quantity: number,
+    variantId: string | null = null,
   ): Promise<Inventory> {
     return tx.inventory.create({
       data: {
         warehouseId,
         productId,
+        variantId,
         quantity,
       },
     });

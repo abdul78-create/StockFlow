@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useInventoryValuation, useLowStockReport, useSalesSummary } from '@/lib/hooks/useReports';
+import { useInventoryValuation, useLowStockReport, useSalesSummary, usePurchaseSummary } from '@/lib/hooks/useReports';
 import { PageTemplate } from '@/components/layout/PageTemplate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,6 +12,7 @@ export function ReportsPage() {
   const valuationQuery = useInventoryValuation();
   const lowStockQuery = useLowStockReport();
   const salesQuery = useSalesSummary();
+  const purchaseQuery = usePurchaseSummary();
 
   const valuationColumns: ColumnDef<any>[] = [
     { accessorKey: 'categoryName', header: 'Category' },
@@ -48,6 +49,16 @@ export function ReportsPage() {
     },
   ];
 
+  const purchaseColumns: ColumnDef<any>[] = [
+    { accessorKey: 'status', header: 'Order Status' },
+    { accessorKey: 'count', header: 'Total Orders' },
+    { 
+      accessorKey: 'totalExpense', 
+      header: 'Expense',
+      cell: ({ row }) => `$${row.original.totalExpense.toLocaleString(undefined, { minimumFractionDigits: 2 })}` 
+    },
+  ];
+
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
   return (
@@ -60,6 +71,7 @@ export function ReportsPage() {
           <TabsTrigger value="valuation">Inventory Valuation</TabsTrigger>
           <TabsTrigger value="low-stock">Low Stock Alerts</TabsTrigger>
           <TabsTrigger value="sales">Sales Summary</TabsTrigger>
+          <TabsTrigger value="purchases">Purchases Summary</TabsTrigger>
         </TabsList>
 
         <TabsContent value="valuation">
@@ -183,6 +195,58 @@ export function ReportsPage() {
                     <div>
                       <DataTable
                         columns={salesColumns}
+                        data={data}
+                        isLoading={false}
+                        searchKey="status"
+                        searchPlaceholder="Filter statuses..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </QueryStateWrapper>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="purchases">
+          <Card>
+            <CardHeader>
+              <CardTitle>Purchase Performance</CardTitle>
+              <CardDescription>Aggregate view of purchase orders and expenses by status.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QueryStateWrapper
+                isLoading={purchaseQuery.isLoading}
+                error={purchaseQuery.error}
+                data={purchaseQuery.data}
+                isEmpty={(d) => !d || d.length === 0}
+              >
+                {(data) => (
+                  <div className="grid gap-6 md:grid-cols-[1fr_2fr]">
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={data}
+                            dataKey="totalExpense"
+                            nameKey="status"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={80}
+                            label={false}
+                          >
+                            {data.map((_: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[(index + 1) % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(val: any) => `$${Number(val || 0).toLocaleString()}`} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div>
+                      <DataTable
+                        columns={purchaseColumns}
                         data={data}
                         isLoading={false}
                         searchKey="status"

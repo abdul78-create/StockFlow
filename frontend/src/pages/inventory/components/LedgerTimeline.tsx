@@ -59,7 +59,7 @@ export function LedgerTimeline({ warehouseId }: LedgerTimelineProps) {
 
     const title = (
       <div className="flex justify-between items-center w-full">
-        <span>{txn.product.name}</span>
+        <span>{txn.inventory?.product?.name || 'Unknown'}</span>
         <span className={status === 'success' ? 'text-success' : status === 'error' ? 'text-destructive' : 'text-foreground font-medium'}>
           {txn.quantity > 0 ? `+${txn.quantity}` : txn.quantity}
         </span>
@@ -69,7 +69,7 @@ export function LedgerTimeline({ warehouseId }: LedgerTimelineProps) {
     return {
       id: txn.id,
       title: `${txn.type} (${txn.quantity > 0 ? '+' : ''}${txn.quantity})`,
-      description: `${txn.product.name} at ${txn.warehouse.name}`,
+      description: `${txn.inventory?.product?.name || 'Unknown'} at ${txn.inventory?.warehouse?.name || 'Unknown'}`,
       date: new Date(txn.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       icon,
       status,

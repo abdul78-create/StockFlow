@@ -10,7 +10,7 @@ export class SupplierController {
 
   createSupplier = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const supplier = await this.service.createSupplier({
         ...req.body,
         organizationId,
@@ -27,7 +27,7 @@ export class SupplierController {
 
   getSuppliers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const search = req.query.search as string;
@@ -49,7 +49,7 @@ export class SupplierController {
 
   getSupplierById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const id = req.params.id;
 
       const supplier = await this.service.getSupplierById(id, organizationId);
@@ -63,9 +63,25 @@ export class SupplierController {
     }
   };
 
+  getSupplierStats = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const organizationId = req.workspace!.organizationId;
+      const id = req.params.id;
+
+      const stats = await this.service.getSupplierStats(id, organizationId);
+
+      res.status(200).json({
+        status: 'success',
+        data: stats,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   updateSupplier = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const id = req.params.id;
 
       const supplier = await this.service.updateSupplier(id, organizationId, req.body);

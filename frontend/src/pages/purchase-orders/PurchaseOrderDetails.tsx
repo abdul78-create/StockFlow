@@ -120,6 +120,11 @@ export function PurchaseOrderDetails() {
                             <TableCell className="font-medium">
                               {item.product?.name}
                               <div className="text-xs text-muted-foreground">{item.product?.sku}</div>
+                              {item.variant && (
+                                <div className="text-xs text-muted-foreground mt-1 text-emerald-600">
+                                  Variant: {item.variant.name} ({item.variant.sku})
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell className="text-right">{item.quantity}</TableCell>
                             <TableCell className="text-right">{item.receivedQuantity || 0}</TableCell>

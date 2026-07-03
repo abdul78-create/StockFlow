@@ -27,25 +27,15 @@ export class ProductService {
     return product;
   }
 
-  private async validateCategoryAndSupplier(
+  private async validateCategory(
     organizationId: string,
     categoryId: string,
-    supplierId?: string,
   ): Promise<void> {
     const category = await prisma.category.findFirst({
       where: { id: categoryId, organizationId, deletedAt: null },
     });
     if (!category) {
       throw new NotFoundError('Category not found or does not belong to your organization');
-    }
-
-    if (supplierId) {
-      const supplier = await prisma.supplier.findFirst({
-        where: { id: supplierId, organizationId, deletedAt: null },
-      });
-      if (!supplier) {
-        throw new NotFoundError('Supplier not found or does not belong to your organization');
-      }
     }
   }
 
@@ -59,7 +49,7 @@ export class ProductService {
       throw new ConflictError(`Product SKU '${input.sku}' is already in use by another product`);
     }
 
-    await this.validateCategoryAndSupplier(organizationId, input.categoryId, input.supplierId);
+    await this.validateCategory(organizationId, input.categoryId);
 
     const product = await this.productRepository.create(organizationId, input);
 
@@ -91,8 +81,7 @@ export class ProductService {
     }
 
     const categoryId = input.categoryId || product.categoryId;
-    const supplierId = input.supplierId || product.supplierId || undefined;
-    await this.validateCategoryAndSupplier(organizationId, categoryId, supplierId);
+    await this.validateCategory(organizationId, categoryId);
 
     const costPrice = input.costPrice !== undefined ? input.costPrice : Number(product.costPrice);
     const sellingPrice =
@@ -141,4 +130,46 @@ export class ProductService {
 
     return restored;
   }
+
+  // New Methods for Products 2.0
+  async addVariant(organizationId: string, productId: string, data: any) {
+    const product = await this.getProductById(organizationId, productId);
+    return prisma.productVariant.create({
+      data: {
+        productId: product.id,
+        name: data.name,
+        sku: data.sku,
+        barcode: data.barcode,
+        price: data.price,
+        cost: data.cost,
+      }
+    });
+  }
+
+  async addSupplier(organizationId: string, productId: string, data: any) {
+    const product = await this.getProductById(organizationId, productId);
+    return prisma.productSupplier.create({
+      data: {
+        productId: product.id,
+        supplierId: data.supplierId,
+        supplierSku: data.supplierSku,
+        supplierPrice: data.supplierPrice,
+        leadTimeDays: data.leadTimeDays,
+        isDefault: data.isDefault,
+      }
+    });
+  }
+
+  async addUnit(organizationId: string, productId: string, data: any) {
+    const product = await this.getProductById(organizationId, productId);
+    return prisma.productUnit.create({
+      data: {
+        productId: product.id,
+        name: data.name,
+        conversionRatio: data.conversionRatio,
+        barcode: data.barcode,
+      }
+    });
+  }
+
 }

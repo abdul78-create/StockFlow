@@ -17,6 +17,32 @@ export function useSuppliers(params?: {
   });
 }
 
+export function useSupplier(id: string) {
+  return useQuery({
+    queryKey: ['supplier', id],
+    queryFn: async () => {
+      const response = await api.get(`/suppliers/${id}`);
+      return response.data.data as Supplier;
+    },
+    enabled: !!id,
+  });
+}
+
+export function useSupplierStats(id: string) {
+  return useQuery({
+    queryKey: ['supplier-stats', id],
+    queryFn: async () => {
+      const response = await api.get(`/suppliers/${id}/stats`);
+      return response.data.data as {
+        totalOrders: number;
+        totalSpend: number;
+        lastOrderDate: string | null;
+      };
+    },
+    enabled: !!id,
+  });
+}
+
 export function useCreateSupplier() {
   const queryClient = useQueryClient();
   

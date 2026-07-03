@@ -5,12 +5,15 @@ import { Role } from '@/config/navigation';
 import { isAuthorized } from '@/lib/auth-guard';
 import { Icons } from '@/lib/icons';
 
+import { useWorkspaceStore } from '@/store/workspace';
+
 interface ProtectedRouteProps {
   requiredRoles?: Role[];
 }
 
 export function ProtectedRoute({ requiredRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated, isLoading } = useAuthStore();
+  const { activeWorkspaceId, organizations } = useWorkspaceStore();
   const location = useLocation();
 
   if (isLoading) {
@@ -29,7 +32,10 @@ export function ProtectedRoute({ requiredRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!isAuthorized(user.role, requiredRoles)) {
+  const activeWorkspace = organizations.find(o => o.id === activeWorkspaceId);
+  const currentRole = activeWorkspace?.role;
+
+  if (requiredRoles && requiredRoles.length > 0 && !isAuthorized(currentRole, requiredRoles)) {
     // Role not authorized, redirect to forbidden
     return <Navigate to="/forbidden" replace />;
   }

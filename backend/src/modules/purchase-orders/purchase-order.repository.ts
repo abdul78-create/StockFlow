@@ -8,11 +8,16 @@ export class PurchaseOrderRepository {
     organizationId: string,
     query: ParsedQuery,
     status?: PurchaseOrderStatus,
+    supplierId?: string,
   ): Promise<{ orders: PurchaseOrder[]; total: number }> {
     const whereClause: Prisma.PurchaseOrderWhereInput = {
       organizationId,
       deletedAt: null,
     };
+
+    if (supplierId) {
+      whereClause.supplierId = supplierId;
+    }
 
     if (status) {
       whereClause.status = status;
@@ -30,6 +35,7 @@ export class PurchaseOrderRepository {
           items: {
             include: {
               product: true,
+              variant: true,
             },
           },
         },
@@ -55,6 +61,7 @@ export class PurchaseOrderRepository {
         items: {
           include: {
             product: true,
+            variant: true,
           },
         },
       },
@@ -86,6 +93,7 @@ export class PurchaseOrderRepository {
         items: {
           create: input.items.map((item) => ({
             productId: item.productId,
+            variantId: item.variantId || null,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),

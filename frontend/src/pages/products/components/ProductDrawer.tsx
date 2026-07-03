@@ -45,7 +45,7 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
       sellingPrice: 0,
       minimumStock: 10,
       maximumStock: 100,
-      categoryId: '',
+      categoryId: 'ea12c30f-d355-4576-b03a-a52054827aa2',
     },
   });
 
@@ -71,7 +71,7 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         sellingPrice: 0,
         minimumStock: 10,
         maximumStock: 100,
-        categoryId: 'cat-1', // Mock default
+        categoryId: 'ea12c30f-d355-4576-b03a-a52054827aa2', // Use a valid UUID instead of 'cat-1'
       });
     }
   }, [product, reset, open]);

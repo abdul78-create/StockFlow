@@ -6,7 +6,7 @@ import {
   warehouseIdParamSchema,
 } from './warehouse.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new WarehouseController();
@@ -90,7 +90,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('warehouses.create'),
   validateRequest({ body: createWarehouseSchema }),
   controller.createWarehouse,
 );
@@ -127,7 +127,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('warehouses.update'),
   validateRequest({ params: warehouseIdParamSchema, body: updateWarehouseSchema }),
   controller.updateWarehouse,
 );

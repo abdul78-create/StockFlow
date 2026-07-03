@@ -6,7 +6,7 @@ import {
   productIdParamSchema,
 } from './product.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new ProductController();
@@ -154,7 +154,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('products.create'),
   validateRequest({ body: createProductSchema }),
   controller.createProduct,
 );
@@ -188,7 +188,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('products.update'),
   validateRequest({ params: productIdParamSchema, body: updateProductSchema }),
   controller.updateProduct,
 );
@@ -217,7 +217,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('products.delete'),
   validateRequest({ params: productIdParamSchema }),
   controller.deleteProduct,
 );
@@ -246,9 +246,14 @@ router.delete(
 router.post(
   '/:id/restore',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('products.update'),
   validateRequest({ params: productIdParamSchema }),
   controller.restoreProduct,
 );
+
+
+router.post('/:id/variants', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addVariant);
+router.post('/:id/suppliers', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addSupplier);
+router.post('/:id/units', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addUnit);
 
 export default router;

@@ -6,7 +6,7 @@ import {
   supplierIdParamSchema,
 } from './supplier.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new SupplierController();
@@ -65,6 +65,31 @@ router.get(
 
 /**
  * @openapi
+ * /api/v1/suppliers/{id}/stats:
+ *   get:
+ *     summary: Get supplier stats
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Supplier stats returned.
+ */
+router.get(
+  '/:id/stats',
+  authenticate,
+  validateRequest({ params: supplierIdParamSchema }),
+  controller.getSupplierStats,
+);
+
+/**
+ * @openapi
  * /api/v1/suppliers:
  *   post:
  *     summary: Create new supplier
@@ -94,7 +119,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('suppliers.create'),
   validateRequest({ body: createSupplierSchema }),
   controller.createSupplier,
 );
@@ -135,7 +160,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('suppliers.update'),
   validateRequest({ params: supplierIdParamSchema, body: updateSupplierSchema }),
   controller.updateSupplier,
 );

@@ -9,6 +9,8 @@ import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { SupplierDrawer } from './SupplierDrawer';
 import { format } from 'date-fns';
 
+import { Link } from 'react-router-dom';
+
 export function SuppliersList() {
   const { data, isLoading, error } = useSuppliers({});
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = React.useState(false);
@@ -17,7 +19,11 @@ export function SuppliersList() {
     {
       accessorKey: 'companyName',
       header: 'Company Name',
-      cell: ({ row }) => <span className="font-medium">{row.original.companyName}</span>,
+      cell: ({ row }) => (
+        <Link to={`/suppliers/${row.original.id}`} className="font-medium text-blue-600 hover:underline">
+          {row.original.companyName}
+        </Link>
+      ),
     },
     {
       accessorKey: 'email',

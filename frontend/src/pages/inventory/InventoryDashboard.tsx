@@ -26,26 +26,28 @@ export function InventoryDashboard() {
 
   const columns: ColumnDef<InventoryBalance>[] = [
     {
-      accessorKey: 'product.name',
+      id: 'productName',
+      accessorFn: (row) => row.product?.name || 'Unknown',
       header: 'Product',
       cell: ({ row }) => (
         <div>
-          <p className="font-medium">{row.original.product.name}</p>
-          <p className="text-xs text-muted-foreground font-mono">{row.original.product.sku}</p>
+          <p className="font-medium">{row.original.product?.name || 'Unknown'}</p>
+          <p className="text-xs text-muted-foreground font-mono">{row.original.product?.sku || 'Unknown'}</p>
         </div>
       ),
     },
     {
-      accessorKey: 'warehouse.name',
+      id: 'warehouseName',
+      accessorFn: (row) => row.warehouse?.name || 'Unknown',
       header: 'Warehouse',
-      cell: ({ row }) => <span className="text-sm">{row.original.warehouse.name}</span>,
+      cell: ({ row }) => <span className="text-sm">{row.original.warehouse?.name || 'Unknown'}</span>,
     },
     {
       accessorKey: 'availableQuantity',
       header: 'Available',
       cell: ({ row }) => {
         const available = row.original.availableQuantity;
-        const min = row.original.product.minimumStock;
+        const min = row.original.product?.minimumStock || 0;
         const isCritical = available === 0;
         const isLow = available > 0 && available <= min;
         
@@ -69,7 +71,7 @@ export function InventoryDashboard() {
       accessorKey: 'value',
       header: 'Total Value',
       cell: ({ row }) => (
-        <span>${(row.original.quantity * row.original.product.costPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+        <span>${((row.original.quantity || 0) * (row.original.product?.costPrice || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
       ),
     }
   ];
@@ -234,7 +236,7 @@ export function InventoryDashboard() {
                     columns={columns}
                     data={validBalances?.data || []}
                     isLoading={false}
-                    searchKey="product.name"
+                    searchKey="productName"
                     searchPlaceholder="Search inventory..."
                     enableExport={true}
                     exportFilename="inventory-balances.csv"

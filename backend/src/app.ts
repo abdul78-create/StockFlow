@@ -23,6 +23,8 @@ import reportsRouter from './modules/reports/reports.routes';
 import systemRouter from './modules/system/system.routes';
 import supplierRouter from './modules/suppliers/supplier.routes';
 import warehouseRouter from './modules/warehouses/warehouse.routes';
+import workspaceRouter from './modules/workspaces/workspace.routes';
+import billingRouter from './modules/billing/billing.routes';
 
 const app = express();
 
@@ -74,6 +76,7 @@ app.use('/', systemRouter);
 
 // Mounting API Routes
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/workspaces', workspaceRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/inventory', inventoryRouter);
@@ -84,6 +87,7 @@ app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/reports', reportsRouter);
 app.use('/api/v1/suppliers', supplierRouter);
 app.use('/api/v1/warehouses', warehouseRouter);
+app.use('/api/v1/billing', billingRouter);
 app.use('/api/v1', systemRouter);
 
 // Global Error Handler

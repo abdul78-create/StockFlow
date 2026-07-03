@@ -1,10 +1,15 @@
 import prisma from '../../infra/database/prisma';
-import { AuditLog } from '@prisma/client';
+import { AuditLog, SalesOrderStatus, PurchaseOrderStatus } from '@prisma/client';
 
 export interface DashboardMetrics {
   totalProducts: number;
   totalWarehouses: number;
   totalSuppliers: number;
+  totalCustomers: number;
+  totalSalesOrders: number;
+  totalPurchaseOrders: number;
+  revenue: number;
+  expenses: number;
   inventoryValue: number;
   lowStockCount: number;
   monthlyTransactionsCount: number;
@@ -18,11 +23,56 @@ export class DashboardService {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     // 1. Fetch counts in parallel
-    const [totalProducts, totalWarehouses, totalSuppliers] = await Promise.all([
+    const [
+      totalProducts,
+      totalWarehouses,
+      totalSuppliers,
+      totalCustomers,
+      totalSalesOrders,
+      totalPurchaseOrders,
+    ] = await Promise.all([
       prisma.product.count({ where: { organizationId, deletedAt: null } }),
       prisma.warehouse.count({ where: { organizationId, deletedAt: null } }),
       prisma.supplier.count({ where: { organizationId, deletedAt: null } }),
+      prisma.customer.count({ where: { organizationId, deletedAt: null } }),
+      prisma.salesOrder.count({ where: { organizationId, deletedAt: null } }),
+      prisma.purchaseOrder.count({ where: { organizationId, deletedAt: null } }),
     ]);
+
+    // 1.5 Fetch financial metrics
+    const [salesOrders, purchaseOrders] = await Promise.all([
+      prisma.salesOrder.findMany({
+        where: {
+          organizationId,
+          deletedAt: null,
+          status: {
+            in: [
+              SalesOrderStatus.APPROVED,
+              SalesOrderStatus.PACKED,
+              SalesOrderStatus.SHIPPED,
+              SalesOrderStatus.DELIVERED,
+            ],
+          },
+        },
+        select: { totalAmount: true },
+      }),
+      prisma.purchaseOrder.findMany({
+        where: {
+          organizationId,
+          deletedAt: null,
+          status: {
+            in: [
+              PurchaseOrderStatus.COMPLETED,
+              PurchaseOrderStatus.APPROVED,
+            ],
+          },
+        },
+        select: { totalAmount: true },
+      }),
+    ]);
+
+    const revenue = salesOrders.reduce((sum, so) => sum + Number(so.totalAmount), 0);
+    const expenses = purchaseOrders.reduce((sum, po) => sum + Number(po.totalAmount), 0);
 
     // 2. Fetch all inventory records to calculate valuation and warnings
     const inventoryItems = await prisma.inventory.findMany({
@@ -102,6 +152,11 @@ export class DashboardService {
       totalProducts,
       totalWarehouses,
       totalSuppliers,
+      totalCustomers,
+      totalSalesOrders,
+      totalPurchaseOrders,
+      revenue,
+      expenses,
       inventoryValue,
       lowStockCount,
       monthlyTransactionsCount,

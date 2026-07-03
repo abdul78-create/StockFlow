@@ -7,10 +7,15 @@ export type SalesOrderStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'PACKED' | 'DI
 export interface SalesOrderItem {
   id?: string;
   productId: string;
+  variantId?: string;
   quantity: number;
   unitPrice: number;
   dispatchedQuantity?: number;
   product?: {
+    name: string;
+    sku: string;
+  };
+  variant?: {
     name: string;
     sku: string;
   };
@@ -32,21 +37,37 @@ export interface SalesOrder {
 export interface PaginatedSalesOrders {
   data: SalesOrder[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
-export function useSalesOrders(params?: { status?: string; search?: string; page?: number; limit?: number }) {
+export function useSalesOrders(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+  customerId?: string;
+}) {
   return useQuery({
     queryKey: ['sales-orders', params],
     queryFn: async () => {
       const response = await api.get('/sales-orders', { params });
-      return response.data as PaginatedSalesOrders;
+      const data = response.data.data;
+      return {
+        data: data.orders || [],
+        total: data.total || 0,
+        page: params.page || 1,
+        limit: params.limit || 10,
+        totalPages: Math.ceil((data.total || 0) / (params.limit || 10))
+      } as PaginatedSalesOrders;
     },
   });
 }
 
 export function useSalesOrder(id: string) {
   return useQuery({
-    queryKey: ['sales-order', id],
+    queryKey: ['sales-orders', id],
     queryFn: async () => {
       const response = await api.get(`/sales-orders/${id}`);
       return response.data.data as SalesOrder;

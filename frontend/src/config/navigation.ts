@@ -1,6 +1,6 @@
 import { Icons } from '../lib/icons';
 
-export type Role = 'ADMIN' | 'MANAGER' | 'USER';
+export type Role = 'OWNER' | 'ADMIN' | 'MANAGER' | 'STAFF';
 
 export interface NavItem {
   title: string;
@@ -75,6 +75,5 @@ export const navigationConfig: NavItem[] = [
     href: '/settings',
     icon: 'settings',
     roles: ['ADMIN'],
-    disabled: true,
   },
 ];

@@ -8,11 +8,16 @@ export class SalesOrderRepository {
     organizationId: string,
     query: ParsedQuery,
     status?: SalesOrderStatus,
+    customerId?: string,
   ): Promise<{ orders: SalesOrder[]; total: number }> {
     const whereClause: Prisma.SalesOrderWhereInput = {
       organizationId,
       deletedAt: null,
     };
+
+    if (customerId) {
+      whereClause.customerId = customerId;
+    }
 
     if (status) {
       whereClause.status = status;
@@ -30,6 +35,7 @@ export class SalesOrderRepository {
           items: {
             include: {
               product: true,
+              variant: true,
             },
           },
         },
@@ -55,6 +61,7 @@ export class SalesOrderRepository {
         items: {
           include: {
             product: true,
+            variant: true,
           },
         },
       },
@@ -86,6 +93,7 @@ export class SalesOrderRepository {
         items: {
           create: input.items.map((item) => ({
             productId: item.productId,
+            variantId: item.variantId || null,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
           })),

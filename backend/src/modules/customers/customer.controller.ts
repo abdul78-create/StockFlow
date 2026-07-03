@@ -12,10 +12,10 @@ export class CustomerController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getCustomers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -36,6 +36,17 @@ export class CustomerController {
       const { id } = req.params;
       const customer = await this.customerService.getCustomerById(orgId, id);
       ResponseFormatter.success(res, 200, 'Customer retrieved successfully', customer);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCustomerStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const stats = await this.customerService.getCustomerStats(orgId, id);
+      ResponseFormatter.success(res, 200, 'Customer stats retrieved successfully', stats);
     } catch (error) {
       next(error);
     }

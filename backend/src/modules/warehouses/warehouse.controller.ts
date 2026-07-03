@@ -10,7 +10,7 @@ export class WarehouseController {
 
   createWarehouse = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const warehouse = await this.service.createWarehouse({
         ...req.body,
         organizationId,
@@ -27,7 +27,7 @@ export class WarehouseController {
 
   getWarehouses = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const page = req.query.page ? parseInt(req.query.page as string) : 1;
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
       const search = req.query.search as string;
@@ -49,7 +49,7 @@ export class WarehouseController {
 
   getWarehouseById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const id = req.params.id;
 
       const warehouse = await this.service.getWarehouseById(id, organizationId);
@@ -65,7 +65,7 @@ export class WarehouseController {
 
   updateWarehouse = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const organizationId = req.user!.organizationId;
+      const organizationId = req.workspace!.organizationId;
       const id = req.params.id;
 
       const warehouse = await this.service.updateWarehouse(id, organizationId, req.body);

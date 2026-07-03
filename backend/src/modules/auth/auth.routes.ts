@@ -11,5 +11,9 @@ router.post('/signup', validateRequest({ body: signupSchema }), controller.signu
 router.post('/login', validateRequest({ body: loginSchema }), controller.login);
 router.post('/logout', controller.logout);
 router.get('/me', authenticate, controller.me);
+router.post('/refresh', controller.refreshToken);
+router.get('/sessions', authenticate, controller.getSessions);
+router.delete('/sessions/:sessionId', authenticate, controller.revokeSession);
+router.delete('/sessions', authenticate, controller.revokeAllSessions);
 
 export default router;

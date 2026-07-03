@@ -11,10 +11,10 @@ export class ProductController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getProducts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -90,4 +90,38 @@ export class ProductController {
       next(error);
     }
   };
+
+  addVariant = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const variant = await this.productService.addVariant(orgId, id, req.body);
+      ResponseFormatter.success(res, 201, 'Variant added', variant);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addSupplier = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const mapping = await this.productService.addSupplier(orgId, id, req.body);
+      ResponseFormatter.success(res, 201, 'Supplier mapping added', mapping);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addUnit = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const unit = await this.productService.addUnit(orgId, id, req.body);
+      ResponseFormatter.success(res, 201, 'Unit added', unit);
+    } catch (error) {
+      next(error);
+    }
+  };
+
 }

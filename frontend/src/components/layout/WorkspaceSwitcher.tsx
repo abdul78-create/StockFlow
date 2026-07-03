@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Icons } from '../../lib/icons';
 import { Button } from '../ui/button';
 import {
@@ -10,28 +11,22 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-
-interface Workspace {
-  id: string;
-  name: string;
-  plan: string;
-}
-
-const workspaces: Workspace[] = [
-  {
-    id: 'org_1',
-    name: 'StockFlow HQ',
-    plan: 'Enterprise',
-  },
-  {
-    id: 'org_2',
-    name: 'Acme Corp',
-    plan: 'Pro',
-  },
-];
+import { useWorkspaceStore } from '../../store/workspace';
 
 export function WorkspaceSwitcher() {
-  const [activeWorkspace, setActiveWorkspace] = React.useState(workspaces[0]);
+  const navigate = useNavigate();
+  const { organizations, activeWorkspaceId, setActiveWorkspace } = useWorkspaceStore();
+  
+  const activeWorkspace = organizations.find((o) => o.id === activeWorkspaceId);
+
+  if (!activeWorkspace) {
+    return (
+      <Button variant="ghost" onClick={() => navigate('/onboarding/workspace')} className="w-full justify-between">
+        Create Workspace
+        <Icons.add className="h-4 w-4" />
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -47,8 +42,8 @@ export function WorkspaceSwitcher() {
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col items-start text-sm">
-              <span className="font-semibold leading-tight">{activeWorkspace.name}</span>
-              <span className="text-xs text-muted-foreground">{activeWorkspace.plan}</span>
+              <span className="font-semibold leading-tight line-clamp-1 text-left w-32">{activeWorkspace.name}</span>
+              <span className="text-xs text-muted-foreground uppercase">{activeWorkspace.role}</span>
             </div>
           </div>
           <Icons.chevronDown className="h-4 w-4 text-muted-foreground" />
@@ -58,11 +53,11 @@ export function WorkspaceSwitcher() {
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           Workspaces
         </DropdownMenuLabel>
-        {workspaces.map((workspace) => (
+        {organizations.map((workspace) => (
           <DropdownMenuItem
             key={workspace.id}
-            onClick={() => setActiveWorkspace(workspace)}
-            className="flex items-center gap-2 p-2"
+            onClick={() => setActiveWorkspace(workspace.id)}
+            className="flex items-center gap-2 p-2 cursor-pointer"
           >
             <Avatar className="h-6 w-6 rounded-md">
               <AvatarFallback className="rounded-md text-[10px]">
@@ -77,6 +72,14 @@ export function WorkspaceSwitcher() {
             )}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={() => navigate('/onboarding/workspace')}
+          className="cursor-pointer text-muted-foreground"
+        >
+          <Icons.add className="mr-2 h-4 w-4" />
+          Create Workspace
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

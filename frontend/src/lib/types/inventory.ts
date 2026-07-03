@@ -44,12 +44,14 @@ export interface InventoryTransaction {
   referenceId?: string;
   reason?: string;
   createdAt: string;
-  product: {
-    name: string;
-    sku: string;
-  };
-  warehouse: {
-    name: string;
+  inventory?: {
+    product?: {
+      name: string;
+      sku: string;
+    };
+    warehouse?: {
+      name: string;
+    };
   };
 }
 

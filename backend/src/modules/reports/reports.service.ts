@@ -100,4 +100,27 @@ export class ReportsService {
       totalRevenue: Number(group._sum.totalAmount || 0),
     }));
   }
+
+  async getPurchaseReport(organizationId: string): Promise<unknown[]> {
+    // Aggregates purchase order counts and totals grouped by status
+    const summary = await prisma.purchaseOrder.groupBy({
+      by: ['status'],
+      where: {
+        organizationId,
+        deletedAt: null,
+      },
+      _count: {
+        id: true,
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    return summary.map((group) => ({
+      status: group.status,
+      count: group._count.id,
+      totalExpense: Number(group._sum.totalAmount || 0),
+    }));
+  }
 }

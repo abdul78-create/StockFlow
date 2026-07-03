@@ -29,8 +29,9 @@ export class SalesOrderService {
     organizationId: string,
     query: ParsedQuery,
     status?: SalesOrderStatus,
+    customerId?: string,
   ): Promise<{ orders: SalesOrder[]; total: number }> {
-    return this.salesOrderRepository.findAll(organizationId, query, status);
+    return this.salesOrderRepository.findAll(organizationId, query, status, customerId);
   }
 
   async getSalesOrderById(organizationId: string, id: string): Promise<SalesOrder> {
@@ -60,7 +61,7 @@ export class SalesOrderService {
       throw new NotFoundError('Customer not found or does not belong to your organization');
     }
 
-    // 3. Verify all products exist and calculate total Amount
+    // 3. Verify all products and variants exist and calculate total Amount
     let totalAmount = 0;
     for (const item of input.items) {
       const product = await prisma.product.findFirst({
@@ -69,6 +70,16 @@ export class SalesOrderService {
       if (!product) {
         throw new NotFoundError(`Product with ID '${item.productId}' not found`);
       }
+      
+      if (item.variantId) {
+        const variant = await prisma.productVariant.findFirst({
+          where: { id: item.variantId, productId: item.productId, deletedAt: null },
+        });
+        if (!variant) {
+          throw new NotFoundError(`Variant with ID '${item.variantId}' not found for product '${product.name}'`);
+        }
+      }
+      
       totalAmount += item.quantity * Number(item.unitPrice);
     }
 
@@ -128,14 +139,18 @@ export class SalesOrderService {
 
       await prisma.$transaction(async (tx) => {
         for (const item of so.items) {
-          const stock = await this.inventoryRepository.findEntry(warehouseId, item.productId);
+          const stock = await this.inventoryRepository.findEntry(
+            warehouseId,
+            item.productId,
+            item.variantId || null,
+          );
           const physicalQty = stock ? stock.quantity : 0;
           const reservedQty = stock ? stock.reserved : 0;
           const available = physicalQty - reservedQty;
 
           if (available < item.quantity) {
             throw new ValidationError(
-              `Insufficient stock allocation for product '${item.product.name}' in warehouse. Available: ${available}, required: ${item.quantity}`,
+              `Insufficient stock allocation for product '${item.product.name}' with variant '${item.variantId || 'none'}' in warehouse. Available: ${available}, required: ${item.quantity}`,
             );
           }
 
@@ -146,6 +161,7 @@ export class SalesOrderService {
               data: {
                 warehouseId,
                 productId: item.productId,
+                variantId: item.variantId || null,
                 quantity: 0,
                 reserved: newReserved,
               },
@@ -171,7 +187,11 @@ export class SalesOrderService {
 
       await prisma.$transaction(async (tx) => {
         for (const item of so.items) {
-          const stock = await this.inventoryRepository.findEntry(warehouseId, item.productId);
+          const stock = await this.inventoryRepository.findEntry(
+            warehouseId,
+            item.productId,
+            item.variantId || null,
+          );
           if (stock) {
             const newReserved = Math.max(0, stock.reserved - item.quantity);
             await tx.inventory.update({
@@ -224,10 +244,14 @@ export class SalesOrderService {
 
     return prisma.$transaction(async (tx) => {
       for (const item of so.items) {
-        const stock = await this.inventoryRepository.findEntry(warehouseId, item.productId);
+        const stock = await this.inventoryRepository.findEntry(
+          warehouseId,
+          item.productId,
+          item.variantId || null,
+        );
         if (!stock || stock.quantity < item.quantity) {
           throw new ValidationError(
-            `Insufficient stock to dispatch product '${item.product.name}'. Physical stock: ${stock ? stock.quantity : 0}`,
+            `Insufficient stock to dispatch product '${item.product.name}' with variant '${item.variantId || 'none'}'. Physical stock: ${stock ? stock.quantity : 0}`,
           );
         }
 

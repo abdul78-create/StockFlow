@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 export const adjustStockSchema = z.object({
   productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+  variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).nullable().optional(),
   warehouseId: z.string().uuid({ message: 'Invalid Warehouse ID format' }),
   quantityDelta: z.coerce
     .number()
@@ -14,6 +15,7 @@ export const adjustStockSchema = z.object({
 
 export const receiveStockSchema = z.object({
   productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+  variantId: z.string().uuid().nullable().optional(),
   warehouseId: z.string().uuid({ message: 'Invalid Warehouse ID format' }),
   quantity: z.coerce
     .number()
@@ -24,6 +26,7 @@ export const receiveStockSchema = z.object({
 
 export const dispatchStockSchema = z.object({
   productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+  variantId: z.string().uuid().nullable().optional(),
   warehouseId: z.string().uuid({ message: 'Invalid Warehouse ID format' }),
   quantity: z.coerce
     .number()
@@ -35,6 +38,7 @@ export const dispatchStockSchema = z.object({
 export const transferStockSchema = z
   .object({
     productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+    variantId: z.string().uuid().nullable().optional(),
     fromWarehouseId: z.string().uuid({ message: 'Invalid source Warehouse ID format' }),
     toWarehouseId: z.string().uuid({ message: 'Invalid destination Warehouse ID format' }),
     quantity: z.coerce

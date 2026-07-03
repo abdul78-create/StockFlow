@@ -26,9 +26,11 @@ export const createProductSchema = z
       .positive({ message: 'Maximum stock must be a positive integer' })
       .default(100),
     categoryId: z.string().uuid({ message: 'Invalid Category ID format' }),
-    supplierId: z.string().uuid({ message: 'Invalid Supplier ID format' }).optional(),
     imageUrl: z.string().url({ message: 'Invalid Image URL format' }).optional(),
     status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).default('ACTIVE'),
+    qrCode: z.string().optional(),
+    hasVariants: z.boolean().default(false),
+    baseUnit: z.string().default('pcs'),
   })
   .refine((data) => data.sellingPrice >= data.costPrice, {
     message: 'Selling price cannot be less than cost price',
@@ -47,9 +49,11 @@ export const updateProductSchema = z.object({
   minimumStock: z.coerce.number().int().nonnegative().optional(),
   maximumStock: z.coerce.number().int().positive().optional(),
   categoryId: z.string().uuid().optional(),
-  supplierId: z.string().uuid().optional(),
   imageUrl: z.string().url().optional(),
   status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
+  qrCode: z.string().optional(),
+  hasVariants: z.boolean().optional(),
+  baseUnit: z.string().optional(),
 });
 
 export const productIdParamSchema = z.object({

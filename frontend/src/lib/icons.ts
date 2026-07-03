@@ -35,6 +35,8 @@ import {
   Upload,
   RefreshCw,
   SearchCode,
+  Shield,
+  Mail,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -92,4 +94,11 @@ export const Icons = {
 
   // Misc
   emptySearch: SearchCode,
+  organization: Building2,
+  users: Users,
+  shield: Shield,
+  mail: Mail,
+  cart: ShoppingCart,
+  truck: Package, // using Package for suppliers since Truck is not imported
+  building: Building2,
 } as const;

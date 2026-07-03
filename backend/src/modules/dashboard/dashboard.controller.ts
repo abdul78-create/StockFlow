@@ -12,7 +12,7 @@ export class DashboardController {
 
   getMetrics = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const orgId = req.user?.organizationId;
+      const orgId = req.workspace?.organizationId;
       if (!orgId) {
         throw new UnauthorizedError('Organization context missing');
       }

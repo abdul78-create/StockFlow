@@ -28,6 +28,47 @@ export class CustomerService {
     return customer;
   }
 
+  async getCustomerStats(organizationId: string, id: string) {
+    const customer = await this.customerRepository.findById(organizationId, id);
+    if (!customer) {
+      throw new NotFoundError('Customer not found');
+    }
+
+    const aggregations = await prisma.salesOrder.aggregate({
+      where: {
+        organizationId,
+        customerId: id,
+        deletedAt: null,
+      },
+      _count: {
+        id: true,
+      },
+      _max: {
+        createdAt: true,
+      },
+    });
+
+    const revenueAggregations = await prisma.salesOrder.aggregate({
+      where: {
+        organizationId,
+        customerId: id,
+        deletedAt: null,
+        status: {
+          not: 'CANCELLED',
+        },
+      },
+      _sum: {
+        totalAmount: true,
+      },
+    });
+
+    return {
+      totalOrders: aggregations._count.id,
+      lastOrderDate: aggregations._max.createdAt,
+      totalRevenue: revenueAggregations._sum.totalAmount || 0,
+    };
+  }
+
   async createCustomer(
     organizationId: string,
     userId: string,

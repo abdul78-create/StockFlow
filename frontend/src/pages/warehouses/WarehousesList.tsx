@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { WarehouseDrawer } from './WarehouseDrawer';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 export function WarehousesList() {
   const { data, isLoading, error } = useWarehouses({});
@@ -16,8 +17,12 @@ export function WarehousesList() {
   const columns: ColumnDef<Warehouse>[] = [
     {
       accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      header: 'Warehouse Name',
+      cell: ({ row }) => (
+        <Link to={`/warehouses/${row.original.id}`} className="font-medium text-blue-600 hover:underline">
+          {row.original.name}
+        </Link>
+      ),
     },
     {
       accessorKey: 'address',

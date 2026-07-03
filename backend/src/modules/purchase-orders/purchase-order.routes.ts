@@ -7,7 +7,7 @@ import {
   poIdParamSchema,
 } from './purchase-order.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new PurchaseOrderController();
@@ -114,7 +114,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('purchase_orders.create'),
   validateRequest({ body: createPOSchema }),
   controller.createPurchaseOrder,
 );
@@ -152,7 +152,7 @@ router.post(
 router.patch(
   '/:id/status',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('purchase_orders.update'),
   validateRequest({ params: poIdParamSchema, body: updatePOStatusSchema }),
   controller.updateStatus,
 );
@@ -203,7 +203,7 @@ router.patch(
 router.post(
   '/:id/receive',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('purchase_orders.update'),
   validateRequest({ params: poIdParamSchema, body: receiveGoodsSchema }),
   controller.receiveGoods,
 );

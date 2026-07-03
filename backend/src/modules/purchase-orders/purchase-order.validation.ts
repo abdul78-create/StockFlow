@@ -7,6 +7,7 @@ export const createPOSchema = z.object({
     .array(
       z.object({
         productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+        variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).optional(),
         quantity: z.coerce
           .number()
           .int()
@@ -27,6 +28,7 @@ export const receiveGoodsSchema = z.object({
     .array(
       z.object({
         productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+        variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).optional(),
         quantity: z.coerce
           .number()
           .int()

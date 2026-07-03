@@ -10,7 +10,8 @@ import prisma from '../src/infra/database/prisma';
 vi.mock('../src/infra/database/prisma', () => ({
   default: {
     supplier: { findFirst: vi.fn() },
-    product: { findFirst: vi.fn() },
+    product: { findFirst: vi.fn(), findUnique: vi.fn() },
+    purchaseOrderItem: { findFirst: vi.fn() },
     warehouse: { findFirst: vi.fn() },
     auditLog: { create: vi.fn() },
     purchaseOrder: {
@@ -99,6 +100,7 @@ describe('PurchaseOrderService Unit Tests', () => {
           {
             id: 'po-item-1',
             productId: 'prod-uuid-123',
+            variantId: null,
             quantity: 10,
             receivedQuantity: 8, // only 2 left to receive
             product: { name: 'Item A' },
@@ -122,6 +124,7 @@ describe('PurchaseOrderService Unit Tests', () => {
           {
             id: 'po-item-1',
             productId: 'prod-uuid-123',
+            variantId: null,
             quantity: 10,
             receivedQuantity: 0,
             product: { name: 'Item A' },

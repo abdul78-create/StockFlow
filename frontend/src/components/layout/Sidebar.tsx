@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils';
 import { navigationConfig, NavItem } from '../../config/navigation';
 import { filterNavItems } from '../../lib/auth-guard';
 import { useAuthStore } from '../../store/auth';
+import { useWorkspaceStore } from '../../store/workspace';
 import { Icons } from '../../lib/icons';
 import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import { Button } from '../ui/button';
@@ -17,7 +18,10 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
   const { user } = useAuthStore();
-  const allowedNav = user ? filterNavItems(navigationConfig, user.role) : [];
+  const { activeWorkspaceId, organizations } = useWorkspaceStore();
+  const activeWorkspace = organizations.find(o => o.id === activeWorkspaceId);
+  
+  const allowedNav = user && activeWorkspace ? filterNavItems(navigationConfig, activeWorkspace.role) : [];
 
   return (
     <>

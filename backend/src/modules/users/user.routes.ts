@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { UserController } from './user.controller';
 import { createUserSchema, updateUserSchema, userIdParamSchema } from './user.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new UserController();
 
-router.get('/', authenticate, authorize(['ADMIN', 'MANAGER']), controller.getUsers);
+router.get('/', authenticate, requirePermission('members.view'), controller.getUsers);
 
 router.get(
   '/:id',
@@ -19,7 +19,7 @@ router.get(
 router.post(
   '/',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('members.invite'),
   validateRequest({ body: createUserSchema }),
   controller.createUser,
 );
@@ -27,7 +27,7 @@ router.post(
 router.patch(
   '/:id',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('members.update'),
   validateRequest({ params: userIdParamSchema, body: updateUserSchema }),
   controller.updateUser,
 );
@@ -35,7 +35,7 @@ router.patch(
 router.delete(
   '/:id',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('members.delete'),
   validateRequest({ params: userIdParamSchema }),
   controller.deleteUser,
 );
@@ -64,7 +64,7 @@ router.delete(
 router.post(
   '/:id/restore',
   authenticate,
-  authorize(['ADMIN']),
+  requirePermission('members.update'),
   validateRequest({ params: userIdParamSchema }),
   controller.restoreUser,
 );

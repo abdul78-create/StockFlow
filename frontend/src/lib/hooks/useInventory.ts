@@ -19,7 +19,14 @@ export function useInventoryBalances(params: {
     queryKey: ['inventory', 'balances', params],
     queryFn: async () => {
       const response = await api.get('/inventory/balances', { params });
-      return response.data as PaginatedBalances;
+      const data = response.data.data;
+      return {
+        data: data.balances || [],
+        total: data.total || 0,
+        page: params.page || 1,
+        limit: params.limit || 10,
+        totalPages: Math.ceil((data.total || 0) / (params.limit || 10))
+      } as PaginatedBalances;
     },
   });
 }
@@ -35,7 +42,14 @@ export function useInventoryHistory(params: {
     queryKey: ['inventory', 'history', params],
     queryFn: async () => {
       const response = await api.get('/inventory/history', { params });
-      return response.data as PaginatedHistory;
+      const data = response.data.data;
+      return {
+        data: data.transactions || [],
+        total: data.total || 0,
+        page: params.page || 1,
+        limit: params.limit || 10,
+        totalPages: Math.ceil((data.total || 0) / (params.limit || 10))
+      } as PaginatedHistory;
     },
   });
 }
@@ -50,12 +64,23 @@ export function useWarehouses(params?: { search?: string; page?: number; limit?:
   });
 }
 
+export function useWarehouse(id: string) {
+  return useQuery({
+    queryKey: ['warehouse', id],
+    queryFn: async () => {
+      const response = await api.get(`/warehouses/${id}`);
+      return response.data.data as Warehouse;
+    },
+    enabled: !!id,
+  });
+}
+
 export function useStockHealth(warehouseId?: string) {
   return useQuery({
     queryKey: ['inventory', 'health', warehouseId],
     queryFn: async () => {
       const response = await api.get('/inventory/health', { params: { warehouseId } });
-      return response.data as StockHealth;
+      return response.data.data as StockHealth;
     },
   });
 }
@@ -64,7 +89,7 @@ export function useStockHealth(warehouseId?: string) {
 export function useAdjustStock() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { productId: string; warehouseId: string; quantityDelta: number; reason: string }) => {
+    mutationFn: async (data: { productId: string; variantId?: string; warehouseId: string; quantityDelta: number; reason: string }) => {
       return api.post('/inventory/adjust', data);
     },
     onSuccess: () => {
@@ -78,7 +103,7 @@ export function useAdjustStock() {
 export function useReceiveStock() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { productId: string; warehouseId: string; quantity: number; reason: string }) => {
+    mutationFn: async (data: { productId: string; variantId?: string; warehouseId: string; quantity: number; reason: string }) => {
       return api.post('/inventory/receive', data);
     },
     onSuccess: () => {
@@ -92,7 +117,7 @@ export function useReceiveStock() {
 export function useTransferStock() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { productId: string; fromWarehouseId: string; toWarehouseId: string; quantity: number; reason: string }) => {
+    mutationFn: async (data: { productId: string; variantId?: string; fromWarehouseId: string; toWarehouseId: string; quantity: number; reason: string }) => {
       return api.post('/inventory/transfer', data);
     },
     onSuccess: () => {

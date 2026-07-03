@@ -13,19 +13,19 @@ export class SalesOrderController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getSalesOrders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { orgId } = this.getSessionContext(req);
       const query = parseQueryParams(req, 'createdAt');
-      const { status } = req.query;
+      const { status, customerId } = req.query;
 
-      const result = await this.soService.getSalesOrders(orgId, query, status as SalesOrderStatus);
+      const result = await this.soService.getSalesOrders(orgId, query, status as SalesOrderStatus, customerId as string);
       ResponseFormatter.success(res, 200, 'Sales Orders retrieved successfully', result);
     } catch (error) {
       next(error);

@@ -42,19 +42,25 @@ export function DashboardPage() {
 
           return (
             <>
-              {/* KPI Cards Row */}
+              {/* Financial & Operations KPI Row */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <KpiCard
-                  title="Total Products"
-                  value={validMetrics.totalProducts}
-                  icon="products"
+                  title="Revenue"
+                  value={`$${validMetrics.revenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                  icon="inventory"
+                  status="success"
+                />
+                <KpiCard
+                  title="Expenses"
+                  value={`$${validMetrics.expenses.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
+                  icon="cart"
                   status="default"
                 />
                 <KpiCard
                   title="Inventory Value"
                   value={`$${validMetrics.inventoryValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                   icon="inventory"
-                  status="success"
+                  status="default"
                 />
                 <KpiCard
                   title="Low Stock Alerts"
@@ -63,10 +69,32 @@ export function DashboardPage() {
                   status={validMetrics.lowStockCount > 0 ? 'warning' : 'success'}
                   trend={validMetrics.lowStockCount > 0 ? { value: validMetrics.lowStockCount, label: 'items need attention', direction: 'down' } : undefined}
                 />
+              </div>
+
+              {/* Entity KPI Row */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <KpiCard
+                  title="Total Products"
+                  value={validMetrics.totalProducts}
+                  icon="products"
+                  status="default"
+                />
+                <KpiCard
+                  title="Total Customers"
+                  value={validMetrics.totalCustomers}
+                  icon="users"
+                  status="default"
+                />
+                <KpiCard
+                  title="Total Suppliers"
+                  value={validMetrics.totalSuppliers}
+                  icon="truck"
+                  status="default"
+                />
                 <KpiCard
                   title="Total Warehouses"
                   value={validMetrics.totalWarehouses}
-                  icon="inventory"
+                  icon="building"
                   status="default"
                 />
               </div>

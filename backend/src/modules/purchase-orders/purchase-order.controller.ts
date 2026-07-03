@@ -13,22 +13,23 @@ export class PurchaseOrderController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getPurchaseOrders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { orgId } = this.getSessionContext(req);
       const query = parseQueryParams(req, 'createdAt');
-      const { status } = req.query;
+      const { status, supplierId } = req.query;
 
       const result = await this.poService.getPurchaseOrders(
         orgId,
         query,
         status as PurchaseOrderStatus,
+        supplierId as string,
       );
       ResponseFormatter.success(res, 200, 'Purchase Orders retrieved successfully', result);
     } catch (error) {

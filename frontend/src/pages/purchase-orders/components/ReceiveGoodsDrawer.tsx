@@ -34,7 +34,9 @@ const formSchema = z.object({
   items: z.array(
     z.object({
       productId: z.string(),
+      variantId: z.string().optional(),
       productName: z.string(),
+      variantName: z.string().optional(),
       orderedQuantity: z.number(),
       previouslyReceived: z.number(),
       quantity: z.number().min(0, 'Quantity cannot be negative'),
@@ -63,7 +65,9 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
       warehouseId: '',
       items: po.items.map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
         productName: item.product?.name || 'Unknown Product',
+        variantName: item.variant?.name,
         orderedQuantity: item.quantity,
         previouslyReceived: item.receivedQuantity || 0,
         quantity: Math.max(0, item.quantity - (item.receivedQuantity || 0)), // default to remaining
@@ -81,6 +85,7 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
       .filter((item) => item.quantity > 0)
       .map((item) => ({
         productId: item.productId,
+        variantId: item.variantId,
         quantity: item.quantity,
       }));
 
@@ -144,8 +149,11 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
                   return (
                     <div key={field.id} className="grid gap-2 border rounded-md p-3">
                       <div className="flex justify-between items-start">
-                        <div className="text-sm font-medium">{field.productName}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div>
+                          <div className="text-sm font-medium">{field.productName}</div>
+                          {field.variantName && <div className="text-xs text-muted-foreground mt-0.5 text-emerald-600">Variant: {field.variantName}</div>}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-0.5">
                           {field.previouslyReceived} / {field.orderedQuantity} Received
                         </div>
                       </div>

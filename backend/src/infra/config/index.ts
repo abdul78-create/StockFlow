@@ -9,6 +9,7 @@ dotenv.config({ path: envFile });
 const configSchema = z.object({
   PORT: z.coerce.number().default(5000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  HTTPS: z.string().optional(), // Set to 'true' in real production to enable secure cookies
   DATABASE_URL: z.string().url({ message: 'DATABASE_URL must be a valid connection URL' }),
   REDIS_URL: z.string().url({ message: 'REDIS_URL must be a valid connection URL' }).optional(),
   JWT_SECRET: z

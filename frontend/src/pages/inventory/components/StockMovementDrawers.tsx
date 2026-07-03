@@ -37,6 +37,7 @@ interface StockMovementDrawersProps {
 // Zod schemas for validation
 const baseSchema = {
   productId: z.string().min(1, 'Product is required'),
+  variantId: z.string().optional(),
   reason: z.string().min(1, 'Reason is required'),
 };
 
@@ -84,11 +85,13 @@ export function StockMovementDrawers({ action, onClose, defaultWarehouseId }: St
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<any>({
     resolver: getResolver() as any,
     defaultValues: {
       productId: '',
+      variantId: '',
       warehouseId: defaultWarehouseId || '',
       fromWarehouseId: defaultWarehouseId || '',
       toWarehouseId: '',
@@ -108,6 +111,7 @@ export function StockMovementDrawers({ action, onClose, defaultWarehouseId }: St
       if (action === 'RECEIVE') {
         await receiveMutation.mutateAsync({
           productId: data.productId,
+          variantId: data.variantId || undefined,
           warehouseId: data.warehouseId,
           quantity: Number(data.quantity),
           reason: data.reason,
@@ -115,6 +119,7 @@ export function StockMovementDrawers({ action, onClose, defaultWarehouseId }: St
       } else if (action === 'TRANSFER') {
         await transferMutation.mutateAsync({
           productId: data.productId,
+          variantId: data.variantId || undefined,
           fromWarehouseId: data.fromWarehouseId,
           toWarehouseId: data.toWarehouseId,
           quantity: Number(data.quantity),
@@ -123,6 +128,7 @@ export function StockMovementDrawers({ action, onClose, defaultWarehouseId }: St
       } else if (action === 'ADJUST') {
         await adjustMutation.mutateAsync({
           productId: data.productId,
+          variantId: data.variantId || undefined,
           warehouseId: data.warehouseId,
           quantityDelta: Number(data.quantityDelta),
           reason: data.reason,
@@ -178,6 +184,22 @@ export function StockMovementDrawers({ action, onClose, defaultWarehouseId }: St
                 </SelectContent>
               </Select>
               {errors.productId && <p className="text-xs text-destructive">{errors.productId.message as string}</p>}
+            </div>
+
+            {/* Common: Variant Selection (Optional) */}
+            <div className="space-y-2">
+              <Label htmlFor="variantId">Variant (Optional)</Label>
+              <Select onValueChange={(val) => setValue('variantId', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a variant if applicable" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No variant</SelectItem>
+                  {products?.data.find((p: any) => p.id === watch('productId'))?.variants?.map((v: any) => (
+                    <SelectItem key={v.id} value={v.id}>{v.name} ({v.sku})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* RECEIVE & ADJUST specific: Warehouse */}

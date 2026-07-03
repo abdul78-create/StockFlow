@@ -29,8 +29,9 @@ export class PurchaseOrderService {
     organizationId: string,
     query: ParsedQuery,
     status?: PurchaseOrderStatus,
+    supplierId?: string,
   ): Promise<{ orders: PurchaseOrder[]; total: number }> {
-    return this.purchaseOrderRepository.findAll(organizationId, query, status);
+    return this.purchaseOrderRepository.findAll(organizationId, query, status, supplierId);
   }
 
   async getPurchaseOrderById(organizationId: string, id: string): Promise<PurchaseOrder> {
@@ -63,7 +64,7 @@ export class PurchaseOrderService {
       throw new NotFoundError('Supplier not found or does not belong to your organization');
     }
 
-    // 3. Verify all products exist and calculate total Amount
+    // 3. Verify all products and variants exist and calculate total Amount
     let totalAmount = 0;
     for (const item of input.items) {
       const product = await prisma.product.findFirst({
@@ -72,6 +73,16 @@ export class PurchaseOrderService {
       if (!product) {
         throw new NotFoundError(`Product with ID '${item.productId}' not found`);
       }
+      
+      if (item.variantId) {
+        const variant = await prisma.productVariant.findFirst({
+          where: { id: item.variantId, productId: item.productId, deletedAt: null },
+        });
+        if (!variant) {
+          throw new NotFoundError(`Variant with ID '${item.variantId}' not found for product '${product.name}'`);
+        }
+      }
+      
       totalAmount += item.quantity * item.unitPrice;
     }
 
@@ -158,10 +169,10 @@ export class PurchaseOrderService {
       // 3. Process goods receipt
       for (const receiveItem of input.items) {
         // Match product on PO
-        const poItem = po.items.find((item) => item.productId === receiveItem.productId);
+        const poItem = po.items.find((item) => item.productId === receiveItem.productId && item.variantId === (receiveItem.variantId || null));
         if (!poItem) {
           throw new ValidationError(
-            `Product '${receiveItem.productId}' is not part of this purchase order`,
+            `Product '${receiveItem.productId}' with variant '${receiveItem.variantId || 'none'}' is not part of this purchase order`,
           );
         }
 
@@ -176,6 +187,7 @@ export class PurchaseOrderService {
         const existingStock = await this.inventoryRepository.findEntry(
           input.warehouseId,
           receiveItem.productId,
+          receiveItem.variantId || null,
         );
         const previousQty = existingStock ? existingStock.quantity : 0;
         const newQty = previousQty + receiveItem.quantity;
@@ -187,6 +199,7 @@ export class PurchaseOrderService {
             input.warehouseId,
             receiveItem.productId,
             newQty,
+            receiveItem.variantId || null,
           );
         } else {
           inventoryEntry = await this.inventoryRepository.updateInventoryQuantity(

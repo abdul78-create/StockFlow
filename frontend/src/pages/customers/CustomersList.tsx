@@ -9,6 +9,8 @@ import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { CustomerDrawer } from './CustomerDrawer';
 import { format } from 'date-fns';
 
+import { Link } from 'react-router-dom';
+
 export function CustomersList() {
   const { data, isLoading, error } = useCustomers({});
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = React.useState(false);
@@ -17,7 +19,11 @@ export function CustomersList() {
     {
       accessorKey: 'name',
       header: 'Customer Name',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      cell: ({ row }) => (
+        <Link to={`/customers/${row.original.id}`} className="font-medium text-emerald-600 hover:underline">
+          {row.original.name}
+        </Link>
+      ),
     },
     {
       accessorKey: 'email',

@@ -11,7 +11,7 @@ export class ReportsController {
   }
 
   private getOrgId(req: Request): string {
-    const orgId = req.user?.organizationId;
+    const orgId = req.workspace?.organizationId;
     if (!orgId) {
       throw new UnauthorizedError('Organization context missing');
     }
@@ -48,6 +48,16 @@ export class ReportsController {
       const orgId = this.getOrgId(req);
       const report = await this.reportsService.getSalesReport(orgId);
       ResponseFormatter.success(res, 200, 'Sales activity report generated successfully', report);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getPurchaseReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const orgId = this.getOrgId(req);
+      const report = await this.reportsService.getPurchaseReport(orgId);
+      ResponseFormatter.success(res, 200, 'Purchase activity report generated successfully', report);
     } catch (error) {
       next(error);
     }

@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { ErrorState } from './error-state';
 import { AccessDeniedState } from './access-denied-state';
 import { EmptyState } from './empty-state';
-import { Spinner } from './spinner';
+import { Skeleton } from './skeleton';
 
 export interface QueryStateWrapperProps<T> {
   isLoading: boolean;
@@ -14,6 +14,7 @@ export interface QueryStateWrapperProps<T> {
     description?: string;
     action?: any;
   };
+  loadingComponent?: ReactNode;
   children: (data: T) => ReactNode;
 }
 
@@ -23,15 +24,17 @@ export function QueryStateWrapper<T>({
   data,
   isEmpty,
   emptyProps,
+  loadingComponent,
   children,
 }: QueryStateWrapperProps<T>) {
   if (isLoading) {
+    if (loadingComponent) {
+      return <>{loadingComponent}</>;
+    }
     return (
-      <div className="flex h-64 w-full items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Spinner size="lg" />
-          <p className="text-sm text-muted-foreground">Loading data...</p>
-        </div>
+      <div className="space-y-4 py-4 w-full">
+        <Skeleton className="h-10 w-[250px]" />
+        <Skeleton className="h-[400px] w-full rounded-xl" />
       </div>
     );
   }

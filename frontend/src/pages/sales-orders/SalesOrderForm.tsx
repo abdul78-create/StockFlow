@@ -31,6 +31,7 @@ const formSchema = z.object({
   items: z.array(
     z.object({
       productId: z.string().min(1, 'Product is required'),
+      variantId: z.string().optional(),
       quantity: z.number().min(1, 'Quantity must be at least 1'),
       unitPrice: z.number().min(0.01, 'Unit price must be at least 0.01'),
     })
@@ -49,7 +50,7 @@ export function SalesOrderForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       customerId: '',
-      items: [{ productId: '', quantity: 1, unitPrice: 0 }],
+      items: [{ productId: '', variantId: '', quantity: 1, unitPrice: 0 }],
     },
   });
 
@@ -121,7 +122,7 @@ export function SalesOrderForm() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append({ productId: '', quantity: 1, unitPrice: 0 })}
+                onClick={() => append({ productId: '', variantId: '', quantity: 1, unitPrice: 0 })}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
@@ -153,6 +154,30 @@ export function SalesOrderForm() {
                               <SelectItem key={product.id} value={product.id}>
                                 {product.name} ({product.sku})
                               </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name={`items.${index}.variantId`}
+                    render={({ field }) => (
+                      <FormItem className="w-48">
+                        <FormLabel>Variant (Optional)</FormLabel>
+                        <Select onValueChange={(v) => field.onChange(v === 'none' ? undefined : v)} value={field.value || 'none'}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="No variant" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">No variant</SelectItem>
+                            {productsData?.data.find((p: any) => p.id === form.watch(`items.${index}.productId`))?.variants?.map((v: any) => (
+                              <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

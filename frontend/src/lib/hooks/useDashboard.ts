@@ -5,6 +5,11 @@ export interface DashboardMetrics {
   totalProducts: number;
   totalWarehouses: number;
   totalSuppliers: number;
+  totalCustomers: number;
+  totalSalesOrders: number;
+  totalPurchaseOrders: number;
+  revenue: number;
+  expenses: number;
   inventoryValue: number;
   lowStockCount: number;
   monthlyTransactionsCount: number;

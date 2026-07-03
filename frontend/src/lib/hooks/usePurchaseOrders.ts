@@ -7,10 +7,15 @@ export type PurchaseOrderStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'COMPLETED'
 export interface PurchaseOrderItem {
   id?: string;
   productId: string;
+  variantId?: string;
   quantity: number;
   unitPrice: number;
   receivedQuantity?: number;
   product?: {
+    name: string;
+    sku: string;
+  };
+  variant?: {
     name: string;
     sku: string;
   };
@@ -32,21 +37,37 @@ export interface PurchaseOrder {
 export interface PaginatedPurchaseOrders {
   data: PurchaseOrder[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
-export function usePurchaseOrders(params?: { status?: string; search?: string; page?: number; limit?: number }) {
+export function usePurchaseOrders(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+  search?: string;
+  supplierId?: string;
+}) {
   return useQuery({
     queryKey: ['purchase-orders', params],
     queryFn: async () => {
       const response = await api.get('/purchase-orders', { params });
-      return response.data as PaginatedPurchaseOrders;
+      const data = response.data.data;
+      return {
+        data: data.orders || [],
+        total: data.total || 0,
+        page: params.page || 1,
+        limit: params.limit || 10,
+        totalPages: Math.ceil((data.total || 0) / (params.limit || 10))
+      } as PaginatedPurchaseOrders;
     },
   });
 }
 
 export function usePurchaseOrder(id: string) {
   return useQuery({
-    queryKey: ['purchase-order', id],
+    queryKey: ['purchase-orders', id],
     queryFn: async () => {
       const response = await api.get(`/purchase-orders/${id}`);
       return response.data.data as PurchaseOrder;
@@ -92,7 +113,7 @@ export function useUpdatePurchaseOrderStatus() {
 export function useReceivePurchaseOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { id: string; warehouseId: string; items: { productId: string; quantity: number }[] }) => {
+    mutationFn: async (data: { id: string; warehouseId: string; items: { productId: string; variantId?: string; quantity: number }[] }) => {
       return api.post(`/purchase-orders/${data.id}/receive`, {
         warehouseId: data.warehouseId,
         items: data.items,

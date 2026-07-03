@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useKeyboardShortcut } from '@/lib/hooks/useKeyboardShortcut';
 
 export interface SearchBarProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'size'> {
@@ -25,6 +26,12 @@ export function SearchBar({
   className,
   ...props
 }: SearchBarProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useKeyboardShortcut('/', (e) => {
+    inputRef.current?.focus();
+  });
+
   return (
     <div className={cn('relative w-full max-w-sm', className)}>
       <Search
@@ -32,6 +39,7 @@ export function SearchBar({
         aria-hidden="true"
       />
       <input
+        ref={inputRef}
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -43,18 +51,23 @@ export function SearchBar({
         aria-label={placeholder}
         {...props}
       />
-      {value && (
+      {value ? (
         <button
           type="button"
           onClick={() => {
             onChange('');
             onClear?.();
+            inputRef.current?.focus();
           }}
           className="absolute right-2 top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground transition-colors duration-normal hover:text-foreground"
           aria-label="Clear search"
         >
           <X className="size-4" />
         </button>
+      ) : (
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-sm border bg-muted/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+          /
+        </div>
       )}
     </div>
   );

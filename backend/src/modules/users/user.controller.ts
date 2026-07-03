@@ -11,10 +11,10 @@ export class UserController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -13,19 +13,24 @@ export class InventoryController {
   }
 
   private getSessionContext(req: Request): { orgId: string; userId: string } {
-    if (!req.user?.organizationId || !req.user?.id) {
+    if (!req.workspace?.organizationId || !req.user?.id) {
       throw new UnauthorizedError('Tenant session context missing');
     }
-    return { orgId: req.user.organizationId, userId: req.user.id };
+    return { orgId: req.workspace.organizationId, userId: req.user.id };
   }
 
   getBalances = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { orgId } = this.getSessionContext(req);
       const query = parseQueryParams(req, 'product.name');
-      const { categoryId } = req.query;
+      const { categoryId, warehouseId } = req.query;
 
-      const result = await this.inventoryService.getBalances(orgId, query, categoryId as string);
+      const result = await this.inventoryService.getBalances(
+        orgId,
+        query,
+        categoryId as string,
+        warehouseId as string,
+      );
       ResponseFormatter.success(
         res,
         200,
@@ -41,12 +46,13 @@ export class InventoryController {
     try {
       const { orgId } = this.getSessionContext(req);
       const query = parseQueryParams(req, 'createdAt');
-      const { type } = req.query;
+      const { type, warehouseId } = req.query;
 
       const result = await this.inventoryService.getTransactionHistory(
         orgId,
         query,
         type as TransactionType,
+        warehouseId as string,
       );
       ResponseFormatter.success(
         res,

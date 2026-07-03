@@ -7,6 +7,7 @@ export const createSOSchema = z.object({
     .array(
       z.object({
         productId: z.string().uuid({ message: 'Invalid Product ID format' }),
+        variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).optional(),
         quantity: z.coerce
           .number()
           .int()

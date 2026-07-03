@@ -53,3 +53,13 @@ export function useSalesSummary() {
     },
   });
 }
+
+export function usePurchaseSummary() {
+  return useQuery({
+    queryKey: ['reports', 'purchases'],
+    queryFn: async () => {
+      const response = await api.get('/reports/purchases');
+      return response.data.data;
+    },
+  });
+}

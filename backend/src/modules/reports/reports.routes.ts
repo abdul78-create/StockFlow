@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { ReportsController } from './reports.controller';
-import { authenticate } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new ReportsController();
@@ -16,7 +16,7 @@ const controller = new ReportsController();
  *       200:
  *         description: Category-wise valuation list.
  */
-router.get('/inventory-valuation', authenticate, controller.getValuationReport);
+router.get('/inventory-valuation', authenticate, requirePermission('reports.view'), controller.getValuationReport);
 
 /**
  * @openapi
@@ -29,7 +29,7 @@ router.get('/inventory-valuation', authenticate, controller.getValuationReport);
  *       200:
  *         description: List of items below minimum thresholds.
  */
-router.get('/low-stock', authenticate, controller.getLowStockReport);
+router.get('/low-stock', authenticate, requirePermission('reports.view'), controller.getLowStockReport);
 
 /**
  * @openapi
@@ -42,6 +42,19 @@ router.get('/low-stock', authenticate, controller.getLowStockReport);
  *       200:
  *         description: Sales counts and total values grouped by status.
  */
-router.get('/sales-summary', authenticate, controller.getSalesReport);
+router.get('/sales-summary', authenticate, requirePermission('reports.view'), controller.getSalesReport);
+
+/**
+ * @openapi
+ * /api/v1/reports/purchases:
+ *   get:
+ *     summary: Get purchase performance summary
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Purchase counts and total expense grouped by status.
+ */
+router.get('/purchases', authenticate, requirePermission('reports.view'), controller.getPurchaseReport);
 
 export default router;

@@ -10,6 +10,7 @@ import {
 } from './inventory.validation';
 import { Inventory, InventoryTransaction, TransactionType } from '@prisma/client';
 import { ParsedQuery } from '../../common/utils/query';
+import { AutomationService } from '../automation/automation.service';
 
 export class InventoryService {
   private inventoryRepository: InventoryRepository;
@@ -22,16 +23,18 @@ export class InventoryService {
     organizationId: string,
     query: ParsedQuery,
     categoryId?: string,
+    warehouseId?: string,
   ): Promise<{ balances: unknown[]; total: number }> {
-    return this.inventoryRepository.findAllBalances(organizationId, query, categoryId);
+    return this.inventoryRepository.findAllBalances(organizationId, query, categoryId, warehouseId);
   }
 
   async getTransactionHistory(
     organizationId: string,
     query: ParsedQuery,
     type?: TransactionType,
+    warehouseId?: string,
   ): Promise<{ transactions: unknown[]; total: number }> {
-    return this.inventoryRepository.findTransactionsHistory(organizationId, query, type);
+    return this.inventoryRepository.findTransactionsHistory(organizationId, query, type, warehouseId);
   }
 
   async getHealth(organizationId: string, warehouseId?: string) {
@@ -66,8 +69,8 @@ export class InventoryService {
   ): Promise<InventoryTransaction> {
     await this.verifyProductAndWarehouse(organizationId, input.productId, input.warehouseId);
 
-    return prisma.$transaction(async (tx) => {
-      const existing = await this.inventoryRepository.findEntry(input.warehouseId, input.productId);
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await this.inventoryRepository.findEntry(input.warehouseId, input.productId, input.variantId || null);
       const previousQuantity = existing ? existing.quantity : 0;
       const newQuantity = previousQuantity + input.quantityDelta;
 
@@ -90,6 +93,7 @@ export class InventoryService {
           input.warehouseId,
           input.productId,
           newQuantity,
+          input.variantId || null
         );
       } else {
         inventoryEntry = await this.inventoryRepository.updateInventoryQuantity(
@@ -128,6 +132,13 @@ export class InventoryService {
 
       return transaction;
     });
+
+    // Asynchronously trigger reorder check
+    AutomationService.checkAndTriggerReorder(organizationId, input.productId).catch((err) => {
+      console.error(`[Automation] Auto-reorder failed for product ${input.productId}:`, err);
+    });
+
+    return result;
   }
 
   async receiveStock(
@@ -140,6 +151,7 @@ export class InventoryService {
       userId,
       {
         productId: input.productId,
+        variantId: input.variantId,
         warehouseId: input.warehouseId,
         quantityDelta: input.quantity,
         reason: input.reason || 'Purchase order receipt',
@@ -158,6 +170,7 @@ export class InventoryService {
       userId,
       {
         productId: input.productId,
+        variantId: input.variantId,
         warehouseId: input.warehouseId,
         quantityDelta: -input.quantity,
         reason: input.reason || 'Sales dispatch order',
@@ -189,6 +202,7 @@ export class InventoryService {
       const sourceEntry = await this.inventoryRepository.findEntry(
         input.fromWarehouseId,
         input.productId,
+        input.variantId || null
       );
       if (!sourceEntry || sourceEntry.quantity < input.quantity) {
         throw new ValidationError('Insufficient stock level in source warehouse', [
@@ -220,6 +234,7 @@ export class InventoryService {
       const destEntry = await this.inventoryRepository.findEntry(
         input.toWarehouseId,
         input.productId,
+        input.variantId || null
       );
       const destPrevQty = destEntry ? destEntry.quantity : 0;
       const destNewQty = destPrevQty + input.quantity;
@@ -231,6 +246,7 @@ export class InventoryService {
           input.toWarehouseId,
           input.productId,
           destNewQty,
+          input.variantId || null
         );
       } else {
         updatedDestEntry = await this.inventoryRepository.updateInventoryQuantity(

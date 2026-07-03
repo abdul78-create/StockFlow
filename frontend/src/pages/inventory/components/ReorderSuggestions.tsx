@@ -34,7 +34,7 @@ export function ReorderSuggestions({ warehouseId }: ReorderSuggestionsProps) {
   if (isError || !data) return null;
 
   // Filter products where current stock <= minimum stock
-  const suggestions = data.data.filter(b => b.availableQuantity <= b.product.minimumStock);
+  const suggestions = data.data.filter(b => b.availableQuantity <= (b.product?.minimumStock || 0));
 
   if (suggestions.length === 0) {
     return (
@@ -75,12 +75,12 @@ export function ReorderSuggestions({ warehouseId }: ReorderSuggestionsProps) {
             </thead>
             <tbody className="divide-y divide-border">
               {suggestions.map(item => {
-                const suggestedQty = item.product.maximumStock - item.availableQuantity;
+                const suggestedQty = (item.product?.maximumStock || 0) - item.availableQuantity;
                 return (
                   <tr key={item.id} className="group">
-                    <td className="py-3 font-medium">{item.product.name}</td>
+                    <td className="py-3 font-medium">{item.product?.name || 'Unknown'}</td>
                     <td className="py-3 text-destructive font-bold">{item.availableQuantity}</td>
-                    <td className="py-3 text-muted-foreground">{item.product.minimumStock}</td>
+                    <td className="py-3 text-muted-foreground">{item.product?.minimumStock || 0}</td>
                     <td className="py-3 text-success font-medium">+{suggestedQty}</td>
                     <td className="py-3 text-right">
                       <Button 

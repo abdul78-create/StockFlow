@@ -101,10 +101,10 @@ export class UserService {
     id: string,
     performerId: string,
   ): Promise<Omit<User, 'passwordHash'>> {
-    const user = await prisma.user.findFirst({
-      where: { id, organizationId, deletedAt: { not: null } },
+    const member = await prisma.organizationMember.findFirst({
+      where: { userId: id, organizationId, status: { not: 'ACTIVE' } },
     });
-    if (!user) {
+    if (!member) {
       throw new NotFoundError('Archived user not found');
     }
 

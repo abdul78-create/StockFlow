@@ -7,7 +7,7 @@ import {
   transferStockSchema,
 } from './inventory.validation';
 import { validateRequest } from '../../common/middleware/validation.middleware';
-import { authenticate, authorize } from '../../common/middleware/auth.middleware';
+import { authenticate, requirePermission } from '../../common/middleware/auth.middleware';
 
 const router = Router();
 const controller = new InventoryController();
@@ -119,6 +119,9 @@ router.get('/health', authenticate, controller.getHealth);
  *               productId:
  *                 type: string
  *                 format: uuid
+ *               variantId:
+ *                 type: string
+ *                 format: uuid
  *               warehouseId:
  *                 type: string
  *                 format: uuid
@@ -137,7 +140,7 @@ router.get('/health', authenticate, controller.getHealth);
 router.post(
   '/adjust',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('inventory.adjust'),
   validateRequest({ body: adjustStockSchema }),
   controller.adjust,
 );
@@ -180,7 +183,7 @@ router.post(
 router.post(
   '/receive',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('inventory.transfer'),
   validateRequest({ body: receiveStockSchema }),
   controller.receive,
 );
@@ -223,7 +226,7 @@ router.post(
 router.post(
   '/dispatch',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('inventory.transfer'),
   validateRequest({ body: dispatchStockSchema }),
   controller.dispatch,
 );
@@ -251,6 +254,9 @@ router.post(
  *               productId:
  *                 type: string
  *                 format: uuid
+ *               variantId:
+ *                 type: string
+ *                 format: uuid
  *               fromWarehouseId:
  *                 type: string
  *                 format: uuid
@@ -270,7 +276,7 @@ router.post(
 router.post(
   '/transfer',
   authenticate,
-  authorize(['ADMIN', 'MANAGER']),
+  requirePermission('inventory.transfer'),
   validateRequest({ body: transferStockSchema }),
   controller.transfer,
 );

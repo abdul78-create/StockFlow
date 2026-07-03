@@ -10,6 +10,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ProductDrawer } from './components/ProductDrawer';
+import { useKeyboardShortcut } from '@/lib/hooks/useKeyboardShortcut';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,8 @@ export function ProductsList() {
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = React.useState(false);
   const [productToDelete, setProductToDelete] = React.useState<string | null>(null);
+
+  useKeyboardShortcut('c', () => setIsCreateDrawerOpen(true));
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -50,7 +53,7 @@ export function ProductsList() {
     {
       accessorKey: 'sellingPrice',
       header: 'Price',
-      cell: ({ row }) => <span>${row.original.sellingPrice.toFixed(2)}</span>,
+      cell: ({ row }) => <span>${Number(row.original.sellingPrice).toFixed(2)}</span>,
     },
     {
       accessorKey: 'currentStock',

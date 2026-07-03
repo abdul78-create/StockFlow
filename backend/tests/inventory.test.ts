@@ -10,6 +10,10 @@ vi.mock('../src/infra/database/prisma', () => ({
   default: {
     product: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    purchaseOrderItem: {
+      findFirst: vi.fn(),
     },
     warehouse: {
       findFirst: vi.fn(),
@@ -42,6 +46,8 @@ describe('InventoryService Unit Tests', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (prisma.product.findUnique as any).mockResolvedValue(null);
+    (prisma.purchaseOrderItem.findFirst as any).mockResolvedValue(null);
     mockRepo = new InventoryRepository();
     inventoryService = new InventoryService(mockRepo);
   });

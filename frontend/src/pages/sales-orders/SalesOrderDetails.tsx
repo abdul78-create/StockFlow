@@ -130,6 +130,11 @@ export function SalesOrderDetails() {
                             <TableCell className="font-medium">
                               {item.product?.name}
                               <div className="text-xs text-muted-foreground">{item.product?.sku}</div>
+                              {item.variant && (
+                                <div className="text-xs text-muted-foreground mt-1 text-emerald-600">
+                                  Variant: {item.variant.name} ({item.variant.sku})
+                                </div>
+                              )}
                             </TableCell>
                             <TableCell className="text-right">{item.quantity}</TableCell>
                             <TableCell className="text-right">${Number(item.unitPrice).toFixed(2)}</TableCell>

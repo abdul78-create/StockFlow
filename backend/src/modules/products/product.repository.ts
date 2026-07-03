@@ -45,7 +45,7 @@ export class ProductRepository {
         where: whereClause,
         include: {
           category: true,
-          supplier: true,
+          images: true,
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -66,10 +66,20 @@ export class ProductRepository {
       },
       include: {
         category: true,
-        supplier: true,
+        images: true,
+        variants: true,
+        units: true,
+        suppliers: {
+          include: {
+            supplier: true,
+          }
+        },
+        notes: true,
+        attachments: true,
         inventories: {
           include: {
             warehouse: true,
+            variant: true,
           },
         },
       },
@@ -101,9 +111,11 @@ export class ProductRepository {
         maximumStock: input.maximumStock,
         imageUrl: input.imageUrl,
         status: input.status,
+        qrCode: input.qrCode,
+        hasVariants: input.hasVariants,
+        baseUnit: input.baseUnit,
         organizationId,
         categoryId: input.categoryId,
-        supplierId: input.supplierId,
       },
     });
   }
@@ -127,8 +139,10 @@ export class ProductRepository {
         maximumStock: input.maximumStock,
         imageUrl: input.imageUrl,
         status: input.status,
+        qrCode: input.qrCode,
+        hasVariants: input.hasVariants,
+        baseUnit: input.baseUnit,
         categoryId: input.categoryId,
-        supplierId: input.supplierId,
       },
     });
   }

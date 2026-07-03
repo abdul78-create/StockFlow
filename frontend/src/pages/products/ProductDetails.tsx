@@ -11,6 +11,10 @@ import { Timeline } from '@/components/ui/timeline';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { ProductDrawer } from './components/ProductDrawer';
+import { ProductVariantsTab } from './components/ProductVariantsTab';
+import { ProductSuppliersTab } from './components/ProductSuppliersTab';
+import { ProductUOMTab } from './components/ProductUOMTab';
+
 
 export function ProductDetails() {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +79,9 @@ export function ProductDetails() {
           <Tabs defaultValue="details" className="space-y-4">
             <TabsList>
               <TabsTrigger value="details">Overview</TabsTrigger>
-
+              <TabsTrigger value="variants">Variants</TabsTrigger>
+              <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
+              <TabsTrigger value="uom">UOM</TabsTrigger>
             </TabsList>
             <TabsContent value="details" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -123,8 +129,16 @@ export function ProductDetails() {
                 </CardContent>
               </Card>
             </TabsContent>
-
-          </Tabs>
+            <TabsContent value="variants" className="space-y-4">
+              <ProductVariantsTab product={validProduct} />
+            </TabsContent>
+            <TabsContent value="suppliers" className="space-y-4">
+              <ProductSuppliersTab product={validProduct} />
+            </TabsContent>
+            <TabsContent value="uom" className="space-y-4">
+              <ProductUOMTab product={validProduct} />
+            </TabsContent>
+</Tabs>
 
           <ProductDrawer 
             open={isEditDrawerOpen} 
