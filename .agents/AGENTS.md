@@ -82,3 +82,13 @@ Otherwise continue with the next roadmap phase.
 - Temporary scripts used for code generation must be deleted immediately after use.
 - Do not commit helper generators.
 - The repository should contain only production source code.
+
+## 11. End-to-End Verification Requirement
+No feature is complete until it has been verified end-to-end in the browser using the actual UI. Every new feature must include:
+- Backend API verification
+- Frontend interaction verification
+- Browser Network tab verification
+- Console free of errors
+- Docker build verification
+- End-to-end workflow test
+

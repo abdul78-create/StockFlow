@@ -124,4 +124,26 @@ export class ProductController {
     }
   };
 
+  addBundleItem = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const item = await this.productService.addBundleItem(orgId, id, req.body);
+      ResponseFormatter.success(res, 201, 'Bundle item added', item);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  addImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const { id } = req.params;
+      const image = await this.productService.addImage(orgId, id, req.body);
+      ResponseFormatter.success(res, 201, 'Product image added', image);
+    } catch (error) {
+      next(error);
+    }
+  };
+
 }

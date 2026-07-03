@@ -172,4 +172,48 @@ export class ProductService {
     });
   }
 
+  async addBundleItem(organizationId: string, productId: string, data: any) {
+    const product = await this.getProductById(organizationId, productId);
+    // Ensure the product is marked as a bundle
+    if (!product.isBundle) {
+      await prisma.product.update({ where: { id: product.id }, data: { isBundle: true } });
+    }
+    
+    // Verify component exists
+    const component = await this.getProductById(organizationId, data.componentProductId);
+    
+    return prisma.productBundleItem.create({
+      data: {
+        bundleProductId: product.id,
+        componentProductId: component.id,
+        quantity: data.quantity,
+      }
+    });
+  }
+
+  async addImage(organizationId: string, productId: string, data: any) {
+    const product = await this.getProductById(organizationId, productId);
+    
+    if (data.isPrimary) {
+      // Unset previous primary image
+      await prisma.productImage.updateMany({
+        where: { productId: product.id, isPrimary: true },
+        data: { isPrimary: false },
+      });
+      // Also update main imageUrl on product
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { imageUrl: data.url },
+      });
+    }
+
+    return prisma.productImage.create({
+      data: {
+        productId: product.id,
+        url: data.url,
+        isPrimary: data.isPrimary,
+      }
+    });
+  }
+
 }

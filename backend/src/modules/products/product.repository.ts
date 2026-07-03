@@ -82,6 +82,11 @@ export class ProductRepository {
             variant: true,
           },
         },
+        bundleItems: {
+          include: {
+            componentProduct: true,
+          },
+        },
       },
     });
   }
@@ -113,6 +118,7 @@ export class ProductRepository {
         status: input.status,
         qrCode: input.qrCode,
         hasVariants: input.hasVariants,
+        isBundle: input.isBundle,
         baseUnit: input.baseUnit,
         organizationId,
         categoryId: input.categoryId,
@@ -141,6 +147,7 @@ export class ProductRepository {
         status: input.status,
         qrCode: input.qrCode,
         hasVariants: input.hasVariants,
+        isBundle: input.isBundle,
         baseUnit: input.baseUnit,
         categoryId: input.categoryId,
       },

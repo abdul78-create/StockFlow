@@ -14,6 +14,8 @@ import { ProductDrawer } from './components/ProductDrawer';
 import { ProductVariantsTab } from './components/ProductVariantsTab';
 import { ProductSuppliersTab } from './components/ProductSuppliersTab';
 import { ProductUOMTab } from './components/ProductUOMTab';
+import { ProductBundlesTab } from './components/ProductBundlesTab';
+import { ProductImagesTab } from './components/ProductImagesTab';
 
 
 export function ProductDetails() {
@@ -80,6 +82,8 @@ export function ProductDetails() {
             <TabsList>
               <TabsTrigger value="details">Overview</TabsTrigger>
               <TabsTrigger value="variants">Variants</TabsTrigger>
+              <TabsTrigger value="bundles">Bundles</TabsTrigger>
+              <TabsTrigger value="images">Images</TabsTrigger>
               <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
               <TabsTrigger value="uom">UOM</TabsTrigger>
             </TabsList>
@@ -91,9 +95,9 @@ export function ProductDetails() {
                     <Icons.products className="h-4 w-4 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">${validProduct.sellingPrice.toFixed(2)}</div>
+                    <div className="text-2xl font-bold">${Number(validProduct.sellingPrice).toFixed(2)}</div>
                     <p className="text-xs text-muted-foreground">
-                      Cost: ${validProduct.costPrice.toFixed(2)}
+                      Cost: ${Number(validProduct.costPrice).toFixed(2)}
                     </p>
                   </CardContent>
                 </Card>
@@ -131,6 +135,12 @@ export function ProductDetails() {
             </TabsContent>
             <TabsContent value="variants" className="space-y-4">
               <ProductVariantsTab product={validProduct} />
+            </TabsContent>
+            <TabsContent value="bundles" className="space-y-4">
+              <ProductBundlesTab product={validProduct} />
+            </TabsContent>
+            <TabsContent value="images" className="space-y-4">
+              <ProductImagesTab product={validProduct} />
             </TabsContent>
             <TabsContent value="suppliers" className="space-y-4">
               <ProductSuppliersTab product={validProduct} />

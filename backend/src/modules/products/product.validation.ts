@@ -30,6 +30,7 @@ export const createProductSchema = z
     status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).default('ACTIVE'),
     qrCode: z.string().optional(),
     hasVariants: z.boolean().default(false),
+    isBundle: z.boolean().default(false),
     baseUnit: z.string().default('pcs'),
   })
   .refine((data) => data.sellingPrice >= data.costPrice, {
@@ -53,6 +54,7 @@ export const updateProductSchema = z.object({
   status: z.enum(['ACTIVE', 'DRAFT', 'ARCHIVED']).optional(),
   qrCode: z.string().optional(),
   hasVariants: z.boolean().optional(),
+  isBundle: z.boolean().optional(),
   baseUnit: z.string().optional(),
 });
 
@@ -62,3 +64,13 @@ export const productIdParamSchema = z.object({
 
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+
+export const addBundleItemSchema = z.object({
+  componentProductId: z.string().uuid(),
+  quantity: z.coerce.number().int().positive(),
+});
+
+export const addImageSchema = z.object({
+  url: z.string().url(),
+  isPrimary: z.boolean().default(false),
+});

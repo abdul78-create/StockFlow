@@ -255,5 +255,7 @@ router.post(
 router.post('/:id/variants', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addVariant);
 router.post('/:id/suppliers', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addSupplier);
 router.post('/:id/units', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addUnit);
+router.post('/:id/bundles', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addBundleItem);
+router.post('/:id/images', authenticate, requirePermission('products.update'), validateRequest({ params: productIdParamSchema }), controller.addImage);
 
 export default router;

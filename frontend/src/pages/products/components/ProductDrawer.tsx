@@ -36,7 +36,6 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
   const isEditing = !!product;
   
   const createMutation = useCreateProduct();
-  const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct(product?.id || '');
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
 
@@ -81,7 +80,6 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         costPrice: 0,
         sellingPrice: 0,
         minimumStock: 10,
-        maximumStock: 100,
         maximumStock: 100,
         categoryId: '',
       });
