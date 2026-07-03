@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Product, ProductFormValues, productSchema } from '@/lib/types/product';
 import { useCreateProduct, useUpdateProduct } from '@/lib/hooks/useProducts';
+import { useCategories } from '@/lib/hooks/useCategories';
 import { Icons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +18,13 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ProductDrawerProps {
   open: boolean;
@@ -28,12 +36,15 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
   const isEditing = !!product;
   
   const createMutation = useCreateProduct();
+  const createMutation = useCreateProduct();
   const updateMutation = useUpdateProduct(product?.id || '');
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
 
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(productSchema),
@@ -45,7 +56,7 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
       sellingPrice: 0,
       minimumStock: 10,
       maximumStock: 100,
-      categoryId: 'ea12c30f-d355-4576-b03a-a52054827aa2',
+      categoryId: '',
     },
   });
 
@@ -71,7 +82,8 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         sellingPrice: 0,
         minimumStock: 10,
         maximumStock: 100,
-        categoryId: 'ea12c30f-d355-4576-b03a-a52054827aa2', // Use a valid UUID instead of 'cat-1'
+        maximumStock: 100,
+        categoryId: '',
       });
     }
   }, [product, reset, open]);
@@ -144,6 +156,29 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
                 <Input id="sellingPrice" type="number" step="0.01" {...register('sellingPrice')} />
                 {errors.sellingPrice && <p className="text-xs text-destructive">{errors.sellingPrice.message}</p>}
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoryId">Category <span className="text-destructive">*</span></Label>
+              <Controller
+                control={control}
+                name="categoryId"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} value={field.value || undefined}>
+                    <SelectTrigger id="categoryId" className={errors.categoryId ? 'border-destructive' : ''}>
+                      <SelectValue placeholder={isLoadingCategories ? "Loading..." : "Select a category"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((cat: any) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
