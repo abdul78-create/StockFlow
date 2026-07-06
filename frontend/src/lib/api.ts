@@ -38,10 +38,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // We can handle global redirects here, e.g. 401 Unauthorized -> redirect to login
     if (error.response?.status === 401) {
-      // Avoid infinite redirects if already on login page
-      if (window.location.pathname !== '/login') {
+      const publicPaths = ['/', '/login', '/signup', '/forgot-password'];
+      if (!publicPaths.includes(window.location.pathname)) {
         window.location.href = '/login';
       }
     }

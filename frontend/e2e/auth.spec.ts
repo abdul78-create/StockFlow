@@ -32,16 +32,9 @@ test.describe('Authentication', () => {
 
   test('logout redirects to login page', async ({ page }) => {
     await login(page);
-    // Find and click logout — try common selectors
-    const logoutBtn = page.getByRole('button', { name: /logout|sign out/i });
-    if (await logoutBtn.isVisible()) {
-      await logoutBtn.click();
-    } else {
-      // May be inside a dropdown/user menu
-      const userMenu = page.locator('[aria-label*="user" i], [id*="user-menu" i], [data-testid*="user" i]').first();
-      await userMenu.click();
-      await page.getByRole('menuitem', { name: /logout|sign out/i }).click();
-    }
+    const userMenu = page.getByRole('button', { name: /open user menu/i });
+    await userMenu.click();
+    await page.getByRole('menuitem', { name: /log out/i }).click();
     await expect(page).toHaveURL(/.*login/, { timeout: 8_000 });
   });
 });

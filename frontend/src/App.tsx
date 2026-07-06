@@ -62,6 +62,7 @@ import { QuotationDetails } from '@/pages/quotations/QuotationDetails';
 import { ExpiringStock } from '@/pages/inventory/ExpiringStock';
 import { TaxRulesSettings } from '@/pages/settings/TaxRulesSettings';
 import { DemoSettings } from '@/pages/settings/DemoSettings';
+import { LandingPage } from '@/pages/public/LandingPage';
 
 
 import { useAuthStore } from '@/store/auth';
@@ -76,7 +77,7 @@ function App() {
 
   if (isInitializing) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
+      <div id="app-loader" className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
         <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg select-none">
           SF
         </div>
@@ -95,6 +96,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* Public / Auth Routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -119,7 +121,6 @@ function App() {
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<DashboardLayout />}>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               

@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Icons } from '@/lib/icons';
 import { motion } from 'framer-motion';
 import { pageTransition } from '@/lib/motion';
+import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(1, 'Password is required'),
   rememberMe: z.boolean().default(false).optional(),
 });
 
@@ -24,7 +24,9 @@ export function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, error } = useAuthStore();
-  const from = location.state?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const {
     register,
@@ -41,12 +43,18 @@ export function Login() {
 
   const rememberMe = watch('rememberMe');
 
+  React.useEffect(() => {
+    // Clear any leftover auth errors when visiting login
+    useAuthStore.setState({ error: null });
+  }, []);
+
   const onSubmit = async (data: LoginValues) => {
-    await login(data.email, data.password);
-    // Note: In a real app, successful login state update will cause a re-render
-    // and the ProtectedRoute will automatically let the user through.
-    // For this mock, we just navigate.
-    navigate(from, { replace: true });
+    try {
+      await login(data.email, data.password);
+      navigate(from, { replace: true });
+    } catch (e) {
+      // Handled by auth store error state
+    }
   };
 
   return (
@@ -55,79 +63,115 @@ export function Login() {
       initial="hidden"
       animate="visible"
       exit="exit"
-      className="rounded-xl border bg-card text-card-foreground shadow p-8"
+      className="space-y-6"
     >
-      <div className="flex flex-col space-y-2 text-center mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Sign in to your account
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Welcome back
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email and password to access the ERP
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          Enter your organization credentials to sign in
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {error && (
-          <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive flex items-center gap-2">
-            <Icons.error className="h-4 w-4" />
-            {error}
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold">Authentication failed</p>
+              <p className="text-xs opacity-90">{error}</p>
+            </div>
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-xs uppercase tracking-wider font-semibold text-slate-500">
+            Email Address
+          </Label>
           <Input
             id="email"
             type="email"
-            placeholder="m@example.com"
+            placeholder="name@company.com"
             {...register('email')}
-            className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
+            className={errors.email ? 'border-destructive focus-visible:ring-destructive' : 'h-11'}
+            disabled={isLoading}
           />
           {errors.email && (
-            <p className="text-sm text-destructive">{errors.email.message}</p>
+            <p className="text-xs text-destructive">{errors.email.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-xs uppercase tracking-wider font-semibold text-slate-500">
+              Password
+            </Label>
             <Link
               to="/forgot-password"
-              className="text-sm font-medium text-primary hover:underline"
+              className="text-xs font-semibold text-slate-650 dark:text-slate-350 hover:text-slate-950 dark:hover:text-white transition-colors"
             >
               Forgot password?
             </Link>
           </div>
-          <Input
-            id="password"
-            type="password"
-            {...register('password')}
-            className={errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              {...register('password')}
+              className={errors.password ? 'border-destructive focus-visible:ring-destructive pr-10' : 'h-11 pr-10'}
+              disabled={isLoading}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 focus:outline-none"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && (
-            <p className="text-sm text-destructive">{errors.password.message}</p>
+            <p className="text-xs text-destructive">{errors.password.message}</p>
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 py-1">
           <Checkbox 
             id="rememberMe" 
             checked={rememberMe} 
             onCheckedChange={(checked) => setValue('rememberMe', checked as boolean)}
+            disabled={isLoading}
           />
           <Label
             htmlFor="rememberMe"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="text-xs font-medium text-slate-550 dark:text-slate-400 select-none cursor-pointer"
           >
-            Remember me for 30 days
+            Keep me signed in on this device
           </Label>
         </div>
 
-        <Button className="w-full" type="submit" disabled={isLoading}>
-          {isLoading && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
-          Sign In
+        <Button className="w-full h-11 text-sm font-semibold" type="submit" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Verifying...
+            </>
+          ) : (
+            'Sign In'
+          )}
         </Button>
       </form>
+
+      <div className="text-center text-xs text-slate-450">
+        Don't have an account?{' '}
+        <Link
+          to="/signup"
+          className="font-bold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors"
+        >
+          Create Workspace
+        </Link>
+      </div>
     </motion.div>
   );
 }
