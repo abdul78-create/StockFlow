@@ -73,6 +73,31 @@ export function InventoryDashboard() {
       cell: ({ row }) => (
         <span>${((row.original.quantity || 0) * (row.original.product?.costPrice || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
       ),
+    },
+    {
+      id: 'tracking',
+      header: 'Tracking',
+      cell: ({ row }) => {
+        const hasBatches = row.original.batches && row.original.batches.length > 0;
+        const hasSerials = row.original.serialNumbers && row.original.serialNumbers.length > 0;
+        
+        if (!hasBatches && !hasSerials) return <span className="text-muted-foreground text-xs">None</span>;
+        
+        return (
+          <div className="flex gap-1 flex-wrap max-w-[120px]">
+            {hasBatches && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-500 font-medium" title={`${row.original.batches?.length} batches`}>
+                Batches
+              </span>
+            )}
+            {hasSerials && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-purple-500/10 text-purple-500 font-medium" title={`${row.original.serialNumbers?.length} serials`}>
+                Serials
+              </span>
+            )}
+          </div>
+        );
+      },
     }
   ];
 

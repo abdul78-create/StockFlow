@@ -33,6 +33,18 @@ export interface InventoryBalance {
   warehouse: {
     name: string;
   };
+  batches?: {
+    id: string;
+    batchNumber: string;
+    quantity: number;
+    manufacturingDate?: string;
+    expiryDate?: string;
+  }[];
+  serialNumbers?: {
+    id: string;
+    serialNumber: string;
+    status: string;
+  }[];
 }
 
 export interface InventoryTransaction {

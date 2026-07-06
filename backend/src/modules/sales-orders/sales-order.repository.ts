@@ -90,6 +90,10 @@ export class SalesOrderRepository {
         organizationId,
         status: 'DRAFT',
         totalAmount,
+        shippingCost: input.shippingCost || 0,
+        taxAmount: input.taxAmount || 0,
+        discountAmount: input.discountAmount || 0,
+        notes: input.notes,
         items: {
           create: input.items.map((item) => ({
             productId: item.productId,
@@ -127,10 +131,11 @@ export class SalesOrderRepository {
     tx: Prisma.TransactionClient,
     itemId: string,
     shippedQuantity: number,
+    cogs?: number,
   ): Promise<void> {
     await tx.salesOrderItem.update({
       where: { id: itemId },
-      data: { shippedQuantity },
+      data: { shippedQuantity, cogs },
     });
   }
 }

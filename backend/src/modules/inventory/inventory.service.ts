@@ -146,18 +146,80 @@ export class InventoryService {
     userId: string,
     input: ReceiveStockInput,
   ): Promise<InventoryTransaction> {
-    return this.adjustStock(
-      organizationId,
-      userId,
-      {
-        productId: input.productId,
-        variantId: input.variantId,
-        warehouseId: input.warehouseId,
-        quantityDelta: input.quantity,
-        reason: input.reason || 'Purchase order receipt',
-      },
-      'PURCHASE',
-    );
+    await this.verifyProductAndWarehouse(organizationId, input.productId, input.warehouseId);
+
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await this.inventoryRepository.findEntry(input.warehouseId, input.productId, input.variantId || null);
+      const previousQuantity = existing ? existing.quantity : 0;
+      const newQuantity = previousQuantity + input.quantity;
+
+      let inventoryEntry: Inventory;
+      if (!existing) {
+        inventoryEntry = await this.inventoryRepository.createInventoryEntry(
+          tx, input.warehouseId, input.productId, newQuantity, input.variantId || null
+        );
+      } else {
+        inventoryEntry = await this.inventoryRepository.updateInventoryQuantity(
+          tx, existing.id, newQuantity
+        );
+      }
+
+      let batchId: string | undefined;
+      if (input.batchNumber) {
+        const batch = await tx.inventoryBatch.create({
+          data: {
+            inventoryId: inventoryEntry.id,
+            batchNumber: input.batchNumber,
+            quantity: input.quantity,
+            manufacturingDate: input.manufacturingDate ? new Date(input.manufacturingDate) : null,
+            expiryDate: input.expiryDate ? new Date(input.expiryDate) : null,
+          }
+        });
+        batchId = batch.id;
+      }
+
+      if (input.serialNumbers && input.serialNumbers.length > 0) {
+        await tx.serialNumber.createMany({
+          data: input.serialNumbers.map(serial => ({
+            inventoryId: inventoryEntry.id,
+            serialNumber: serial,
+            status: 'AVAILABLE'
+          }))
+        });
+      }
+
+      const transaction = await this.inventoryRepository.createTransaction(
+        tx,
+        inventoryEntry.id,
+        'PURCHASE',
+        input.quantity,
+        previousQuantity,
+        newQuantity,
+        input.reason || 'Purchase order receipt',
+        userId,
+        batchId
+      );
+
+      await AuditService.log(
+        organizationId,
+        userId,
+        'STOCK_PURCHASE',
+        'Inventory',
+        inventoryEntry.id,
+        {
+          productId: input.productId,
+          warehouseId: input.warehouseId,
+          quantityDelta: input.quantity,
+          previousQuantity,
+          newQuantity,
+        }
+      );
+
+      return transaction;
+    });
+
+    AutomationService.checkAndTriggerReorder(organizationId, input.productId).catch(console.error);
+    return result;
   }
 
   async dispatchStock(
@@ -165,18 +227,55 @@ export class InventoryService {
     userId: string,
     input: DispatchStockInput,
   ): Promise<InventoryTransaction> {
-    return this.adjustStock(
-      organizationId,
-      userId,
-      {
-        productId: input.productId,
-        variantId: input.variantId,
-        warehouseId: input.warehouseId,
-        quantityDelta: -input.quantity,
-        reason: input.reason || 'Sales dispatch order',
-      },
-      'SALE',
-    );
+    await this.verifyProductAndWarehouse(organizationId, input.productId, input.warehouseId);
+
+    return prisma.$transaction(async (tx) => {
+      const existing = await this.inventoryRepository.findEntry(input.warehouseId, input.productId, input.variantId || null);
+      if (!existing || existing.quantity < input.quantity) {
+        throw new ValidationError('Insufficient stock level for dispatch');
+      }
+
+      const previousQuantity = existing.quantity;
+      const newQuantity = previousQuantity - input.quantity;
+      
+      const inventoryEntry = await this.inventoryRepository.updateInventoryQuantity(
+        tx, existing.id, newQuantity
+      );
+
+      if (input.batchId) {
+        const batch = await tx.inventoryBatch.findUnique({ where: { id: input.batchId } });
+        if (!batch || batch.quantity < input.quantity) throw new ValidationError('Insufficient batch quantity');
+        await tx.inventoryBatch.update({
+          where: { id: input.batchId },
+          data: { quantity: batch.quantity - input.quantity }
+        });
+      }
+
+      if (input.serialNumbers && input.serialNumbers.length > 0) {
+        await tx.serialNumber.updateMany({
+          where: { inventoryId: inventoryEntry.id, serialNumber: { in: input.serialNumbers }, status: 'AVAILABLE' },
+          data: { status: 'SOLD' }
+        });
+      }
+
+      const transaction = await this.inventoryRepository.createTransaction(
+        tx,
+        inventoryEntry.id,
+        'SALE',
+        -input.quantity,
+        previousQuantity,
+        newQuantity,
+        input.reason || 'Sales dispatch order',
+        userId,
+        input.batchId
+      );
+
+      await AuditService.log(organizationId, userId, 'STOCK_SALE', 'Inventory', inventoryEntry.id, {
+        productId: input.productId, quantityDelta: -input.quantity
+      });
+
+      return transaction;
+    });
   }
 
   async transferStock(
@@ -285,5 +384,9 @@ export class InventoryService {
 
       return { sourceTransaction, destTransaction };
     });
+  }
+
+  async getExpiringBatches(organizationId: string, days?: number) {
+    return this.inventoryRepository.findExpiringBatches(organizationId, days);
   }
 }

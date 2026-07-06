@@ -86,8 +86,51 @@ export class PurchaseOrderService {
       totalAmount += item.quantity * item.unitPrice;
     }
 
-    // 4. Create PO
-    const po = await this.purchaseOrderRepository.create(organizationId, input, totalAmount);
+    // 4. Create PO and record supplier price history
+    const po = await prisma.$transaction(async (tx) => {
+      const createdPo = await this.purchaseOrderRepository.create(organizationId, input, totalAmount, tx);
+
+      for (const item of input.items) {
+        // Find or create product supplier link
+        let productSupplier = await tx.productSupplier.findUnique({
+          where: {
+            productId_supplierId: {
+              productId: item.productId,
+              supplierId: input.supplierId,
+            },
+          },
+        });
+
+        if (!productSupplier) {
+          productSupplier = await tx.productSupplier.create({
+            data: {
+              productId: item.productId,
+              supplierId: input.supplierId,
+              supplierPrice: item.unitPrice,
+            },
+          });
+        } else if (Number(productSupplier.supplierPrice) !== item.unitPrice) {
+          productSupplier = await tx.productSupplier.update({
+            where: { id: productSupplier.id },
+            data: { supplierPrice: item.unitPrice },
+          });
+        }
+
+        // Record price history
+        await tx.supplierPriceHistory.create({
+          data: {
+            productId: item.productId,
+            supplierId: input.supplierId,
+            productSupplierId: productSupplier.id,
+            price: item.unitPrice,
+            recordedBy: userId,
+            notes: `Recorded from PO ${input.poNumber}`,
+          },
+        });
+      }
+
+      return createdPo;
+    });
 
     // 5. Log audit trail
     await AuditService.log(
@@ -166,6 +209,10 @@ export class PurchaseOrderService {
     }
 
     return prisma.$transaction(async (tx) => {
+      // Calculate additional costs proportion for landed cost
+      const totalAdditionalCosts = Number(po.shippingCost || 0) + Number(po.taxAmount || 0) + Number(po.otherCosts || 0);
+      const poTotalAmount = Number(po.totalAmount || 1); // prevent division by zero
+
       // 3. Process goods receipt
       for (const receiveItem of input.items) {
         // Match product on PO
@@ -209,6 +256,26 @@ export class PurchaseOrderService {
           );
         }
 
+        let batchId: string | undefined;
+        if (receiveItem.batchNumber) {
+          const batch = await tx.inventoryBatch.create({
+            data: {
+              inventoryId: inventoryEntry.id,
+              purchaseOrderItemId: poItem.id,
+              batchNumber: receiveItem.batchNumber,
+              quantity: receiveItem.quantity,
+              manufacturingDate: receiveItem.manufacturingDate ? new Date(receiveItem.manufacturingDate) : null,
+              expiryDate: receiveItem.expiryDate ? new Date(receiveItem.expiryDate) : null,
+            },
+          });
+          batchId = batch.id;
+        }
+
+        // Calculate landed unit cost
+        const itemLineTotal = Number(poItem.unitPrice) * receiveItem.quantity;
+        const additionalCostShare = poTotalAmount > 0 ? totalAdditionalCosts * (itemLineTotal / poTotalAmount) : 0;
+        const landedUnitCost = Number(poItem.unitPrice) + (additionalCostShare / receiveItem.quantity);
+
         // Log transaction history line
         await this.inventoryRepository.createTransaction(
           tx,
@@ -219,10 +286,11 @@ export class PurchaseOrderService {
           newQty,
           `Received against PO: ${po.poNumber}`,
           userId,
+          batchId,
         );
 
-        // Save new receivedQuantity on PO item
-        await this.purchaseOrderRepository.updateItemReceivedQuantity(tx, poItem.id, totalReceived);
+        // Save new receivedQuantity and landed cost on PO item
+        await this.purchaseOrderRepository.updateItemReceivedQuantity(tx, poItem.id, totalReceived, landedUnitCost);
       }
 
       // Check if all PO items are fully received

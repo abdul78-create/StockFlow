@@ -17,10 +17,13 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 RUN echo 'server { \
     listen       80; \
     server_name  localhost; \
+    gzip on; \
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript; \
     location / { \
         root   /usr/share/nginx/html; \
         index  index.html index.htm; \
         try_files $uri $uri/ /index.html; \
+        gzip_static on; \
     } \
     location /api/ { \
         proxy_pass http://backend:3000; \

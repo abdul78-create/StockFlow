@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useInventoryValuation, useLowStockReport, useSalesSummary, usePurchaseSummary } from '@/lib/hooks/useReports';
+import { useInventoryValuation, useLowStockReport, useSalesSummary, usePurchaseSummary, useActivityLog, useFinancialSummary, ActivityLogEntry } from '@/lib/hooks/useReports';
 import { PageTemplate } from '@/components/layout/PageTemplate';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,12 +7,20 @@ import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatDistanceToNow } from 'date-fns';
 
 export function ReportsPage() {
   const valuationQuery = useInventoryValuation();
   const lowStockQuery = useLowStockReport();
   const salesQuery = useSalesSummary();
   const purchaseQuery = usePurchaseSummary();
+  const financeQuery = useFinancialSummary();
+
+  const [activityPage, setActivityPage] = React.useState(1);
+  const [activityEntity, setActivityEntity] = React.useState<string | undefined>(undefined);
+  const activityQuery = useActivityLog(activityPage, 25, activityEntity);
 
   const valuationColumns: ColumnDef<any>[] = [
     { accessorKey: 'categoryName', header: 'Category' },
@@ -72,6 +80,8 @@ export function ReportsPage() {
           <TabsTrigger value="low-stock">Low Stock Alerts</TabsTrigger>
           <TabsTrigger value="sales">Sales Summary</TabsTrigger>
           <TabsTrigger value="purchases">Purchases Summary</TabsTrigger>
+          <TabsTrigger value="finance">Financial Summary</TabsTrigger>
+          <TabsTrigger value="activity">Activity Log</TabsTrigger>
         </TabsList>
 
         <TabsContent value="valuation">
@@ -255,6 +265,184 @@ export function ReportsPage() {
                     </div>
                   </div>
                 )}
+              </QueryStateWrapper>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="finance">
+          <Card>
+            <CardHeader>
+              <CardTitle>Financial Summary</CardTitle>
+              <CardDescription>Overview of cash flow, receivables, and payables.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QueryStateWrapper
+                isLoading={financeQuery.isLoading}
+                error={financeQuery.error}
+                data={financeQuery.data}
+                isEmpty={(d) => !d}
+              >
+                {(data) => (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Accounts Receivable</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-emerald-600">${data.totalAccountsReceivable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Accounts Payable</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-destructive">${data.totalAccountsPayable.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Cash Received</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">${data.totalCashReceived.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Cash Paid</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">${data.totalCashPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="md:col-span-2 lg:col-span-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium text-muted-foreground">Net Cash Flow</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className={`text-4xl font-bold ${data.netCashFlow >= 0 ? 'text-emerald-600' : 'text-destructive'}`}>
+                          ${data.netCashFlow.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </QueryStateWrapper>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="activity">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Activity Log</CardTitle>
+                  <CardDescription>Complete audit trail of all system actions.</CardDescription>
+                </div>
+                <Select value={activityEntity || 'all'} onValueChange={(v) => { setActivityEntity(v === 'all' ? undefined : v); setActivityPage(1); }}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All Entities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Entities</SelectItem>
+                    <SelectItem value="Product">Product</SelectItem>
+                    <SelectItem value="Inventory">Inventory</SelectItem>
+                    <SelectItem value="PurchaseOrder">Purchase Orders</SelectItem>
+                    <SelectItem value="SalesOrder">Sales Orders</SelectItem>
+                    <SelectItem value="Customer">Customer</SelectItem>
+                    <SelectItem value="Supplier">Supplier</SelectItem>
+                    <SelectItem value="Warehouse">Warehouse</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <QueryStateWrapper
+                isLoading={activityQuery.isLoading}
+                error={activityQuery.error}
+                data={activityQuery.data}
+                isEmpty={(d) => !d || d.logs.length === 0}
+                emptyProps={{ title: 'No activity yet', description: 'System actions will appear here as they occur.' }}
+              >
+                {(data) => {
+                  const activityColumns: ColumnDef<ActivityLogEntry>[] = [
+                    {
+                      accessorKey: 'createdAt',
+                      header: 'Time',
+                      cell: ({ row }) => (
+                        <span className="text-muted-foreground text-sm">
+                          {formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true })}
+                        </span>
+                      ),
+                    },
+                    {
+                      accessorKey: 'action',
+                      header: 'Action',
+                      cell: ({ row }) => (
+                        <Badge variant="outline" className="font-mono text-xs">
+                          {row.original.action}
+                        </Badge>
+                      ),
+                    },
+                    { accessorKey: 'entity', header: 'Entity' },
+                    {
+                      accessorKey: 'entityId',
+                      header: 'Entity ID',
+                      cell: ({ row }) => (
+                        <span className="font-mono text-xs text-muted-foreground">
+                          {row.original.entityId ? row.original.entityId.slice(0, 8) + '...' : '—'}
+                        </span>
+                      ),
+                    },
+                    {
+                      accessorKey: 'userId',
+                      header: 'User',
+                      cell: ({ row }) => (
+                        <span className="text-sm">
+                          {row.original.userId === 'SYSTEM' ? 'System' : row.original.userId?.slice(0, 8) + '...'}
+                        </span>
+                      ),
+                    },
+                  ];
+
+                  return (
+                    <>
+                      <DataTable
+                        columns={activityColumns}
+                        data={data.logs}
+                        isLoading={false}
+                        searchKey="action"
+                        searchPlaceholder="Filter actions..."
+                      />
+                      {data.total > 25 && (
+                        <div className="flex items-center justify-between mt-4">
+                          <p className="text-sm text-muted-foreground">
+                            Page {activityPage} of {Math.ceil(data.total / 25)}
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+                              disabled={activityPage <= 1}
+                              onClick={() => setActivityPage((p) => p - 1)}
+                            >
+                              Previous
+                            </button>
+                            <button
+                              className="px-3 py-1 rounded border text-sm disabled:opacity-50"
+                              disabled={activityPage >= Math.ceil(data.total / 25)}
+                              onClick={() => setActivityPage((p) => p + 1)}
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                }}
               </QueryStateWrapper>
             </CardContent>
           </Card>

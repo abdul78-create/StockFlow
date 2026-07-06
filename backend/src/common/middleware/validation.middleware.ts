@@ -27,7 +27,13 @@ export const validateRequest = (schemas: RequestValidationSchema) => {
           field: err.path.join('.'),
           message: err.message,
         }));
-        next(new ValidationError('Request validation failed', formattedErrors));
+        // Use the first field-level message as the top-level error message
+        // so the frontend can display it directly without parsing the errors array
+        const primaryMessage =
+          formattedErrors.length > 0
+            ? formattedErrors[0].message
+            : 'Validation failed';
+        next(new ValidationError(primaryMessage, formattedErrors));
       } else {
         next(error);
       }

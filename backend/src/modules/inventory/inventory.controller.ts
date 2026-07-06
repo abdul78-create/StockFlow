@@ -121,4 +121,15 @@ export class InventoryController {
       next(error);
     }
   };
+
+  getExpiring = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { orgId } = this.getSessionContext(req);
+      const days = req.query.days ? Number(req.query.days) : 30;
+      const data = await this.inventoryService.getExpiringBatches(orgId, days);
+      ResponseFormatter.success(res, 200, 'Expiring batches retrieved', data);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

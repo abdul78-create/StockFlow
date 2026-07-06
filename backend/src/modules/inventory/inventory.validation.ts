@@ -22,6 +22,10 @@ export const receiveStockSchema = z.object({
     .int()
     .positive({ message: 'Receive quantity must be a positive integer' }),
   reason: z.string().min(3, { message: 'Reason must be at least 3 characters long' }).optional(),
+  batchNumber: z.string().optional(),
+  manufacturingDate: z.string().optional(),
+  expiryDate: z.string().optional(),
+  serialNumbers: z.array(z.string()).optional(),
 });
 
 export const dispatchStockSchema = z.object({
@@ -33,6 +37,8 @@ export const dispatchStockSchema = z.object({
     .int()
     .positive({ message: 'Dispatch quantity must be a positive integer' }),
   reason: z.string().min(3, { message: 'Reason must be at least 3 characters long' }).optional(),
+  batchId: z.string().uuid().optional(),
+  serialNumbers: z.array(z.string()).optional(),
 });
 
 export const transferStockSchema = z

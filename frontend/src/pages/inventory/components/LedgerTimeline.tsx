@@ -3,6 +3,8 @@ import { useInventoryHistory } from '@/lib/hooks/useInventory';
 import { Timeline, TimelineEvent } from '@/components/ui/timeline';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/ui/error-state';
+import { TXN_TYPE } from '@/lib/enums';
+
 
 interface LedgerTimelineProps {
   warehouseId?: string;
@@ -68,7 +70,7 @@ export function LedgerTimeline({ warehouseId }: LedgerTimelineProps) {
 
     return {
       id: txn.id,
-      title: `${txn.type} (${txn.quantity > 0 ? '+' : ''}${txn.quantity})`,
+      title: `${TXN_TYPE[txn.type] ?? txn.type} (${txn.quantity > 0 ? '+' : ''}${txn.quantity})`,
       description: `${txn.inventory?.product?.name || 'Unknown'} at ${txn.inventory?.warehouse?.name || 'Unknown'}`,
       date: new Date(txn.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       icon,

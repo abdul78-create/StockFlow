@@ -16,6 +16,10 @@ export const createSOSchema = z.object({
       }),
     )
     .min(1, { message: 'Sales Order must contain at least 1 item' }),
+  shippingCost: z.coerce.number().min(0).optional(),
+  taxAmount: z.coerce.number().min(0).optional(),
+  discountAmount: z.coerce.number().min(0).optional(),
+  notes: z.string().optional(),
 });
 
 export const updateSOStatusSchema = z.object({
@@ -33,6 +37,16 @@ export const updateSOStatusSchema = z.object({
 
 export const dispatchSOSchema = z.object({
   warehouseId: z.string().uuid({ message: 'Invalid Warehouse ID format' }),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        variantId: z.string().uuid().optional(),
+        quantity: z.coerce.number().int().positive(),
+        batchId: z.string().uuid().optional(),
+      })
+    )
+    .optional(),
 });
 
 export const soIdParamSchema = z.object({

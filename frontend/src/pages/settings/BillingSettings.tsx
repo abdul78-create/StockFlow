@@ -6,6 +6,8 @@ import { Icons } from '@/lib/icons';
 import { useSubscription, useUpgradeSubscription } from '@/lib/hooks/useBilling';
 import { Loader2, Check } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SUBSCRIPTION_STATUS } from '@/lib/enums';
+
 
 const PLANS = [
   {
@@ -141,8 +143,8 @@ export function BillingSettings() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Status</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge variant={subscription.status === 'ACTIVE' ? 'default' : 'destructive'}>
-                    {subscription.status}
+                  <Badge variant={SUBSCRIPTION_STATUS[subscription.status]?.variant ?? 'outline'}>
+                    {SUBSCRIPTION_STATUS[subscription.status]?.label ?? subscription.status}
                   </Badge>
                 </div>
               </div>

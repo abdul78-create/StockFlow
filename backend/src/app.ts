@@ -15,6 +15,7 @@ import authRouter from './modules/auth/auth.routes';
 import userRouter from './modules/users/user.routes';
 import productRouter from './modules/products/product.routes';
 import inventoryRouter from './modules/inventory/inventory.routes';
+import cycleCountRouter from './modules/inventory/cycle-count.routes';
 import poRouter from './modules/purchase-orders/purchase-order.routes';
 import customerRouter from './modules/customers/customer.routes';
 import salesOrderRouter from './modules/sales-orders/sales-order.routes';
@@ -26,6 +27,17 @@ import categoryRoutes from './modules/categories/category.routes';
 import warehouseRouter from './modules/warehouses/warehouse.routes';
 import workspaceRouter from './modules/workspaces/workspace.routes';
 import billingRouter from './modules/billing/billing.routes';
+import financeRouter from './modules/finance/finance.routes';
+import integrationRouter from './modules/integrations/integration.routes';
+import automationRouter from './modules/automation/automation.routes';
+import purchaseReturnRouter from './modules/purchase-returns/purchase-return.routes';
+import salesReturnRouter from './modules/sales-returns/sales-return.routes';
+import quotationRouter from './modules/quotations/quotation.routes';
+import notificationRouter from './modules/notifications/notification.routes';
+import taxRuleRouter from './modules/tax-rules/tax-rule.routes';
+import searchRouter from './modules/search/search.routes';
+import demoRouter from './modules/system/demo.routes';
+
 
 const app = express();
 
@@ -46,7 +58,7 @@ app.use(
 // Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
+  max: 1000, // Limit each IP to 1000 requests per window
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -82,6 +94,7 @@ app.use('/api/v1/users', userRouter);
 app.use('/api/v1/products', productRouter);
 app.use('/api/v1/categories', categoryRoutes);
 app.use('/api/v1/inventory', inventoryRouter);
+app.use('/api/v1/cycle-counts', cycleCountRouter);
 app.use('/api/v1/purchase-orders', poRouter);
 app.use('/api/v1/customers', customerRouter);
 app.use('/api/v1/sales-orders', salesOrderRouter);
@@ -90,6 +103,16 @@ app.use('/api/v1/reports', reportsRouter);
 app.use('/api/v1/suppliers', supplierRouter);
 app.use('/api/v1/warehouses', warehouseRouter);
 app.use('/api/v1/billing', billingRouter);
+app.use('/api/v1/finance', financeRouter);
+app.use('/api/v1/integrations', integrationRouter);
+app.use('/api/v1/automation', automationRouter);
+app.use('/api/v1/purchase-returns', purchaseReturnRouter);
+app.use('/api/v1/sales-returns', salesReturnRouter);
+app.use('/api/v1/quotations', quotationRouter);
+app.use('/api/v1/notifications', notificationRouter);
+app.use('/api/v1/tax-rules', taxRuleRouter);
+app.use('/api/v1/search', searchRouter);
+app.use('/api/v1/demo', demoRouter);
 app.use('/api/v1', systemRouter);
 
 // Global Error Handler

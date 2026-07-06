@@ -16,6 +16,7 @@ import { ProductSuppliersTab } from './components/ProductSuppliersTab';
 import { ProductUOMTab } from './components/ProductUOMTab';
 import { ProductBundlesTab } from './components/ProductBundlesTab';
 import { ProductImagesTab } from './components/ProductImagesTab';
+import { BarcodeSVG } from '@/components/BarcodeSVG';
 
 
 export function ProductDetails() {
@@ -117,19 +118,28 @@ export function ProductDetails() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Metadata</CardTitle>
+                  <CardTitle>Metadata &amp; Barcode Label</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                <CardContent className="grid gap-6 sm:grid-cols-2">
+                  <dl className="space-y-4">
                     <div>
                       <dt className="text-sm font-medium text-muted-foreground">Description</dt>
                       <dd className="mt-1 text-sm">{validProduct.description || 'No description provided.'}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Barcode</dt>
+                      <dt className="text-sm font-medium text-muted-foreground">Barcode Value</dt>
                       <dd className="mt-1 text-sm font-mono">{validProduct.barcode || 'N/A'}</dd>
                     </div>
                   </dl>
+                  <div className="flex justify-center sm:justify-start">
+                    {validProduct.barcode ? (
+                      <BarcodeSVG value={validProduct.barcode} />
+                    ) : (
+                      <div className="text-sm text-muted-foreground border border-dashed p-4 rounded-lg flex items-center justify-center h-full w-full max-w-[280px]">
+                        No barcode value configured
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

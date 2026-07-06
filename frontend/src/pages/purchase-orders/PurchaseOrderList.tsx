@@ -17,14 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { Card } from '@/components/ui/card';
+import { PO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  COMPLETED: 'default',
-  CANCELLED: 'destructive',
-};
+
 
 export function PurchaseOrderList() {
   const navigate = useNavigate();
@@ -87,8 +82,8 @@ export function PurchaseOrderList() {
                       <TableCell>{po.supplier?.companyName}</TableCell>
                       <TableCell>{format(new Date(po.createdAt), 'MMM d, yyyy')}</TableCell>
                       <TableCell>
-                        <Badge variant={statusColors[po.status] || 'default'}>
-                          {po.status}
+                        <Badge variant={PO_STATUS[po.status]?.variant ?? 'outline'}>
+                          {PO_STATUS[po.status]?.label ?? po.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

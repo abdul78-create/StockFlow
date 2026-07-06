@@ -19,16 +19,8 @@ import { CheckCircle, XCircle, Truck, ArrowLeft } from 'lucide-react';
 import { DispatchOrderDrawer } from './components/DispatchOrderDrawer';
 import { SalesOrderTimeline } from './components/SalesOrderTimeline';
 import { Separator } from '@/components/ui/separator';
+import { SO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  PACKED: 'default',
-  DISPATCHED: 'default',
-  DELIVERED: 'default',
-  CANCELLED: 'destructive',
-};
 
 export function SalesOrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -144,6 +136,30 @@ export function SalesOrderDetails() {
                           </TableRow>
                         ))}
                         <TableRow>
+                          <TableCell colSpan={3} className="text-right text-muted-foreground">Subtotal</TableCell>
+                          <TableCell className="text-right">
+                            ${(Number(validSo.totalAmount) - Number(validSo.shippingCost || 0) - Number(validSo.taxAmount || 0) + Number(validSo.discountAmount || 0)).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                        {Number(validSo.shippingCost) > 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-right text-muted-foreground">Shipping</TableCell>
+                            <TableCell className="text-right">${Number(validSo.shippingCost).toFixed(2)}</TableCell>
+                          </TableRow>
+                        )}
+                        {Number(validSo.taxAmount) > 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-right text-muted-foreground">Tax</TableCell>
+                            <TableCell className="text-right">${Number(validSo.taxAmount).toFixed(2)}</TableCell>
+                          </TableRow>
+                        )}
+                        {Number(validSo.discountAmount) > 0 && (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-right text-muted-foreground">Discount</TableCell>
+                            <TableCell className="text-right text-destructive">-${Number(validSo.discountAmount).toFixed(2)}</TableCell>
+                          </TableRow>
+                        )}
+                        <TableRow>
                           <TableCell colSpan={3} className="text-right font-bold">Grand Total</TableCell>
                           <TableCell className="text-right font-bold">${Number(validSo.totalAmount).toFixed(2)}</TableCell>
                         </TableRow>
@@ -163,8 +179,8 @@ export function SalesOrderDetails() {
                   <CardContent className="space-y-4">
                     <div>
                       <div className="text-sm text-muted-foreground">Status</div>
-                      <Badge variant={statusColors[validSo.status] || 'default'} className="mt-1">
-                        {validSo.status}
+                      <Badge variant={SO_STATUS[validSo.status]?.variant ?? 'outline'} className="mt-1">
+                        {SO_STATUS[validSo.status]?.label ?? validSo.status}
                       </Badge>
                     </div>
                     <Separator />
@@ -177,6 +193,15 @@ export function SalesOrderDetails() {
                       <div className="text-sm text-muted-foreground">Created At</div>
                       <div className="font-medium mt-1">{format(new Date(validSo.createdAt), 'PPpp')}</div>
                     </div>
+                    {validSo.notes && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="text-sm text-muted-foreground">Notes</div>
+                          <div className="font-medium mt-1">{validSo.notes}</div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </div>

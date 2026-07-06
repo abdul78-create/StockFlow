@@ -53,6 +53,8 @@ export class InventoryRepository {
             },
           },
           warehouse: true,
+          batches: true,
+          serialNumbers: true,
         },
         orderBy: {
           product: {
@@ -221,6 +223,8 @@ export class InventoryRepository {
     newQuantity: number,
     reason: string | null,
     performedBy: string,
+    batchId?: string,
+    serialId?: string,
   ): Promise<InventoryTransaction> {
     return tx.inventoryTransaction.create({
       data: {
@@ -231,6 +235,38 @@ export class InventoryRepository {
         newQuantity,
         reason,
         performedBy,
+        batchId,
+        serialId,
+      },
+    });
+  }
+
+  async findExpiringBatches(organizationId: string, days = 30) {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + days);
+
+    return prisma.inventoryBatch.findMany({
+      where: {
+        expiryDate: {
+          gte: new Date(),
+          lte: futureDate,
+        },
+        inventory: {
+          product: {
+            organizationId,
+          },
+        },
+      },
+      include: {
+        inventory: {
+          include: {
+            product: true,
+            warehouse: true,
+          },
+        },
+      },
+      orderBy: {
+        expiryDate: 'asc',
       },
     });
   }

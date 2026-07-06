@@ -36,6 +36,11 @@ const formSchema = z.object({
       unitPrice: z.number().min(0.01, 'Unit price must be at least 0.01'),
     })
   ).min(1, 'At least one item is required'),
+  shippingCost: z.number().min(0).optional(),
+  taxAmount: z.number().min(0).optional(),
+  otherCosts: z.number().min(0).optional(),
+  expectedDate: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +56,11 @@ export function PurchaseOrderForm() {
     defaultValues: {
       supplierId: '',
       items: [{ productId: '', variantId: '', quantity: 1, unitPrice: 0 }],
+      shippingCost: 0,
+      taxAmount: 0,
+      otherCosts: 0,
+      expectedDate: '',
+      notes: '',
     },
   });
 
@@ -60,7 +70,11 @@ export function PurchaseOrderForm() {
   });
 
   const onSubmit = (values: FormValues) => {
-    createMutation.mutate(values, {
+    const formattedValues = {
+      ...values,
+      expectedDate: values.expectedDate ? new Date(values.expectedDate) : undefined,
+    };
+    createMutation.mutate(formattedValues, {
       onSuccess: () => navigate('/purchase-orders'),
     });
   };
@@ -237,6 +251,83 @@ export function PurchaseOrderForm() {
                   </Button>
                 </div>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Additional Details</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="shippingCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shipping Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="taxAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tax Amount ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="otherCosts"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Other Costs ($)</FormLabel>
+                      <FormControl>
+                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="expectedDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Expected Delivery Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Internal Notes</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter any notes..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 

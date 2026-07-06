@@ -17,16 +17,8 @@ import {
 import { format } from 'date-fns';
 import { ArrowLeft, Mail, Phone, MapPin, Building2, TrendingUp, ShoppingCart, Calendar } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { SO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  PACKED: 'default',
-  DISPATCHED: 'default',
-  DELIVERED: 'default',
-  CANCELLED: 'destructive',
-};
 
 export function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
@@ -158,8 +150,8 @@ export function CustomerDetails() {
                             <TableCell className="font-medium text-emerald-600">{order.soNumber}</TableCell>
                             <TableCell>{format(new Date(order.createdAt), 'MMM d, yyyy')}</TableCell>
                             <TableCell>
-                              <Badge variant={statusColors[order.status] || 'default'}>
-                                {order.status}
+                              <Badge variant={SO_STATUS[order.status]?.variant ?? 'outline'}>
+                                {SO_STATUS[order.status]?.label ?? order.status}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>

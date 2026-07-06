@@ -17,14 +17,8 @@ import {
 import { format } from 'date-fns';
 import { ArrowLeft, Mail, Phone, MapPin, Building2, TrendingDown, ShoppingCart, Calendar } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { PO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  COMPLETED: 'default',
-  CANCELLED: 'destructive',
-};
 
 export function SupplierDetails() {
   const { id } = useParams<{ id: string }>();
@@ -156,9 +150,9 @@ export function SupplierDetails() {
                             <TableCell className="font-medium text-blue-600">{order.poNumber}</TableCell>
                             <TableCell>{format(new Date(order.createdAt), 'MMM d, yyyy')}</TableCell>
                             <TableCell>
-                              <Badge variant={statusColors[order.status] || 'default'}>
-                                {order.status}
-                              </Badge>
+                                <Badge variant={PO_STATUS[order.status]?.variant ?? 'outline'}>
+                                  {PO_STATUS[order.status]?.label ?? order.status}
+                                </Badge>
                             </TableCell>
                             <TableCell className="text-right">${Number(order.totalAmount).toFixed(2)}</TableCell>
                           </TableRow>

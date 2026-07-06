@@ -10,7 +10,8 @@ export interface SalesOrderItem {
   variantId?: string;
   quantity: number;
   unitPrice: number;
-  dispatchedQuantity?: number;
+  shippedQuantity?: number;
+  cogs?: number;
   product?: {
     name: string;
     sku: string;
@@ -27,6 +28,10 @@ export interface SalesOrder {
   customerId: string;
   status: SalesOrderStatus;
   totalAmount: number;
+  shippingCost?: number;
+  taxAmount?: number;
+  discountAmount?: number;
+  notes?: string;
   createdAt: string;
   customer: {
     name: string;
@@ -79,7 +84,14 @@ export function useSalesOrder(id: string) {
 export function useCreateSalesOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { customerId: string; items: SalesOrderItem[] }) => {
+    mutationFn: async (data: { 
+      customerId: string; 
+      items: SalesOrderItem[];
+      shippingCost?: number;
+      taxAmount?: number;
+      discountAmount?: number;
+      notes?: string;
+    }) => {
       const soNumber = `SO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
       return api.post('/sales-orders', { ...data, soNumber });
     },
@@ -117,9 +129,14 @@ export function useUpdateSalesOrderStatus() {
 export function useDispatchSalesOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { id: string; warehouseId: string }) => {
+    mutationFn: async (data: { 
+      id: string; 
+      warehouseId: string;
+      items?: { productId: string; variantId?: string; quantity: number; batchId?: string }[]
+    }) => {
       return api.post(`/sales-orders/${data.id}/dispatch`, {
         warehouseId: data.warehouseId,
+        items: data.items
       });
     },
     onSuccess: (_, variables) => {

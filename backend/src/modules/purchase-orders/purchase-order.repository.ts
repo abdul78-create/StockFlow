@@ -82,14 +82,21 @@ export class PurchaseOrderRepository {
     organizationId: string,
     input: CreatePOInput,
     totalAmount: number,
+    tx?: Prisma.TransactionClient,
   ): Promise<PurchaseOrder> {
-    return prisma.purchaseOrder.create({
+    const client = tx || prisma;
+    return client.purchaseOrder.create({
       data: {
         poNumber: input.poNumber,
         supplierId: input.supplierId,
         organizationId,
         status: 'DRAFT',
         totalAmount,
+        shippingCost: input.shippingCost || 0,
+        taxAmount: input.taxAmount || 0,
+        otherCosts: input.otherCosts || 0,
+        expectedDate: input.expectedDate,
+        notes: input.notes,
         items: {
           create: input.items.map((item) => ({
             productId: item.productId,
@@ -127,10 +134,15 @@ export class PurchaseOrderRepository {
     tx: Prisma.TransactionClient,
     itemId: string,
     receivedQuantity: number,
+    landedUnitCost?: number,
   ): Promise<void> {
+    const data: any = { receivedQuantity };
+    if (landedUnitCost !== undefined) {
+      data.landedUnitCost = landedUnitCost;
+    }
     await tx.purchaseOrderItem.update({
       where: { id: itemId },
-      data: { receivedQuantity },
+      data,
     });
   }
 }

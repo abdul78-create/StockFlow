@@ -30,6 +30,14 @@ export const navigationConfig: NavItem[] = [
         href: '/inventory',
       },
       {
+        title: 'Cycle Counts',
+        href: '/inventory/cycle-counts',
+      },
+      {
+        title: 'Expiring Stock',
+        href: '/inventory/expiring',
+      },
+      {
         title: 'Warehouses',
         href: '/warehouses',
         roles: ['ADMIN', 'MANAGER'],
@@ -45,6 +53,10 @@ export const navigationConfig: NavItem[] = [
         href: '/purchase-orders',
       },
       {
+        title: 'Purchase Returns',
+        href: '/purchase-returns',
+      },
+      {
         title: 'Suppliers',
         href: '/suppliers',
       },
@@ -57,6 +69,14 @@ export const navigationConfig: NavItem[] = [
       {
         title: 'Sales Orders',
         href: '/sales-orders',
+      },
+      {
+        title: 'Quotations',
+        href: '/quotations',
+      },
+      {
+        title: 'Sales Returns',
+        href: '/sales-returns',
       },
       {
         title: 'Customers',

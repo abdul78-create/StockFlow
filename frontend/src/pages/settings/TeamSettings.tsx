@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Icons } from '@/lib/icons';
 import { formatDistanceToNow } from 'date-fns';
+import { MEMBER_ROLE } from '@/lib/enums';
+
 
 interface Member {
   id: string; // OrganizationMember ID
@@ -148,7 +150,7 @@ export function TeamSettings() {
                     </Select>
                   ) : (
                     <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold">
-                      {member.role}
+                      {MEMBER_ROLE[member.role] ?? member.role}
                     </span>
                   )}
                 </td>
@@ -189,7 +191,7 @@ export function TeamSettings() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold opacity-50">
-                    {invite.role}
+                    {MEMBER_ROLE[invite.role] ?? invite.role}
                   </span>
                 </td>
                 <td className="px-4 py-3">

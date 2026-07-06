@@ -3,6 +3,8 @@ import prisma from '../../infra/database/prisma';
 import { cacheService } from '../../infra/cache/memory-cache.service';
 import logger from '../../infra/logger';
 import { config } from '../../infra/config';
+import jwt from 'jsonwebtoken';
+import { TokenPayload } from '../../common/types';
 
 const router = Router();
 
@@ -113,6 +115,70 @@ router.get('/ready', async (_req: Request, res: Response) => {
       checks,
       timestamp: new Date().toISOString(),
     });
+  }
+});
+
+// SSE clients store: organizationId → Set<Response>
+const sseClients: Map<string, Set<Response>> = new Map();
+
+/**
+ * Broadcast a notification event to all SSE clients of an organization.
+ * Called by other services when a notable event occurs.
+ */
+export function broadcastNotification(organizationId: string, payload: unknown) {
+  const clients = sseClients.get(organizationId);
+  if (!clients) return;
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
+  clients.forEach(res => res.write(data));
+}
+
+/**
+ * SSE endpoint — clients connect here to receive real-time events.
+ * Auth is via ?token= query param (JWT) since EventSource doesn't support headers.
+ */
+router.get('/api/v1/events', async (req: Request, res: Response) => {
+  try {
+    const token = req.cookies?.token || (req.query.token as string);
+    if (!token) { res.status(401).end(); return; }
+
+    let userId: string;
+    let orgId: string;
+
+    try {
+      const decoded = jwt.verify(token, config.JWT_SECRET) as TokenPayload;
+      userId = decoded.id;
+
+      // Get default workspace
+      const member = await prisma.organizationMember.findFirst({ where: { userId, status: 'ACTIVE' }, select: { organizationId: true } });
+      if (!member) { res.status(403).end(); return; }
+      orgId = member.organizationId;
+    } catch {
+      res.status(401).end();
+      return;
+    }
+
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // Register client
+    if (!sseClients.has(orgId)) sseClients.set(orgId, new Set());
+    sseClients.get(orgId)!.add(res);
+    logger.info({ userId, orgId }, 'SSE client connected');
+
+    // Send keepalive every 30s
+    const keepalive = setInterval(() => res.write(': keepalive\n\n'), 30000);
+
+    req.on('close', () => {
+      clearInterval(keepalive);
+      sseClients.get(orgId)?.delete(res);
+      logger.info({ userId, orgId }, 'SSE client disconnected');
+    });
+  } catch (err) {
+    logger.error({ err }, 'SSE error');
+    res.status(500).end();
   }
 });
 

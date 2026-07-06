@@ -2,6 +2,24 @@
 
 These rules govern the development of the StockFlow application and must be strictly followed in every agent interaction.
 
+---
+
+## 🚨 RELEASE RULE (Highest Priority)
+
+**No new features may be implemented while any of the following defects exist:**
+
+- Any page throws a runtime error or shows a blank screen
+- Any API endpoint returns 500
+- Any console error or React warning exists
+- Any TypeScript error exists
+- Any test fails
+- Any responsive layout issue exists on mobile/tablet
+- Any `undefined`, `null`, or raw enum value is displayed to the user
+
+**Every defect must be fixed before feature work resumes.** Stability before features.
+
+---
+
 ## 1. Zero-Mock Data Policy
 - Never generate mock data.
 - Never create placeholder pages.

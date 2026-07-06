@@ -27,6 +27,9 @@ export const errorMiddleware = (
   // Unhandled / system errors
   logger.error({ requestId: req.id, err, url: req.url, method: req.method }, 'Unhandled Exception');
 
-  const message = process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message;
+  const message =
+    process.env.NODE_ENV === 'production'
+      ? 'Something unexpected happened. Our team has been notified.'
+      : err.message;
   ResponseFormatter.error(res, 500, message);
 };

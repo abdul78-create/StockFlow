@@ -57,4 +57,39 @@ router.get('/sales-summary', authenticate, requirePermission('reports.view'), co
  */
 router.get('/purchases', authenticate, requirePermission('reports.view'), controller.getPurchaseReport);
 
+/**
+ * @openapi
+ * /api/v1/reports/financial-summary:
+ *   get:
+ *     summary: Get financial performance summary
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Financial summary including cash flow and receivables.
+ */
+router.get('/financial-summary', authenticate, requirePermission('reports.view'), controller.getFinancialSummary);
+
+/**
+ * @openapi
+ * /api/v1/reports/activity-log:
+ *   get:
+ *     summary: Get system activity log
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *       - in: query
+ *         name: limit
+ *       - in: query
+ *         name: entity
+ *       - in: query
+ *         name: action
+ *     responses:
+ *       200:
+ *         description: Paginated activity log entries.
+ */
+router.get('/activity-log', authenticate, requirePermission('reports.view'), controller.getActivityLog);
+
 export default router;

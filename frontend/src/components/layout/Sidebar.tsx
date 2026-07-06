@@ -136,11 +136,11 @@ function SidebarItem({ item, isOpen }: { item: NavItem; isOpen: boolean }) {
             to={item.href!}
             className={({ isActive }) =>
               cn(
-                'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-primary/10 font-semibold text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                isOpen ? 'justify-start' : 'justify-center'
+                  ? 'bg-primary/8 text-primary font-semibold border-l-2 border-primary pl-[10px]'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent pl-[10px]',
+                isOpen ? 'justify-start' : 'justify-center border-l-0 pl-3'
               )
             }
           >

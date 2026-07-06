@@ -17,16 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { Card } from '@/components/ui/card';
+import { SO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  PACKED: 'default',
-  DISPATCHED: 'default',
-  DELIVERED: 'default',
-  CANCELLED: 'destructive',
-};
 
 export function SalesOrderList() {
   const navigate = useNavigate();
@@ -89,8 +81,8 @@ export function SalesOrderList() {
                       <TableCell>{so.customer?.name}</TableCell>
                       <TableCell>{format(new Date(so.createdAt), 'MMM d, yyyy')}</TableCell>
                       <TableCell>
-                        <Badge variant={statusColors[so.status] || 'default'}>
-                          {so.status}
+                        <Badge variant={SO_STATUS[so.status]?.variant ?? 'outline'}>
+                          {SO_STATUS[so.status]?.label ?? so.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

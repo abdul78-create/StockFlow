@@ -11,6 +11,7 @@ export interface PurchaseOrderItem {
   quantity: number;
   unitPrice: number;
   receivedQuantity?: number;
+  landedUnitCost?: number;
   product?: {
     name: string;
     sku: string;
@@ -27,6 +28,11 @@ export interface PurchaseOrder {
   supplierId: string;
   status: PurchaseOrderStatus;
   totalAmount: number;
+  shippingCost?: number;
+  taxAmount?: number;
+  otherCosts?: number;
+  expectedDate?: string;
+  notes?: string;
   createdAt: string;
   supplier: {
     companyName: string;
@@ -79,7 +85,7 @@ export function usePurchaseOrder(id: string) {
 export function useCreatePurchaseOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { supplierId: string; items: PurchaseOrderItem[] }) => {
+    mutationFn: async (data: { supplierId: string; expectedDate?: Date; shippingCost?: number; taxAmount?: number; otherCosts?: number; notes?: string; items: PurchaseOrderItem[] }) => {
       const poNumber = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
       return api.post('/purchase-orders', { ...data, poNumber });
     },
@@ -113,7 +119,7 @@ export function useUpdatePurchaseOrderStatus() {
 export function useReceivePurchaseOrder() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { id: string; warehouseId: string; items: { productId: string; variantId?: string; quantity: number }[] }) => {
+    mutationFn: async (data: { id: string; warehouseId: string; items: { productId: string; variantId?: string; quantity: number; batchNumber?: string; manufacturingDate?: Date; expiryDate?: Date }[] }) => {
       return api.post(`/purchase-orders/${data.id}/receive`, {
         warehouseId: data.warehouseId,
         items: data.items,

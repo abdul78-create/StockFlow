@@ -123,4 +123,75 @@ export class ReportsService {
       totalExpense: Number(group._sum.totalAmount || 0),
     }));
   }
+
+  async getActivityLog(
+    organizationId: string,
+    page: number = 1,
+    limit: number = 25,
+    entity?: string,
+    action?: string,
+  ): Promise<{ logs: unknown[]; total: number }> {
+    const where: any = { organizationId };
+    if (entity) where.entity = entity;
+    if (action) where.action = { contains: action, mode: 'insensitive' };
+
+    const skip = (page - 1) * limit;
+
+    const [logs, total] = await prisma.$transaction([
+      prisma.auditLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.auditLog.count({ where }),
+    ]);
+
+    return {
+      logs: logs.map((log) => ({
+        id: log.id,
+        userId: log.userId,
+        action: log.action,
+        entity: log.entity,
+        entityId: log.entityId,
+        metadata: log.metadata ? JSON.parse(log.metadata) : null,
+        createdAt: log.createdAt,
+      })),
+      total,
+    };
+  }
+
+  async getFinancialSummary(organizationId: string) {
+    const [
+      invoices,
+      bills,
+      paymentsReceived,
+      paymentsMade
+    ] = await Promise.all([
+      prisma.invoice.aggregate({
+        where: { organizationId, status: { notIn: ['PAID', 'CANCELLED'] } },
+        _sum: { balanceDue: true }
+      }),
+      prisma.bill.aggregate({
+        where: { organizationId, status: { notIn: ['PAID', 'CANCELLED'] } },
+        _sum: { balanceDue: true }
+      }),
+      prisma.paymentReceived.aggregate({
+        where: { organizationId },
+        _sum: { amount: true }
+      }),
+      prisma.paymentMade.aggregate({
+        where: { organizationId },
+        _sum: { amount: true }
+      })
+    ]);
+
+    return {
+      totalAccountsReceivable: Number(invoices._sum.balanceDue || 0),
+      totalAccountsPayable: Number(bills._sum.balanceDue || 0),
+      totalCashReceived: Number(paymentsReceived._sum.amount || 0),
+      totalCashPaid: Number(paymentsMade._sum.amount || 0),
+      netCashFlow: Number(paymentsReceived._sum.amount || 0) - Number(paymentsMade._sum.amount || 0)
+    };
+  }
 }

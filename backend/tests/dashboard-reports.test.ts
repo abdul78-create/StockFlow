@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DashboardService } from '../src/modules/dashboard/dashboard.service';
 import { ReportsService } from '../src/modules/reports/reports.service';
@@ -7,10 +8,10 @@ import prisma from '../src/infra/database/prisma';
 // Mock DB
 vi.mock('../src/infra/database/prisma', () => ({
   default: {
-    product: { count: vi.fn() },
+    product: { count: vi.fn(), findMany: vi.fn() },
     warehouse: { count: vi.fn() },
     supplier: { count: vi.fn() },
-    customer: { count: vi.fn() },
+    customer: { count: vi.fn(), findMany: vi.fn() },
     purchaseOrder: { count: vi.fn(), findMany: vi.fn() },
     inventory: { findMany: vi.fn() },
     inventoryTransaction: { count: vi.fn(), findMany: vi.fn() },
@@ -54,6 +55,9 @@ describe('Dashboard and Reports Service Unit Tests', () => {
       (prisma.inventoryTransaction.count as any).mockResolvedValue(50);
       (prisma.inventoryTransaction.findMany as any).mockResolvedValue([]);
       (prisma.auditLog.findMany as any).mockResolvedValue([]);
+      // New queries for topProducts and recentCustomers
+      (prisma.product.findMany as any).mockResolvedValue([]);
+      (prisma.customer.findMany as any).mockResolvedValue([]);
 
       const result = await dashboardService.getMetrics(orgId);
 

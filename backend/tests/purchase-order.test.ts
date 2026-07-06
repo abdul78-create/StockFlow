@@ -127,9 +127,11 @@ describe('PurchaseOrderService Unit Tests', () => {
             variantId: null,
             quantity: 10,
             receivedQuantity: 0,
+            unitPrice: 10,
             product: { name: 'Item A' },
           },
         ],
+        totalAmount: 100,
       };
       mockPORepo.findById.mockResolvedValue(mockPO);
       (prisma.warehouse.findFirst as any).mockResolvedValue({ id: 'ware-uuid-123' });
@@ -148,7 +150,7 @@ describe('PurchaseOrderService Unit Tests', () => {
 
       expect(result).toBeDefined();
       expect(mockInventoryRepo.updateInventoryQuantity).toHaveBeenCalledWith(prisma, 'inv-1', 20);
-      expect(mockPORepo.updateItemReceivedQuantity).toHaveBeenCalledWith(prisma, 'po-item-1', 5);
+      expect(mockPORepo.updateItemReceivedQuantity).toHaveBeenCalledWith(prisma, 'po-item-1', 5, 10);
     });
   });
 });

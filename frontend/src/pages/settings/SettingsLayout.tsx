@@ -35,6 +35,26 @@ const settingsNav: SettingsNav[] = [
     href: '/settings/profile',
     icon: 'user',
   },
+  {
+    title: 'Automation',
+    href: '/settings/automation',
+    icon: 'settings',
+  },
+  {
+    title: 'Integrations',
+    href: '/settings/integrations',
+    icon: 'products',
+  },
+  {
+    title: 'Tax Rules',
+    href: '/settings/tax-rules',
+    icon: 'reports',
+  },
+  {
+    title: 'Demo Mode',
+    href: '/settings/demo',
+    icon: 'inventory',
+  },
 ];
 
 export function SettingsLayout() {

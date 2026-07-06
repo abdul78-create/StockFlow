@@ -19,14 +19,8 @@ import { CheckCircle, XCircle, Box, ArrowLeft } from 'lucide-react';
 import { ReceiveGoodsDrawer } from './components/ReceiveGoodsDrawer';
 import { PurchaseOrderTimeline } from './components/PurchaseOrderTimeline';
 import { Separator } from '@/components/ui/separator';
+import { PO_STATUS } from '@/lib/enums';
 
-const statusColors: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-  DRAFT: 'secondary',
-  PENDING: 'outline',
-  APPROVED: 'default',
-  COMPLETED: 'default',
-  CANCELLED: 'destructive',
-};
 
 export function PurchaseOrderDetails() {
   const { id } = useParams<{ id: string }>();
@@ -111,6 +105,7 @@ export function PurchaseOrderDetails() {
                           <TableHead className="text-right">Qty Ordered</TableHead>
                           <TableHead className="text-right">Qty Received</TableHead>
                           <TableHead className="text-right">Unit Price</TableHead>
+                          <TableHead className="text-right">Landed Cost</TableHead>
                           <TableHead className="text-right">Total</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -130,13 +125,38 @@ export function PurchaseOrderDetails() {
                             <TableCell className="text-right">{item.receivedQuantity || 0}</TableCell>
                             <TableCell className="text-right">${Number(item.unitPrice).toFixed(2)}</TableCell>
                             <TableCell className="text-right">
+                              {item.landedUnitCost ? `$${Number(item.landedUnitCost).toFixed(2)}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-right">
                               ${(Number(item.quantity) * Number(item.unitPrice)).toFixed(2)}
                             </TableCell>
                           </TableRow>
                         ))}
                         <TableRow>
-                          <TableCell colSpan={4} className="text-right font-bold">Grand Total</TableCell>
-                          <TableCell className="text-right font-bold">${Number(validPo.totalAmount).toFixed(2)}</TableCell>
+                          <TableCell colSpan={5} className="text-right font-medium">Subtotal</TableCell>
+                          <TableCell className="text-right font-medium">${Number(validPo.totalAmount).toFixed(2)}</TableCell>
+                        </TableRow>
+                        {((validPo.shippingCost || 0) > 0 || (validPo.taxAmount || 0) > 0 || (validPo.otherCosts || 0) > 0) && (
+                          <>
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-right text-muted-foreground text-sm">Shipping</TableCell>
+                              <TableCell className="text-right text-muted-foreground text-sm">${Number(validPo.shippingCost || 0).toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-right text-muted-foreground text-sm">Tax</TableCell>
+                              <TableCell className="text-right text-muted-foreground text-sm">${Number(validPo.taxAmount || 0).toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-right text-muted-foreground text-sm">Other Costs</TableCell>
+                              <TableCell className="text-right text-muted-foreground text-sm">${Number(validPo.otherCosts || 0).toFixed(2)}</TableCell>
+                            </TableRow>
+                          </>
+                        )}
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-right font-bold">Grand Total</TableCell>
+                          <TableCell className="text-right font-bold">
+                            ${(Number(validPo.totalAmount) + Number(validPo.shippingCost || 0) + Number(validPo.taxAmount || 0) + Number(validPo.otherCosts || 0)).toFixed(2)}
+                          </TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>
@@ -154,8 +174,8 @@ export function PurchaseOrderDetails() {
                   <CardContent className="space-y-4">
                     <div>
                       <div className="text-sm text-muted-foreground">Status</div>
-                      <Badge variant={statusColors[validPo.status] || 'default'} className="mt-1">
-                        {validPo.status}
+                      <Badge variant={PO_STATUS[validPo.status]?.variant ?? 'outline'} className="mt-1">
+                        {PO_STATUS[validPo.status]?.label ?? validPo.status}
                       </Badge>
                     </div>
                     <Separator />
@@ -168,6 +188,24 @@ export function PurchaseOrderDetails() {
                       <div className="text-sm text-muted-foreground">Created At</div>
                       <div className="font-medium mt-1">{format(new Date(validPo.createdAt), 'PPpp')}</div>
                     </div>
+                    {validPo.expectedDate && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="text-sm text-muted-foreground">Expected Delivery</div>
+                          <div className="font-medium mt-1">{format(new Date(validPo.expectedDate), 'PP')}</div>
+                        </div>
+                      </>
+                    )}
+                    {validPo.notes && (
+                      <>
+                        <Separator />
+                        <div>
+                          <div className="text-sm text-muted-foreground">Notes</div>
+                          <div className="text-sm mt-1">{validPo.notes}</div>
+                        </div>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </div>

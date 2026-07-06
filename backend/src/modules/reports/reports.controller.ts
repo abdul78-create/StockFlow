@@ -62,4 +62,28 @@ export class ReportsController {
       next(error);
     }
   };
+
+  getFinancialSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const orgId = this.getOrgId(req);
+      const report = await this.reportsService.getFinancialSummary(orgId);
+      ResponseFormatter.success(res, 200, 'Financial summary generated successfully', report);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getActivityLog = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const orgId = this.getOrgId(req);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 25;
+      const entity = req.query.entity as string | undefined;
+      const action = req.query.action as string | undefined;
+      const result = await this.reportsService.getActivityLog(orgId, page, limit, entity, action);
+      ResponseFormatter.success(res, 200, 'Activity log retrieved', result);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

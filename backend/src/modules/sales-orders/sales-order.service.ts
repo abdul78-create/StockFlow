@@ -3,7 +3,7 @@ import { SalesOrderRepository } from './sales-order.repository';
 import { InventoryRepository } from '../inventory/inventory.repository';
 import { ConflictError, NotFoundError, ValidationError } from '../../common/errors/app-error';
 import { AuditService } from '../../common/services/audit.service';
-import { CreateSOInput } from './sales-order.validation';
+import { CreateSOInput, DispatchSOInput } from './sales-order.validation';
 import { SalesOrder, SalesOrderStatus, SalesOrderItem, Product } from '@prisma/client';
 import { ParsedQuery } from '../../common/utils/query';
 
@@ -82,6 +82,9 @@ export class SalesOrderService {
       
       totalAmount += item.quantity * Number(item.unitPrice);
     }
+
+    // Add shipping and tax, subtract discount
+    totalAmount += (input.shippingCost || 0) + (input.taxAmount || 0) - (input.discountAmount || 0);
 
     // 4. Create SO
     const so = await this.salesOrderRepository.create(organizationId, input, totalAmount);
@@ -217,8 +220,9 @@ export class SalesOrderService {
     organizationId: string,
     id: string,
     userId: string,
-    warehouseId: string,
+    input: DispatchSOInput,
   ): Promise<SalesOrder> {
+    const warehouseId = input.warehouseId;
     const so = (await this.salesOrderRepository.findById(
       organizationId,
       id,
@@ -282,8 +286,12 @@ export class SalesOrderService {
           userId,
         );
 
-        // Update item shipped count
-        await this.salesOrderRepository.updateItemShippedQuantity(tx, item.id, item.quantity);
+        // Calculate COGS
+        const unitCogs = Number(item.product.costPrice);
+        const totalCogs = unitCogs * item.quantity;
+
+        // Update item shipped count and COGS
+        await this.salesOrderRepository.updateItemShippedQuantity(tx, item.id, item.quantity, totalCogs);
       }
 
       // Update order status to DISPATCHED

@@ -40,6 +40,9 @@ const formSchema = z.object({
       orderedQuantity: z.number(),
       previouslyReceived: z.number(),
       quantity: z.number().min(0, 'Quantity cannot be negative'),
+      batchNumber: z.string().optional(),
+      manufacturingDate: z.string().optional(),
+      expiryDate: z.string().optional(),
     })
   ).refine(
     (items) => items.some((item) => item.quantity > 0),
@@ -71,6 +74,9 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
         orderedQuantity: item.quantity,
         previouslyReceived: item.receivedQuantity || 0,
         quantity: Math.max(0, item.quantity - (item.receivedQuantity || 0)), // default to remaining
+        batchNumber: '',
+        manufacturingDate: '',
+        expiryDate: '',
       })),
     },
   });
@@ -87,6 +93,9 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
         productId: item.productId,
         variantId: item.variantId,
         quantity: item.quantity,
+        batchNumber: item.batchNumber || undefined,
+        manufacturingDate: item.manufacturingDate ? new Date(item.manufacturingDate) : undefined,
+        expiryDate: item.expiryDate ? new Date(item.expiryDate) : undefined,
       }));
 
     receiveMutation.mutate(
@@ -179,6 +188,49 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
                           </FormItem>
                         )}
                       />
+
+                      {/* Batch Tracking Fields */}
+                      <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.batchNumber`}
+                          render={({ field: inputField }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Batch Number (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. BATCH-001" className="h-8 text-xs" {...inputField} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.manufacturingDate`}
+                          render={({ field: inputField }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Mfg Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" className="h-8 text-xs" {...inputField} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.expiryDate`}
+                          render={({ field: inputField }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs">Expiry Date</FormLabel>
+                              <FormControl>
+                                <Input type="date" className="h-8 text-xs" {...inputField} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
                     </div>
                   );
                 })}

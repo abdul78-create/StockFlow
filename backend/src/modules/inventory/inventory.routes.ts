@@ -281,4 +281,11 @@ router.post(
   controller.transfer,
 );
 
+router.get(
+  '/expiring',
+  authenticate,
+  requirePermission('inventory.view'),
+  controller.getExpiring,
+);
+
 export default router;

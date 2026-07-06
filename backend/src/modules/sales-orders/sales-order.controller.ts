@@ -69,8 +69,7 @@ export class SalesOrderController {
     try {
       const { orgId, userId } = this.getSessionContext(req);
       const { id } = req.params;
-      const { warehouseId } = req.body;
-      const order = await this.soService.dispatchOrder(orgId, id, userId, warehouseId);
+      const order = await this.soService.dispatchOrder(orgId, id, userId, req.body);
       ResponseFormatter.success(
         res,
         200,

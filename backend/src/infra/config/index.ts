@@ -16,7 +16,7 @@ const configSchema = z.object({
     .string()
     .min(16, { message: 'JWT_SECRET must be at least 16 characters long for security' }),
   JWT_EXPIRES_IN: z.string().default('1d'),
-  CORS_ORIGIN: z.string().default('*'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 });
 

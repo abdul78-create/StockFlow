@@ -29,7 +29,9 @@ export type Permission =
   | 'suppliers.update'
   | 'warehouses.view'
   | 'warehouses.create'
-  | 'warehouses.update';
+  | 'warehouses.update'
+  | 'purchase_orders.approve'
+  | 'sales_orders.approve';
 
 export type Role = 'OWNER' | 'ADMIN' | 'MANAGER' | 'STAFF';
 
@@ -72,6 +74,8 @@ const ADMIN_PERMISSIONS: Permission[] = [
   'members.delete',
   'workspaces.view',
   'workspaces.update',
+  'purchase_orders.approve',
+  'sales_orders.approve',
 ];
 
 const OWNER_PERMISSIONS: Permission[] = [

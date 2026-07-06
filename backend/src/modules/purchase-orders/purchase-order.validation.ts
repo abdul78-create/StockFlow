@@ -16,6 +16,11 @@ export const createPOSchema = z.object({
       }),
     )
     .min(1, { message: 'Purchase Order must contain at least 1 item' }),
+  shippingCost: z.coerce.number().min(0).optional(),
+  taxAmount: z.coerce.number().min(0).optional(),
+  otherCosts: z.coerce.number().min(0).optional(),
+  expectedDate: z.coerce.date().optional(),
+  notes: z.string().optional(),
 });
 
 export const updatePOStatusSchema = z.object({
@@ -33,6 +38,9 @@ export const receiveGoodsSchema = z.object({
           .number()
           .int()
           .positive({ message: 'Received quantity must be a positive integer' }),
+        batchNumber: z.string().optional(),
+        manufacturingDate: z.coerce.date().optional(),
+        expiryDate: z.coerce.date().optional(),
       }),
     )
     .min(1, { message: 'Must receive at least 1 product item' }),

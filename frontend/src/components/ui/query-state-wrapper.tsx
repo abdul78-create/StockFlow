@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, isValidElement } from 'react';
 import { ErrorState } from './error-state';
 import { AccessDeniedState } from './access-denied-state';
 import { EmptyState } from './empty-state';
@@ -12,7 +12,7 @@ export interface QueryStateWrapperProps<T> {
   emptyProps?: {
     title?: string;
     description?: string;
-    action?: any;
+    action?: ReactNode | { label: string; onClick: () => void; icon?: any };
   };
   loadingComponent?: ReactNode;
   children: (data: T) => ReactNode;
@@ -65,12 +65,23 @@ export function QueryStateWrapper<T>({
   }
 
   if (!data || isEmpty(data)) {
+    const action = emptyProps?.action;
+    // If the action is a raw React element (JSX), render it via a wrapper
+    const emptyAction = action && isValidElement(action)
+      ? undefined
+      : action as ({ label: string; onClick: () => void; icon?: any } | undefined);
+
     return (
-      <EmptyState
-        title={emptyProps?.title || 'No data found'}
-        description={emptyProps?.description || 'There is no data to display at this time.'}
-        action={emptyProps?.action}
-      />
+      <>
+        <EmptyState
+          title={emptyProps?.title || 'No data found'}
+          description={emptyProps?.description || 'There is no data to display at this time.'}
+          action={emptyAction}
+        />
+        {action && isValidElement(action) && (
+          <div className="flex justify-center mt-4">{action}</div>
+        )}
+      </>
     );
   }
 

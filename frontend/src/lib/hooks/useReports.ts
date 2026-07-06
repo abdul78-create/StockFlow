@@ -24,6 +24,14 @@ export interface SalesSummaryItem {
   totalRevenue: number;
 }
 
+export interface FinancialSummary {
+  totalAccountsReceivable: number;
+  totalAccountsPayable: number;
+  totalCashReceived: number;
+  totalCashPaid: number;
+  netCashFlow: number;
+}
+
 export function useInventoryValuation() {
   return useQuery({
     queryKey: ['reports', 'inventory-valuation'],
@@ -60,6 +68,38 @@ export function usePurchaseSummary() {
     queryFn: async () => {
       const response = await api.get('/reports/purchases');
       return response.data.data;
+    },
+  });
+}
+
+export function useFinancialSummary() {
+  return useQuery({
+    queryKey: ['reports', 'financial-summary'],
+    queryFn: async () => {
+      const response = await api.get('/reports/financial-summary');
+      return response.data.data as FinancialSummary;
+    },
+  });
+}
+
+export interface ActivityLogEntry {
+  id: string;
+  userId: string | null;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export function useActivityLog(page: number = 1, limit: number = 25, entity?: string) {
+  return useQuery({
+    queryKey: ['reports', 'activity-log', page, limit, entity],
+    queryFn: async () => {
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if (entity) params.set('entity', entity);
+      const response = await api.get(`/reports/activity-log?${params.toString()}`);
+      return response.data.data as { logs: ActivityLogEntry[]; total: number };
     },
   });
 }

@@ -36,6 +36,10 @@ const formSchema = z.object({
       unitPrice: z.number().min(0.01, 'Unit price must be at least 0.01'),
     })
   ).min(1, 'At least one item is required'),
+  shippingCost: z.number().min(0).optional(),
+  taxAmount: z.number().min(0).optional(),
+  discountAmount: z.number().min(0).optional(),
+  notes: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +55,10 @@ export function SalesOrderForm() {
     defaultValues: {
       customerId: '',
       items: [{ productId: '', variantId: '', quantity: 1, unitPrice: 0 }],
+      shippingCost: 0,
+      taxAmount: 0,
+      discountAmount: 0,
+      notes: '',
     },
   });
 
@@ -237,6 +245,89 @@ export function SalesOrderForm() {
                   </Button>
                 </div>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Order Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="shippingCost"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shipping Cost ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="taxAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tax Amount ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discountAmount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discount Amount ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          {...field}
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes / Comments</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Any special instructions..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
