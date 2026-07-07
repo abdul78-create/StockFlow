@@ -16,15 +16,15 @@ interface FormSectionProps {
  */
 export function FormSection({ title, description, children, className }: FormSectionProps) {
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-5 rounded-xl border border-border/40 bg-card/30 backdrop-blur-sm p-6 shadow-sm', className)}>
       <div>
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="text-base font-semibold text-foreground tracking-tight">{title}</h3>
         {description && (
-          <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         )}
       </div>
-      <Separator />
-      <div className="grid gap-4 sm:grid-cols-2">{children}</div>
+      <Separator className="bg-border/50" />
+      <div className="grid gap-6 sm:grid-cols-2">{children}</div>
     </div>
   );
 }

@@ -218,7 +218,7 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm transition-all duration-300">
         <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">
             <thead className="sticky top-0 z-10 border-b border-border bg-muted/30 backdrop-blur-sm">

@@ -24,14 +24,14 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-surface px-6 py-16 text-center',
+        'flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border/50 bg-gradient-to-b from-card/30 to-card/10 px-6 py-16 text-center transition-all duration-300 hover:border-border hover:bg-card/40',
         className
       )}
       role="status"
     >
       {Icon && (
-        <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-muted">
-          <Icon className="size-6 text-muted-foreground" aria-hidden="true" />
+        <div className="mb-5 flex size-14 items-center justify-center rounded-2xl bg-primary/10 ring-8 ring-primary/5">
+          <Icon className="size-6 text-primary/80" aria-hidden="true" />
         </div>
       )}
       <h3 className="text-base font-medium text-foreground">{title}</h3>

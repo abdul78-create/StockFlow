@@ -23,10 +23,10 @@ export function Timeline({ events, className }: TimelineProps) {
         const Icon = event.icon ? Icons[event.icon] : Icons.info;
         
         const statusColors = {
-          default: 'bg-muted text-muted-foreground border-border',
-          success: 'bg-success/10 text-success border-success/20',
-          warning: 'bg-warning/10 text-warning border-warning/20',
-          error: 'bg-destructive/10 text-destructive border-destructive/20',
+          default: 'bg-muted text-muted-foreground border-border ring-background',
+          success: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 ring-background',
+          warning: 'bg-amber-500/10 text-amber-600 border-amber-500/20 ring-background',
+          error: 'bg-rose-500/10 text-rose-600 border-rose-500/20 ring-background',
         };
 
         const colorClass = statusColors[event.status || 'default'];
@@ -34,15 +34,15 @@ export function Timeline({ events, className }: TimelineProps) {
         return (
           <div key={event.id} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
             {/* Icon marker */}
-            <div className={cn("flex items-center justify-center w-10 h-10 rounded-full border-2 bg-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10", colorClass)}>
+            <div className={cn("flex items-center justify-center w-10 h-10 rounded-full border bg-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm ring-4 z-10", colorClass)}>
               <Icon className="w-4 h-4" />
             </div>
             
             {/* Card */}
-            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border bg-card shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1">
-                <h4 className="font-semibold text-sm">{event.title}</h4>
-                <time className="text-xs text-muted-foreground">{event.date}</time>
+            <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-5 rounded-xl border border-border/50 bg-card hover:bg-muted/10 transition-colors shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2">
+                <h4 className="font-semibold text-sm tracking-tight">{event.title}</h4>
+                <time className="text-xs font-medium text-muted-foreground/80 mt-1 sm:mt-0">{event.date}</time>
               </div>
               {event.description && (
                 <p className="text-sm text-muted-foreground">{event.description}</p>

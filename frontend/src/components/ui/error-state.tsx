@@ -19,7 +19,7 @@ export function ErrorState({
   className,
 }: ErrorStateProps) {
   return (
-    <div className={cn('flex flex-col items-center justify-center p-12 text-center min-h-[250px] border border-dashed rounded-xl bg-muted/20', className)} role="alert">
+    <div className={cn('flex flex-col items-center justify-center p-12 text-center min-h-[250px] border-2 border-dashed border-destructive/20 rounded-xl bg-destructive/5', className)} role="alert">
       <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 ring-8 ring-destructive/5">
         <AlertCircle className="size-5 text-destructive" />
       </div>

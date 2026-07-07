@@ -29,16 +29,21 @@ export function StatCard({
   const isPositive = trend && trend.value >= 0;
 
   return (
-    <Card className={cn('', className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className={cn(
+      'group relative overflow-hidden transition-all duration-300',
+      'hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)] hover:-translate-y-0.5',
+      className
+    )}>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+        <CardTitle className="text-sm font-medium text-muted-foreground/80 tracking-tight">
           {title}
         </CardTitle>
         {Icon && (
           <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative z-10">
         {loading ? (
           <div className="space-y-2">
             <Skeleton className="h-7 w-24" />
@@ -54,8 +59,10 @@ export function StatCard({
                 {trend && (
                   <span
                     className={cn(
-                      'inline-flex items-center gap-0.5 font-medium',
-                      isPositive ? 'text-success' : 'text-destructive'
+                      'inline-flex items-center gap-0.5 font-medium px-1.5 py-0.5 rounded-md',
+                      isPositive 
+                        ? 'text-emerald-600 bg-emerald-500/10 dark:text-emerald-400' 
+                        : 'text-rose-600 bg-rose-500/10 dark:text-rose-400'
                     )}
                   >
                     {isPositive ? (
