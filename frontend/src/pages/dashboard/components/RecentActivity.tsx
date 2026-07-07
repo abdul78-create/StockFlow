@@ -53,15 +53,45 @@ function getActionIcon(action: string): keyof typeof Icons {
   return 'dashboard';
 }
 
+function getEntityHref(entityType: string | null, entityId: string | null): string | undefined {
+  if (!entityId) return undefined;
+  switch (entityType) {
+    case 'PRODUCT': return `/products/${entityId}`;
+    case 'CUSTOMER': return `/customers/${entityId}`;
+    case 'SUPPLIER': return `/suppliers/${entityId}`;
+    case 'PURCHASE_ORDER': return `/purchase-orders/${entityId}`;
+    case 'SALES_ORDER': return `/sales-orders/${entityId}`;
+    case 'WAREHOUSE': return `/settings/warehouses`;
+    default: return undefined;
+  }
+}
+
+function parseEntityName(details: string | null): string {
+  if (!details) return '';
+  try {
+    const parsed = JSON.parse(details);
+    return parsed.name || parsed.sku || parsed.title || parsed.orderNumber || parsed.role || '';
+  } catch {
+    return '';
+  }
+}
+
 export function RecentActivity({ metrics }: { metrics: DashboardMetrics }) {
-  const events: TimelineEvent[] = metrics.recentActivity.map(log => ({
-    id: log.id,
-    title: friendlyAction(log.action, log.entityType),
-    description: `Performed by user ${log.userId.split('-')[0]}`,
-    date: formatDistanceToNow(new Date(log.createdAt), { addSuffix: true }),
-    status: getActionStatus(log.action),
-    icon: getActionIcon(log.action),
-  }));
+  const events: TimelineEvent[] = metrics.recentActivity.map(log => {
+    const extractedName = parseEntityName(log.details);
+    const titleBase = friendlyAction(log.action, log.entityType);
+    
+    return {
+      id: log.id,
+      title: extractedName ? `${titleBase} — ${extractedName}` : titleBase,
+      description: `Performed by user ${log.userId.split('-')[0]}`,
+      date: formatDistanceToNow(new Date(log.createdAt), { addSuffix: true }),
+      status: getActionStatus(log.action),
+      icon: getActionIcon(log.action),
+      href: getEntityHref(log.entityType, log.entityId),
+      linkText: 'View',
+    };
+  });
 
   return (
     <Card className="col-span-full lg:col-span-1 shadow-sm">

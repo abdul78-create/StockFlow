@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { Icons } from '@/lib/icons';
+import { Link } from 'react-router-dom';
 
 export interface TimelineEvent {
   id: string;
@@ -9,6 +10,8 @@ export interface TimelineEvent {
   date: string;
   icon?: keyof typeof Icons;
   status?: 'default' | 'success' | 'warning' | 'error';
+  href?: string;
+  linkText?: string;
 }
 
 export interface TimelineProps {
@@ -45,7 +48,13 @@ export function Timeline({ events, className }: TimelineProps) {
                 <time className="text-xs font-medium text-muted-foreground/80 mt-1 sm:mt-0">{event.date}</time>
               </div>
               {event.description && (
-                <p className="text-sm text-muted-foreground">{event.description}</p>
+                <p className="text-sm text-muted-foreground mb-3">{event.description}</p>
+              )}
+              {event.href && (
+                <Link to={event.href} className="inline-flex items-center text-xs font-medium text-primary hover:underline mt-1">
+                  {event.linkText || 'View Details'}
+                  <Icons.chevronRight className="w-3 h-3 ml-0.5" />
+                </Link>
               )}
             </div>
           </div>

@@ -9,7 +9,9 @@ import {
   CartesianGrid,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Icons } from '@/lib/icons';
+import { Download } from 'lucide-react';
 import { DashboardMetrics } from '@/lib/hooks/useDashboard';
 
 export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
@@ -17,14 +19,29 @@ export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
   const [activeTab, setActiveTab] = React.useState('revenue');
   const [timeRange, setTimeRange] = React.useState('14D'); // Currently API only supports 14 days easily
 
+  const handleExport = () => {
+    // Basic UI stub for export as requested.
+    console.log('Exporting Sales CSV...');
+  };
+
   return (
-    <Card className="col-span-full xl:col-span-2 shadow-sm">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
+    <Card className="col-span-full xl:col-span-2 shadow-sm relative group/chart">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-2">
         <div>
           <CardTitle>Sales & Revenue Analytics</CardTitle>
           <CardDescription>Daily performance across your organization</CardDescription>
         </div>
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/chart:opacity-100 transition-opacity"
+            onClick={handleExport}
+            title="Export CSV Data"
+          >
+            <Download className="h-3.5 w-3.5" />
+            Export
+          </Button>
           <div className="flex bg-muted/50 p-1 rounded-lg">
             {['7D', '14D', '30D', '90D', '1Y'].map(range => (
               <button

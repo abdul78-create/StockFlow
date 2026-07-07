@@ -63,6 +63,7 @@ import { ExpiringStock } from '@/pages/inventory/ExpiringStock';
 import { TaxRulesSettings } from '@/pages/settings/TaxRulesSettings';
 import { DemoSettings } from '@/pages/settings/DemoSettings';
 import { LandingPage } from '@/pages/public/LandingPage';
+import { HelpCenter } from '@/pages/help/HelpCenter';
 
 
 import { useAuthStore } from '@/store/auth';
@@ -167,6 +168,9 @@ function App() {
               <Route path="/finance/invoices/:id" element={<InvoiceDetails />} />
               <Route path="/finance/bills" element={<BillsList />} />
               <Route path="/finance/bills/:id" element={<BillDetails />} />
+              {/* Help Center */}
+              <Route path="/help" element={<HelpCenter />} />
+
               {/* Settings */}
               <Route path="/settings" element={<SettingsLayout />}>
                 <Route index element={<Navigate to="/settings/workspace" replace />} />

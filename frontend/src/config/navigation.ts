@@ -59,5 +59,12 @@ export const navigationConfig: NavItem[] = [
       { title: 'Automation', href: '/automation', icon: 'settings', roles: ['ADMIN'] },
       { title: 'Settings', href: '/settings', icon: 'settings', roles: ['ADMIN'] },
     ],
+  },
+  {
+    title: 'Support',
+    isGroup: true,
+    children: [
+      { title: 'Help Center', href: '/help', icon: 'info' },
+    ],
   }
 ];

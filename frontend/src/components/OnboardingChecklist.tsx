@@ -13,12 +13,16 @@ interface ChecklistItem {
 
 export function OnboardingChecklist() {
   const [items, setItems] = React.useState<ChecklistItem[]>([
-    { id: 'product', label: 'Add your first product', done: false, href: '/products', description: 'Create a product to start tracking inventory' },
-    { id: 'supplier', label: 'Add a supplier', done: false, href: '/suppliers', description: 'Set up your first supplier for procurement' },
-    { id: 'warehouse', label: 'Create a warehouse', done: false, href: '/warehouses', description: 'Define where your stock is stored' },
-    { id: 'customer', label: 'Add a customer', done: false, href: '/customers', description: 'Add your first customer to create sales orders' },
-    { id: 'po', label: 'Create a purchase order', done: false, href: '/purchase-orders', description: 'Order stock from a supplier' },
-    { id: 'so', label: 'Create a sales order', done: false, href: '/sales-orders', description: 'Sell products to a customer' },
+    { id: 'workspace', label: 'Create Workspace', done: false, href: '/settings', description: 'Configure your company workspace' },
+    { id: 'warehouse', label: 'Add Warehouse', done: false, href: '/settings/warehouses', description: 'Define where your stock is stored' },
+    { id: 'categories', label: 'Add Categories', done: false, href: '/products', description: 'Organize products by category' },
+    { id: 'product', label: 'Add Products', done: false, href: '/products/new', description: 'Create products to start tracking inventory' },
+    { id: 'supplier', label: 'Add Supplier', done: false, href: '/suppliers/new', description: 'Set up your first supplier for procurement' },
+    { id: 'customer', label: 'Add Customer', done: false, href: '/customers/new', description: 'Add your first customer to create sales orders' },
+    { id: 'po', label: 'Create Purchase Order', done: false, href: '/purchase-orders/new', description: 'Order stock from a supplier' },
+    { id: 'receive', label: 'Receive Goods', done: false, href: '/purchase-orders', description: 'Mark a purchase order as delivered' },
+    { id: 'so', label: 'Create Sales Order', done: false, href: '/sales-orders/new', description: 'Sell products to a customer' },
+    { id: 'setup', label: 'Complete Setup', done: false, href: '/', description: 'You are all set to use StockFlow Enterprise!' },
   ]);
   const [dismissed, setDismissed] = React.useState(() => localStorage.getItem('onboarding_dismissed') === 'true');
 
@@ -30,19 +34,42 @@ export function OnboardingChecklist() {
           api.get('/suppliers?limit=1'),
           api.get('/warehouses?limit=1'),
           api.get('/customers?limit=1'),
-          api.get('/purchase-orders?limit=1'),
+          api.get('/purchase-orders'),
           api.get('/sales-orders?limit=1'),
         ]);
+
+        const hasProduct = products.data.data?.data?.length > 0 || products.data.data?.length > 0;
+        const hasSupplier = suppliers.data.data?.data?.length > 0 || suppliers.data.data?.length > 0;
+        const hasWarehouse = warehouses.data.data?.data?.length > 0 || warehouses.data.data?.length > 0;
+        const hasCustomer = customers.data.data?.data?.length > 0 || customers.data.data?.length > 0;
+        
+        const poList = pos.data.data?.data || pos.data.data || [];
+        const hasPo = poList.length > 0;
+        const hasReceived = poList.some((po: any) => po.status === 'DELIVERED' || po.status === 'COMPLETED');
+        
+        const hasSo = sos.data.data?.data?.length > 0 || sos.data.data?.length > 0;
+
+        // Categories are implicit for now since we don't have a direct endpoint check here, 
+        // we assume if they have a product, they have categories.
+        const hasCategories = hasProduct;
+
+        const checks = {
+          workspace: true, // Always true if they are logged into the dashboard
+          warehouse: hasWarehouse,
+          categories: hasCategories,
+          product: hasProduct,
+          supplier: hasSupplier,
+          customer: hasCustomer,
+          po: hasPo,
+          receive: hasReceived,
+          so: hasSo,
+        };
+
+        const allCoreDone = checks.warehouse && checks.categories && checks.product && checks.supplier && checks.customer && checks.po && checks.receive && checks.so;
+
         setItems(prev => prev.map(item => {
-          switch (item.id) {
-            case 'product': return { ...item, done: products.data.data?.data?.length > 0 || products.data.data?.length > 0 };
-            case 'supplier': return { ...item, done: suppliers.data.data?.data?.length > 0 || suppliers.data.data?.length > 0 };
-            case 'warehouse': return { ...item, done: warehouses.data.data?.data?.length > 0 || warehouses.data.data?.length > 0 };
-            case 'customer': return { ...item, done: customers.data.data?.data?.length > 0 || customers.data.data?.length > 0 };
-            case 'po': return { ...item, done: pos.data.data?.data?.length > 0 || pos.data.data?.length > 0 };
-            case 'so': return { ...item, done: sos.data.data?.data?.length > 0 || sos.data.data?.length > 0 };
-            default: return item;
-          }
+          if (item.id === 'setup') return { ...item, done: !!allCoreDone };
+          return { ...item, done: !!(checks as any)[item.id] };
         }));
       } catch {
         // silent

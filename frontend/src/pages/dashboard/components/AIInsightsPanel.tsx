@@ -10,14 +10,14 @@ export function AIInsightsPanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400">
           <Sparkles className="h-5 w-5" />
-          AI Insights
+          Insights
         </CardTitle>
       </CardHeader>
       <CardContent>
         <EmptyState
           icon={Sparkles}
-          title="Insights analyzing..."
-          description="Analytics and predictive insights will appear here after sufficient transaction volume is reached."
+          title="No recommendations yet."
+          description="Recommendations will appear after sufficient inventory and sales history is available."
           className="border-none shadow-none bg-transparent py-10"
         />
       </CardContent>
