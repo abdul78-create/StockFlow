@@ -29,7 +29,7 @@ test.describe('Dashboard', () => {
 
     // Check that recent activity does NOT show raw uppercase enums like "PRODUCT_CREATED"
     const bodyText = await page.locator('body').innerText();
-    expect(bodyText).not.toMatch(/\b[A-Z_]{5,}\b(?!.*[a-z])/);
+    expect(bodyText).not.toMatch(/\b[A-Z]{3,}_[A-Z_]+\b/);
   });
 
   test('dashboard chart renders without console errors', async ({ page }) => {

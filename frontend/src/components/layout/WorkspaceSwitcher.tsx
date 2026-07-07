@@ -33,7 +33,7 @@ export function WorkspaceSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="w-full justify-between px-2 py-1.5 hover:bg-transparent hover:text-accent-foreground data-[state=open]:bg-transparent"
+          className="w-full justify-between px-2 py-1.5 hover:bg-muted data-[state=open]:bg-muted/80 rounded-lg transition-all ring-1 ring-inset ring-transparent hover:ring-border/50 data-[state=open]:ring-border/50"
         >
           <div className="flex items-center gap-2">
             <Avatar className="h-8 w-8 rounded-md">

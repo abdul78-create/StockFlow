@@ -36,9 +36,9 @@ export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
       {/* Sidebar Container */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r bg-background transition-all duration-300 ease-in-out',
+          'fixed inset-y-0 left-0 z-50 flex h-full flex-col border-r bg-background/95 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
           isOpen ? 'w-64' : 'w-20',
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          isMobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full lg:translate-x-0 lg:shadow-none'
         )}
       >
         <div className="flex h-14 items-center border-b px-4 py-2">
@@ -136,11 +136,11 @@ function SidebarItem({ item, isOpen }: { item: NavItem; isOpen: boolean }) {
             to={item.href!}
             className={({ isActive }) =>
               cn(
-                'flex items-center rounded-md px-3 py-2 text-sm font-medium transition-all duration-150',
+                'group flex items-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-primary/8 text-primary font-semibold border-l-2 border-primary pl-[10px]'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent pl-[10px]',
-                isOpen ? 'justify-start' : 'justify-center border-l-0 pl-3'
+                  ? 'bg-primary/10 text-primary font-semibold'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                isOpen ? 'justify-start' : 'justify-center'
               )
             }
           >

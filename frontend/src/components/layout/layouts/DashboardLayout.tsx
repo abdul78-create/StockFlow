@@ -22,12 +22,12 @@ export function DashboardLayout() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-muted/40">
+    <div className="flex min-h-screen flex-col bg-muted/20 selection:bg-primary/10">
       <OfflineBanner />
       <KeyboardShortcutsHelp />
       <BarcodeScannerListener />
       
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden relative">
         <Sidebar
           isOpen={isSidebarOpen}
           isMobileOpen={isMobileOpen}
@@ -35,7 +35,7 @@ export function DashboardLayout() {
         />
         <div
           className={cn(
-            'flex flex-1 flex-col transition-all duration-300 ease-in-out pb-16 lg:pb-0',
+            'flex flex-1 flex-col transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] min-w-0',
             isSidebarOpen ? 'lg:pl-64' : 'lg:pl-20'
           )}
         >
@@ -43,16 +43,18 @@ export function DashboardLayout() {
             toggleSidebar={() => setSidebarOpen(!isSidebarOpen)}
             toggleMobileSidebar={() => setMobileOpen(true)}
           />
-          <main className="flex-1 p-4 md:p-6 overflow-x-hidden">
-            <PageErrorBoundary>
-              <Outlet />
-            </PageErrorBoundary>
+          <main className="flex-1 overflow-x-hidden p-4 md:p-6 lg:p-8 pb-24 lg:pb-8">
+            <div className="mx-auto max-w-[1600px] w-full">
+              <PageErrorBoundary>
+                <Outlet />
+              </PageErrorBoundary>
+            </div>
           </main>
         </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background px-6 lg:hidden flex items-center justify-around">
+      <div className="fixed bottom-0 left-0 right-0 z-40 h-16 border-t bg-background/80 backdrop-blur-xl px-2 lg:hidden flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.02)] pb-[env(safe-area-inset-bottom)]">
         {mobileNavItems.map((item) => {
           const Icon = Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>;
           const isActive = location.pathname.startsWith(item.href);
@@ -61,12 +63,19 @@ export function DashboardLayout() {
               key={item.title}
               to={item.href}
               className={cn(
-                'flex flex-col items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors',
-                isActive && 'text-primary'
+                'group flex flex-col items-center justify-center flex-1 h-full gap-1 text-[10px] font-medium transition-all duration-200 active:scale-95',
+                isActive 
+                  ? 'text-primary font-semibold' 
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {Icon && <Icon className="h-5 w-5" />}
-              <span>{item.title}</span>
+              <div className={cn(
+                "flex items-center justify-center p-1.5 rounded-full transition-all duration-200",
+                isActive ? "bg-primary/10 text-primary" : "text-muted-foreground group-hover:bg-muted"
+              )}>
+                {Icon && <Icon className="h-[18px] w-[18px]" />}
+              </div>
+              <span className="tracking-wide">{item.title}</span>
             </Link>
           );
         })}

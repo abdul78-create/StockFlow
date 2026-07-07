@@ -33,9 +33,9 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full" aria-label="Open user menu">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{initials}</AvatarFallback>
+        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-1 ring-border/50 hover:ring-border transition-all p-0" aria-label="Open user menu">
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-primary/10 text-primary font-medium">{initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

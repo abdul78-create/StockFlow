@@ -23,7 +23,7 @@ export async function login(page: Page) {
  */
 export async function goto(page: Page, path: string) {
   await page.goto(path);
-  await page.waitForLoadState('networkidle', { timeout: 10_000 });
+  await page.waitForSelector('#app-loader', { state: 'detached', timeout: 10_000 });
 }
 
 /**

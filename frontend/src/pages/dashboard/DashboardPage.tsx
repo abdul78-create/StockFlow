@@ -218,49 +218,59 @@ function DashboardContent({
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.25} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.0} />
                       </linearGradient>
+                      <filter id="shadow" height="200%">
+                        <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="hsl(var(--primary))" floodOpacity="0.2" />
+                      </filter>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
                       stroke="hsl(var(--border))"
+                      opacity={0.5}
                     />
                     <XAxis
                       dataKey="date"
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                      dy={8}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontWeight: 500 }}
+                      dy={10}
                       interval="preserveStartEnd"
+                      minTickGap={30}
                     />
                     <YAxis
                       axisLine={false}
                       tickLine={false}
-                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontWeight: 500 }}
                       allowDecimals={false}
+                      dx={-10}
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: 'hsl(var(--card))',
+                        backgroundColor: 'hsl(var(--background))',
                         borderColor: 'hsl(var(--border))',
-                        borderRadius: '8px',
-                        fontSize: 12,
+                        borderRadius: '12px',
+                        fontSize: 13,
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                        padding: '12px 16px'
                       }}
-                      itemStyle={{ color: 'hsl(var(--foreground))' }}
-                      labelStyle={{ fontWeight: 600 }}
+                      itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
+                      labelStyle={{ fontWeight: 500, color: 'hsl(var(--muted-foreground))', marginBottom: '8px' }}
+                      cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
                     />
                     <Area
                       type="monotone"
                       dataKey="transactions"
                       name="Transactions"
                       stroke="hsl(var(--primary))"
-                      strokeWidth={2}
+                      strokeWidth={3}
                       fillOpacity={1}
                       fill="url(#colorTx)"
                       dot={false}
-                      activeDot={{ r: 4, strokeWidth: 0 }}
+                      activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))', fill: 'hsl(var(--primary))' }}
+                      style={{ filter: 'url(#shadow)' }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
