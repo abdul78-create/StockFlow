@@ -8,92 +8,56 @@ export interface NavItem {
   icon?: keyof typeof Icons;
   roles?: Role[];
   children?: NavItem[];
+  isGroup?: boolean;
   disabled?: boolean;
 }
 
 export const navigationConfig: NavItem[] = [
   {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: 'dashboard',
-  },
-  {
-    title: 'Inventory',
-    icon: 'inventory',
+    title: 'Overview',
+    isGroup: true,
     children: [
-      {
-        title: 'Products',
-        href: '/products',
-      },
-      {
-        title: 'Stock Movements',
-        href: '/inventory',
-      },
-      {
-        title: 'Cycle Counts',
-        href: '/inventory/cycle-counts',
-      },
-      {
-        title: 'Expiring Stock',
-        href: '/inventory/expiring',
-      },
-      {
-        title: 'Warehouses',
-        href: '/warehouses',
-        roles: ['ADMIN', 'MANAGER'],
-      },
+      { title: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+      { title: 'Analytics', href: '/analytics', icon: 'reports' },
+      { title: 'Reports', href: '/reports', icon: 'reports', roles: ['ADMIN', 'MANAGER'] },
     ],
   },
   {
-    title: 'Purchasing',
-    icon: 'purchaseOrders',
+    title: 'Operations',
+    isGroup: true,
     children: [
-      {
-        title: 'Purchase Orders',
-        href: '/purchase-orders',
-      },
-      {
-        title: 'Purchase Returns',
-        href: '/purchase-returns',
-      },
-      {
-        title: 'Suppliers',
-        href: '/suppliers',
-      },
+      { title: 'Products', href: '/products', icon: 'products' },
+      { title: 'Inventory', href: '/inventory', icon: 'inventory' },
+      { title: 'Purchase', href: '/purchase-orders', icon: 'purchaseOrders' },
+      { title: 'Sales', href: '/sales-orders', icon: 'salesOrders' },
+      { title: 'Returns', href: '/returns', icon: 'products' },
+      { title: 'Warehouses', href: '/warehouses', icon: 'inventory', roles: ['ADMIN', 'MANAGER'] },
     ],
   },
   {
-    title: 'Sales',
-    icon: 'salesOrders',
+    title: 'CRM',
+    isGroup: true,
     children: [
-      {
-        title: 'Sales Orders',
-        href: '/sales-orders',
-      },
-      {
-        title: 'Quotations',
-        href: '/quotations',
-      },
-      {
-        title: 'Sales Returns',
-        href: '/sales-returns',
-      },
-      {
-        title: 'Customers',
-        href: '/customers',
-      },
+      { title: 'Customers', href: '/customers', icon: 'users' },
+      { title: 'Suppliers', href: '/suppliers', icon: 'users' },
     ],
   },
   {
-    title: 'Reports',
-    href: '/reports',
-    icon: 'reports',
-    roles: ['ADMIN', 'MANAGER'],
+    title: 'Finance',
+    isGroup: true,
+    children: [
+      { title: 'Invoices', href: '/invoices', icon: 'reports' },
+      { title: 'Bills', href: '/bills', icon: 'reports' },
+      { title: 'Taxes', href: '/taxes', icon: 'settings' },
+    ],
   },
   {
-    title: 'Settings',
-    href: '/settings',
-    icon: 'settings',
-    roles: ['ADMIN'],
-  },
+    title: 'Admin',
+    isGroup: true,
+    children: [
+      { title: 'Users', href: '/users', icon: 'users', roles: ['ADMIN'] },
+      { title: 'Automation', href: '/automation', icon: 'settings', roles: ['ADMIN'] },
+      { title: 'Settings', href: '/settings', icon: 'settings', roles: ['ADMIN'] },
+    ],
+  }
 ];

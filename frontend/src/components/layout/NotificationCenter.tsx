@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '../ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Icons } from '@/lib/icons';
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 export function NotificationCenter() {
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const navigate = useNavigate();
 
   return (
     <Popover>
@@ -25,9 +27,9 @@ export function NotificationCenter() {
           <span className="sr-only">Toggle notifications</span>
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <p className="text-sm font-medium leading-none">Notifications Center</p>
+      <PopoverContent align="end" className="w-80 md:w-96 p-0 shadow-2xl rounded-xl border border-border/50">
+        <div className="flex items-center justify-between border-b px-5 py-4 bg-muted/30">
+          <p className="text-sm font-semibold tracking-tight text-foreground">Notifications</p>
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
@@ -50,19 +52,27 @@ export function NotificationCenter() {
                 key={n.id}
                 onClick={() => !n.isRead && markRead(n.id)}
                 className={cn(
-                  'w-full text-left px-4 py-3 border-b last:border-b-0 hover:bg-accent/50 transition-colors flex items-start gap-2',
-                  !n.isRead && 'bg-muted/50'
+                  'w-full text-left px-5 py-4 border-b last:border-b-0 transition-colors flex items-start gap-3',
+                  n.isRead ? 'opacity-70 hover:bg-muted/30' : 'bg-primary/5 hover:bg-primary/10'
                 )}
               >
                 {!n.isRead && (
-                  <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" />
+                  <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary animate-pulse" />
                 )}
-                <div className={cn('flex-1', n.isRead && 'pl-4')}>
-                  <p className="text-sm font-medium leading-tight">{n.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{n.message}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
-                  </p>
+                <div className={cn('flex-1', n.isRead && 'pl-5')}>
+                  <div className="flex justify-between items-start gap-2">
+                    <p className="text-sm font-medium text-foreground/90">{n.title}</p>
+                    <span className="text-[10px] font-medium text-muted-foreground/60 whitespace-nowrap pt-0.5">
+                      {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{n.message}</p>
+                  {!n.isRead && (
+                    <div className="flex items-center gap-2 mt-3">
+                      <Button variant="primary" size="sm" className="h-7 text-[11px] px-3 shadow-none bg-primary/90 hover:bg-primary" onClick={(e) => { e.stopPropagation(); navigate('/dashboard')}}>View details</Button>
+                      <Button variant="ghost" size="sm" className="h-7 text-[11px] px-3 text-muted-foreground hover:text-foreground" onClick={(e) => { e.stopPropagation(); markRead(n.id)}}>Dismiss</Button>
+                    </div>
+                  )}
                 </div>
               </button>
             ))

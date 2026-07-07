@@ -58,7 +58,7 @@ export function ProductDetails() {
         <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
           <div className="flex items-center justify-between space-y-2">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/products')}>
+              <Button variant="ghost" size="icon" onClick={() => navigate('/products')} className="hover:bg-primary/10 hover:text-primary transition-colors">
                 <Icons.chevronLeft className="h-5 w-5" />
               </Button>
               <div>
@@ -79,8 +79,8 @@ export function ProductDetails() {
             </div>
           </div>
 
-          <Tabs defaultValue="details" className="space-y-4">
-            <TabsList>
+          <Tabs defaultValue="details" className="space-y-6 mt-4">
+            <TabsList className="bg-muted/50 backdrop-blur-sm border border-border/50">
               <TabsTrigger value="details">Overview</TabsTrigger>
               <TabsTrigger value="variants">Variants</TabsTrigger>
               <TabsTrigger value="bundles">Bundles</TabsTrigger>
@@ -90,10 +90,11 @@ export function ProductDetails() {
             </TabsList>
             <TabsContent value="details" className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
+                <Card className="bg-gradient-to-b from-card to-card/50 shadow-sm border-primary/10 relative overflow-hidden group">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Pricing</CardTitle>
-                    <Icons.products className="h-4 w-4 text-muted-foreground" />
+                    <Icons.products className="h-4 w-4 text-primary/70" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">${Number(validProduct.sellingPrice).toFixed(2)}</div>
@@ -102,10 +103,11 @@ export function ProductDetails() {
                     </p>
                   </CardContent>
                 </Card>
-                <Card>
+                <Card className="bg-gradient-to-b from-card to-card/50 shadow-sm border-primary/10 relative overflow-hidden group">
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Current Stock</CardTitle>
-                    <Icons.inventory className="h-4 w-4 text-muted-foreground" />
+                    <Icons.inventory className="h-4 w-4 text-primary/70" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{validProduct.currentStock}</div>
@@ -121,14 +123,14 @@ export function ProductDetails() {
                   <CardTitle>Metadata &amp; Barcode Label</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-6 sm:grid-cols-2">
-                  <dl className="space-y-4">
+                  <dl className="space-y-6">
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Description</dt>
-                      <dd className="mt-1 text-sm">{validProduct.description || 'No description provided.'}</dd>
+                      <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Description</dt>
+                      <dd className="text-sm leading-relaxed text-foreground/90">{validProduct.description || 'No description provided.'}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm font-medium text-muted-foreground">Barcode Value</dt>
-                      <dd className="mt-1 text-sm font-mono">{validProduct.barcode || 'N/A'}</dd>
+                      <dt className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Barcode Value</dt>
+                      <dd className="text-sm font-mono bg-muted/30 p-2 rounded-md inline-block border border-border/50">{validProduct.barcode || 'N/A'}</dd>
                     </div>
                   </dl>
                   <div className="flex justify-center sm:justify-start">

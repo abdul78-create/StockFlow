@@ -121,7 +121,10 @@ export function ProductsList() {
       <div className="flex items-center justify-between space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">Products</h2>
         <div className="flex items-center space-x-2">
-          <Button onClick={() => setIsCreateDrawerOpen(true)}>
+          <Button 
+            onClick={() => setIsCreateDrawerOpen(true)}
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md transition-all duration-300"
+          >
             <Icons.add className="mr-2 h-4 w-4" /> Add Product
           </Button>
         </div>
@@ -134,12 +137,12 @@ export function ProductsList() {
         isEmpty={(d) => !d.data || d.data.length === 0}
         emptyProps={{
           title: "No products found",
-          description: "Get started by adding a new product to your inventory.",
-          action: (
-            <Button onClick={() => setIsCreateDrawerOpen(true)}>
-              <Icons.add className="mr-2 h-4 w-4" /> Add Product
-            </Button>
-          )
+          description: "Get started by adding a new product to your inventory catalog.",
+          action: {
+            label: "Add First Product",
+            icon: <Icons.add className="mr-2 h-4 w-4" />,
+            onClick: () => setIsCreateDrawerOpen(true)
+          }
         }}
       >
         {(validData) => (

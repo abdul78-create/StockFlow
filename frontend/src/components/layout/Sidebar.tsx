@@ -52,9 +52,13 @@ export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto py-4">
-          <nav className="space-y-1 px-2">
+          <nav className="space-y-6 px-2">
             {allowedNav.map((item) => (
-              <SidebarItem key={item.title} item={item} isOpen={isOpen} />
+              item.isGroup ? (
+                <SidebarGroup key={item.title} group={item} isOpen={isOpen} />
+              ) : (
+                <SidebarItem key={item.title} item={item} isOpen={isOpen} />
+              )
             ))}
           </nav>
         </div>
@@ -71,6 +75,26 @@ export function Sidebar({ isOpen, isMobileOpen, onMobileClose }: SidebarProps) {
         )}
       </aside>
     </>
+  );
+}
+
+function SidebarGroup({ group, isOpen }: { group: NavItem; isOpen: boolean }) {
+  if (group.disabled || !group.children || group.children.length === 0) return null;
+
+  return (
+    <div className="space-y-1">
+      {isOpen && (
+        <h4 className="px-3 text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
+          {group.title}
+        </h4>
+      )}
+      {!isOpen && (
+        <div className="mx-auto mb-2 mt-4 h-px w-8 bg-border/50 first:mt-0" />
+      )}
+      {group.children.map(child => (
+        <SidebarItem key={child.title} item={child} isOpen={isOpen} />
+      ))}
+    </div>
   );
 }
 

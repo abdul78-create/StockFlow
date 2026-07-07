@@ -8,10 +8,13 @@ import { KeyboardShortcutsHelp } from '../../KeyboardShortcutsHelp';
 import { BarcodeScannerListener } from '../../BarcodeScannerListener';
 import { Icons } from '../../../lib/icons';
 import { PageErrorBoundary } from '../../PageErrorBoundary';
+import { HelpWidget } from '../HelpWidget';
+import { CommandPalette } from '../CommandPalette';
 
 export function DashboardLayout() {
   const [isSidebarOpen, setSidebarOpen] = React.useState(true);
   const [isMobileOpen, setMobileOpen] = React.useState(false);
+  const [isCommandPaletteOpen, setCommandPaletteOpen] = React.useState(false);
   const location = useLocation();
 
   const mobileNavItems = [
@@ -26,6 +29,8 @@ export function DashboardLayout() {
       <OfflineBanner />
       <KeyboardShortcutsHelp />
       <BarcodeScannerListener />
+      <HelpWidget />
+      <CommandPalette open={isCommandPaletteOpen} setOpen={setCommandPaletteOpen} />
       
       <div className="flex flex-1 overflow-hidden relative">
         <Sidebar

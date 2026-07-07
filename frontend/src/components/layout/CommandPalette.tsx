@@ -157,28 +157,18 @@ export function CommandPalette({
 
         <CommandGroup heading="Navigation">
           {navigationConfig.filter(item => !item.disabled).map((item) => {
-            if (item.children) {
-              return item.children.filter(child => !child.disabled).map((child) => (
-                <CommandItem
-                  key={child.title}
-                  value={`Go to ${child.title}`}
-                  onSelect={() => runCommand(() => navigate(child.href!))}
-                >
-                  <Icons.chevronRight className="mr-2 h-4 w-4" />
-                  <span>Go to {child.title}</span>
-                </CommandItem>
-              ));
-            }
-            return (
+            const itemsToRender = item.isGroup ? item.children || [] : [item];
+            
+            return itemsToRender.filter(child => !child.disabled).map((child) => (
               <CommandItem
-                key={item.title}
-                value={`Go to ${item.title}`}
-                onSelect={() => runCommand(() => navigate(item.href!))}
+                key={child.title}
+                value={`Go to ${child.title}`}
+                onSelect={() => runCommand(() => navigate(child.href!))}
               >
-                {item.icon && React.createElement(Icons[item.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>, { className: "mr-2 h-4 w-4" })}
-                <span>Go to {item.title}</span>
+                {child.icon ? React.createElement(Icons[child.icon as keyof typeof Icons] as React.ComponentType<{ className?: string }>, { className: "mr-2 h-4 w-4 text-muted-foreground" }) : <Icons.chevronRight className="mr-2 h-4 w-4 text-muted-foreground" />}
+                <span>Go to {child.title}</span>
               </CommandItem>
-            );
+            ));
           })}
         </CommandGroup>
 

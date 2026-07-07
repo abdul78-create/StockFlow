@@ -99,7 +99,7 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-full sm:w-[540px] rounded-none">
+      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-full sm:w-[540px] rounded-none bg-background/95 backdrop-blur-md shadow-2xl border-l border-border/50">
         <DrawerHeader className="text-left border-b border-border">
           <DrawerTitle>{isEditing ? 'Edit Product' : 'Create New Product'}</DrawerTitle>
           <DrawerDescription>
@@ -116,7 +116,7 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         
         {/* We use a custom scroll area here since it can get long */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <form id="product-form" onSubmit={handleSubmit(onSubmit as any)} className="space-y-6">
+          <form id="product-form" onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 pb-4">
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -195,8 +195,8 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
           </form>
         </div>
 
-        <DrawerFooter className="border-t border-border pt-4">
-          <Button type="submit" form="product-form" disabled={isLoading} className="w-full">
+        <DrawerFooter className="border-t border-border/50 bg-background/80 backdrop-blur-md pt-4 sticky bottom-0 z-20 pb-8 sm:pb-4 px-4 sm:px-6">
+          <Button type="submit" form="product-form" disabled={isLoading} className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md">
             {isLoading && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
             {isEditing ? 'Save Changes' : 'Create Product'}
           </Button>

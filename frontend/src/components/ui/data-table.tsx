@@ -221,13 +221,13 @@ export function DataTable<TData, TValue>({
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">
-            <thead className="sticky top-0 z-10 border-b border-border bg-muted/50">
+            <thead className="sticky top-0 z-10 border-b border-border bg-muted/30 backdrop-blur-sm">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="h-10 px-4 text-left align-middle font-medium text-muted-foreground"
+                      className="h-11 px-4 text-left align-middle text-[13px] font-medium text-muted-foreground uppercase tracking-wider"
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
                         <button
@@ -278,7 +278,7 @@ export function DataTable<TData, TValue>({
                     key={row.id}
                     data-state={row.getIsSelected() && 'selected'}
                     className={cn(
-                      'border-b border-border transition-colors duration-normal hover:bg-muted/50 data-[state=selected]:bg-muted',
+                      'border-b border-border transition-all duration-normal hover:bg-muted/30 data-[state=selected]:bg-primary/5',
                       onRowClick && 'cursor-pointer'
                     )}
                     onClick={() => onRowClick?.(row.original)}
