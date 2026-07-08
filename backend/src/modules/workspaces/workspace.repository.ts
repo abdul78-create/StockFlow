@@ -35,6 +35,18 @@ export class WorkspaceRepository {
         },
       });
 
+      // Default Categories
+      const categoryNames = ['Electronics', 'Apparel', 'Office Supplies', 'Home Goods', 'Tools'];
+      for (const name of categoryNames) {
+        await tx.category.create({
+          data: {
+            name,
+            description: `Default ${name} category`,
+            organizationId: org.id,
+          }
+        });
+      }
+
       return org;
     });
   }

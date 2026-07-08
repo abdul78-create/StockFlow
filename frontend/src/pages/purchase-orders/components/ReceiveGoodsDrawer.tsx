@@ -68,9 +68,9 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
       warehouseId: '',
       items: po.items.map((item) => ({
         productId: item.productId,
-        variantId: item.variantId,
+        variantId: item.variantId || undefined,
         productName: item.product?.name || 'Unknown Product',
-        variantName: item.variant?.name,
+        variantName: item.variant?.name || undefined,
         orderedQuantity: item.quantity,
         previouslyReceived: item.receivedQuantity || 0,
         quantity: Math.max(0, item.quantity - (item.receivedQuantity || 0)), // default to remaining

@@ -75,7 +75,15 @@ export function PurchaseOrderForm() {
       expectedDate: values.expectedDate ? new Date(values.expectedDate) : undefined,
     };
     createMutation.mutate(formattedValues, {
-      onSuccess: () => navigate('/purchase-orders'),
+      onSuccess: (res: any) => {
+        console.log('PO CREATION RESPONSE:', res);
+        const id = res?.id || res?.data?.data?.id || res?.data?.id || (res?.data && res.data.id) || (res?.data?.data && res.data.data.id);
+        if (id) {
+          navigate(`/purchase-orders/${id}`);
+        } else {
+          navigate('/purchase-orders');
+        }
+      },
     });
   };
 

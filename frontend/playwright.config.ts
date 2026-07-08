@@ -17,6 +17,14 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'Tablet',
+      use: { ...devices['iPad (gen 7)'] },
+    },
   ],
   // Expect the dev server to already be running
   webServer: undefined,

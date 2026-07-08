@@ -8,9 +8,9 @@ interface SalesOrderTimelineProps {
 }
 
 export function SalesOrderTimeline({ so }: SalesOrderTimelineProps) {
-  const isApproved = ['APPROVED', 'PACKED', 'DISPATCHED', 'DELIVERED'].includes(so.status);
-  const isPacked = ['PACKED', 'DISPATCHED', 'DELIVERED'].includes(so.status);
-  const isDispatched = ['DISPATCHED', 'DELIVERED'].includes(so.status);
+  const isApproved = ['APPROVED', 'PACKED', 'SHIPPED', 'DELIVERED'].includes(so.status);
+  const isPacked = ['PACKED', 'SHIPPED', 'DELIVERED'].includes(so.status);
+  const isShipped = ['SHIPPED', 'DELIVERED'].includes(so.status);
   const isDelivered = so.status === 'DELIVERED';
   const isCancelled = so.status === 'CANCELLED';
 
@@ -61,16 +61,16 @@ export function SalesOrderTimeline({ so }: SalesOrderTimelineProps) {
             </div>
           )}
 
-          {/* Dispatched */}
+          {/* Shipped */}
           {!isCancelled && (
             <div className="relative pl-6">
-              <span className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${isDispatched ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                {isDispatched ? <Truck className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              <span className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-background ${isShipped ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                {isShipped ? <Truck className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
               </span>
               <div className="flex flex-col">
-                <span className={`text-sm font-medium ${!isDispatched && 'text-muted-foreground'}`}>Dispatched</span>
+                <span className={`text-sm font-medium ${!isShipped && 'text-muted-foreground'}`}>Shipped</span>
                 <span className="text-xs text-muted-foreground">
-                  {isDispatched ? 'Order left the warehouse' : 'Awaiting dispatch'}
+                  {isShipped ? 'Order left the warehouse' : 'Awaiting shipment'}
                 </span>
               </div>
             </div>

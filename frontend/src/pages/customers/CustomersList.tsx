@@ -80,7 +80,8 @@ export function CustomersList() {
             searchKey="name"
             searchPlaceholder="Search customers..."
             enableRowSelection={false}
-            enableExport={false}
+            enableExport={true}            enableImport
+            onImport={() => console.log('Importing')}
           />
         )}
       </QueryStateWrapper>

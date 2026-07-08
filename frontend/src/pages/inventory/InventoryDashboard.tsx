@@ -263,7 +263,7 @@ export function InventoryDashboard() {
                     isLoading={false}
                     searchKey="productName"
                     searchPlaceholder="Search inventory..."
-                    enableExport={true}
+                    enableExport={true} enableImport={true} onImport={() => console.log("Importing")}
                     exportFilename="inventory-balances.csv"
                   />
                 </CardContent>

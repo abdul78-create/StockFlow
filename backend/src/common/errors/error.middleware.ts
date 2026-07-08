@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AppError, ValidationError } from './app-error';
 import { ResponseFormatter } from '../responses';
 import logger from '../../infra/logger';
+import { Prisma } from '@prisma/client';
 
 export const errorMiddleware = (
   err: Error,
@@ -21,6 +22,19 @@ export const errorMiddleware = (
       'Operational error caught',
     );
     ResponseFormatter.error(res, err.statusCode, err.message, errors);
+    return;
+  }
+
+  // Handle Prisma Errors
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    logger.warn({ requestId: req.id, code: err.code, meta: err.meta }, 'Prisma Known Request Error');
+    ResponseFormatter.error(res, 400, 'A database constraint was violated.', null);
+    return;
+  }
+  
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    logger.warn({ requestId: req.id }, 'Prisma Validation Error');
+    ResponseFormatter.error(res, 400, 'Invalid data provided for database operation.', null);
     return;
   }
 

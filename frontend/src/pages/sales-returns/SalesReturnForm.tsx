@@ -46,7 +46,7 @@ export function SalesReturnForm() {
     const fetchSOs = async () => {
       try {
         const { data } = await api.get('/sales-orders?limit=100');
-        setSos(data.data.data || data.data || []);
+        setSos(data.data.orders || []);
       } catch (err) {
         console.error(err);
       }
@@ -113,9 +113,14 @@ export function SalesReturnForm() {
           unitPrice: i.unitPrice,
         })),
       };
-      await api.post('/sales-returns', payload);
+      const res = await api.post('/sales-returns', payload);
       toast.success('Sales return created');
-      navigate('/sales-returns');
+      const id = res?.data?.data?.id || res?.data?.id;
+      if (id) {
+        navigate(`/sales-returns/${id}`);
+      } else {
+        navigate('/sales-returns');
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to create sales return');
     } finally {

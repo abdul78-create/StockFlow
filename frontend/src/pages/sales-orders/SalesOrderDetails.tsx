@@ -17,6 +17,7 @@ import {
 import { format } from 'date-fns';
 import { CheckCircle, XCircle, Truck, ArrowLeft } from 'lucide-react';
 import { DispatchOrderDrawer } from './components/DispatchOrderDrawer';
+import { ApproveOrderDrawer } from './components/ApproveOrderDrawer';
 import { SalesOrderTimeline } from './components/SalesOrderTimeline';
 import { Separator } from '@/components/ui/separator';
 import { SO_STATUS } from '@/lib/enums';
@@ -28,10 +29,7 @@ export function SalesOrderDetails() {
   const { data: so, isLoading, error } = useSalesOrder(id!);
   const updateStatus = useUpdateSalesOrderStatus();
   const [isDispatchOpen, setIsDispatchOpen] = useState(false);
-
-  const handleApprove = (validSo: any) => {
-    updateStatus.mutate({ id: validSo.id, status: 'APPROVED' });
-  };
+  const [isApproveOpen, setIsApproveOpen] = useState(false);
 
   const handleCancel = (validSo: any) => {
     updateStatus.mutate({ id: validSo.id, status: 'CANCELLED' });
@@ -71,7 +69,7 @@ export function SalesOrderDetails() {
                 </Button>
 
                 {validSo.status === 'DRAFT' && (
-                  <Button onClick={() => handleApprove(validSo)} className="bg-emerald-600 hover:bg-emerald-700">
+                  <Button onClick={() => setIsApproveOpen(true)} className="bg-emerald-600 hover:bg-emerald-700">
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Approve Order
                   </Button>
@@ -84,7 +82,7 @@ export function SalesOrderDetails() {
                   </Button>
                 )}
 
-                {validSo.status === 'DISPATCHED' && (
+                {validSo.status === 'SHIPPED' && (
                   <Button onClick={() => handleDeliver(validSo)}>
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Mark Delivered
@@ -207,11 +205,21 @@ export function SalesOrderDetails() {
               </div>
             </div>
 
-            <DispatchOrderDrawer
-              so={validSo}
-              open={isDispatchOpen}
-              onOpenChange={setIsDispatchOpen}
-            />
+            {isApproveOpen && (
+              <ApproveOrderDrawer
+                so={validSo}
+                open={isApproveOpen}
+                onOpenChange={setIsApproveOpen}
+              />
+            )}
+            
+            {isDispatchOpen && (
+              <DispatchOrderDrawer
+                so={validSo}
+                open={isDispatchOpen}
+                onOpenChange={setIsDispatchOpen}
+              />
+            )}
           </PageTemplate>
         );
       }}

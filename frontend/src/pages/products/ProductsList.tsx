@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { DataTable } from '@/components/ui/data-table';
 import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { ImportWizardDialog } from '@/components/ui/import/ImportWizardDialog';
 import { ProductDrawer } from './components/ProductDrawer';
 import { useKeyboardShortcut } from '@/lib/hooks/useKeyboardShortcut';
 import {
@@ -26,6 +27,7 @@ export function ProductsList() {
   const deleteMutation = useDeleteProduct();
 
   const [isCreateDrawerOpen, setIsCreateDrawerOpen] = React.useState(false);
+  const [isImportOpen, setIsImportOpen] = React.useState(false);
   const [productToDelete, setProductToDelete] = React.useState<string | null>(null);
 
   useKeyboardShortcut('c', () => setIsCreateDrawerOpen(true));
@@ -123,7 +125,7 @@ export function ProductsList() {
         <div className="flex items-center space-x-2">
           <Button 
             onClick={() => setIsCreateDrawerOpen(true)}
-            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md transition-all duration-300"
+            className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-md"
           >
             <Icons.add className="mr-2 h-4 w-4" /> Add Product
           </Button>
@@ -140,7 +142,7 @@ export function ProductsList() {
           description: "Get started by adding a new product to your inventory catalog.",
           action: {
             label: "Add First Product",
-            icon: <Icons.add className="mr-2 h-4 w-4" />,
+            icon: Icons.add,
             onClick: () => setIsCreateDrawerOpen(true)
           }
         }}
@@ -152,7 +154,7 @@ export function ProductsList() {
             searchKey="name"
             searchPlaceholder="Search products..."
             enableRowSelection={true}
-            enableExport={true}
+            enableExport={true} enableImport={true} onImport={() => setIsImportOpen(true)}
             exportFilename="products-export.csv"
             onRowClick={(row) => navigate(`/products/${row.id}`)}
           />
@@ -162,6 +164,12 @@ export function ProductsList() {
       <ProductDrawer 
         open={isCreateDrawerOpen} 
         onOpenChange={setIsCreateDrawerOpen} 
+      />
+
+      <ImportWizardDialog
+        open={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        moduleName="products"
       />
 
       <ConfirmDialog

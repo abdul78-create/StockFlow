@@ -37,6 +37,8 @@ import notificationRouter from './modules/notifications/notification.routes';
 import taxRuleRouter from './modules/tax-rules/tax-rule.routes';
 import searchRouter from './modules/search/search.routes';
 import demoRouter from './modules/system/demo.routes';
+import importExportRouter from './modules/import-export/import-export.routes';
+import eventsRouter from './modules/system/events.routes';
 
 
 const app = express();
@@ -113,6 +115,8 @@ app.use('/api/v1/notifications', notificationRouter);
 app.use('/api/v1/tax-rules', taxRuleRouter);
 app.use('/api/v1/search', searchRouter);
 app.use('/api/v1/demo', demoRouter);
+app.use('/api/v1/import', importExportRouter);
+app.use('/api/v1/events', eventsRouter);
 app.use('/api/v1', systemRouter);
 
 // Global Error Handler

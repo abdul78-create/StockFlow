@@ -87,7 +87,21 @@ export function useCreatePurchaseOrder() {
   return useMutation({
     mutationFn: async (data: { supplierId: string; expectedDate?: Date; shippingCost?: number; taxAmount?: number; otherCosts?: number; notes?: string; items: PurchaseOrderItem[] }) => {
       const poNumber = `PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      return api.post('/purchase-orders', { ...data, poNumber });
+      const payload = {
+        ...data,
+        poNumber,
+        items: data.items.map(item => {
+          const newItem = { ...item };
+          if (!newItem.variantId) {
+            delete newItem.variantId;
+          }
+          return newItem;
+        })
+      };
+      console.log('SENDING PAYLOAD:', JSON.stringify(payload));
+      const res = await api.post('/purchase-orders', payload);
+      const id = res?.data?.data?.id || res?.data?.id || (res as any)?.id;
+      return { id, ...res.data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchase-orders'] });

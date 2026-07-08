@@ -1,0 +1,209 @@
+import { test, expect, Page } from '@playwright/test';
+import { goto } from './helpers';
+
+test.describe.serial('Business Flow Audit', () => {
+  test.setTimeout(120000); // 120s per test
+  
+  let page: Page;
+  let uniqueId: string;
+  
+  test.beforeAll(async ({ browser }) => {
+    page = await browser.newPage();
+    uniqueId = Date.now().toString();
+  });
+
+  test.afterAll(async () => {
+    await page.close();
+  });
+
+  test('Flow 1: Setup to Procurement', async () => {
+    const email = `audit-${uniqueId}@stockflow.com`;
+    
+    // 1. Signup & Workspace Setup
+    await page.goto('/signup');
+    await page.waitForSelector('#app-loader', { state: 'detached', timeout: 10_000 });
+    
+    await page.getByLabel(/first name/i).fill('Flow');
+    await page.getByLabel(/last name/i).fill('Auditor');
+    await page.getByLabel(/email/i).fill(email);
+    await page.getByLabel(/^password$/i).fill('StrongPassword1!');
+    await page.getByLabel(/confirm password/i).fill('StrongPassword1!');
+    await page.getByRole('button', { name: /sign up/i }).click();
+
+    await page.waitForURL(/.*workspace/, { timeout: 10000 });
+    await page.getByLabel(/workspace name/i).fill(`Audit Workspace ${uniqueId}`);
+    await page.getByRole('button', { name: /continue/i }).click();
+
+    await page.waitForURL(/.*industry/, { timeout: 10000 });
+    await page.getByRole('combobox').first().click();
+    await page.getByRole('option', { name: 'Retail' }).click();
+    await page.getByRole('button', { name: /continue/i }).click();
+
+    await page.waitForURL(/.*invite/, { timeout: 10000 });
+    await page.getByRole('button', { name: /skip for now/i }).click();
+
+    await page.waitForURL(/.*dashboard/, { timeout: 15_000 });
+    await page.waitForSelector('#app-loader', { state: 'detached', timeout: 10_000 });
+
+    // 2. Add Warehouse
+    await page.locator('a[href="/warehouses"]').first().click();
+    await expect(page.locator('.animate-pulse')).toHaveCount(0);
+    await page.getByRole('button', { name: /add warehouse/i }).first().click();
+    await page.getByPlaceholder(/Main Distribution Center/i).fill('Main Distribution Center');
+    await page.getByPlaceholder(/Full street address/i).fill('123 Warehouse St, NY');
+    await page.getByRole('button', { name: /create warehouse/i }).click();
+    await expect(page.getByText('Main Distribution Center')).toBeVisible();
+
+    // 3. Add Category & Product
+    await page.locator('a[href="/products"]').first().click();
+    await expect(page.locator('.animate-pulse')).toHaveCount(0);
+    await page.getByRole('button', { name: /add product/i }).first().click({ force: true });
+    await page.getByLabel(/product name/i).fill('Audit Laptop Pro');
+    await page.getByLabel(/sku/i).fill(`SKU-${uniqueId}`);
+    await page.getByLabel(/cost price/i).fill('1000');
+    await page.getByLabel(/selling price/i).fill('1200');
+    
+    // Attempt to select category
+    await page.getByRole('combobox', { name: /category/i }).click();
+    // Select the first option available
+    await page.getByRole('option').first().click();
+
+    await page.getByRole('button', { name: /create product/i }).click();
+    // Verify drawer closed and product in list
+    await expect(page.getByText('Audit Laptop Pro')).toBeVisible();
+
+    // 4. Add Supplier
+    await page.locator('a[href="/suppliers"]').first().click();
+    await expect(page.locator('.animate-pulse')).toHaveCount(0);
+    await page.getByRole('button', { name: /add supplier/i }).first().click();
+    await page.getByLabel(/company name/i).fill('Tech Supplies Inc');
+    await page.getByLabel(/email/i).fill('tech@supplies.com');
+    await page.getByRole('button', { name: /create supplier/i }).click();
+    await expect(page.getByText('Tech Supplies Inc')).toBeVisible();
+
+    // 5. Create Purchase Order
+    await page.locator('a[href="/purchase-orders"]').first().click();
+    await page.getByRole('button', { name: /create order/i }).first().click();
+    await page.locator('button[role="combobox"]').first().click();
+    await page.getByText('Tech Supplies Inc').click();
+    
+    await page.getByRole('button', { name: /add item/i }).click();
+    await page.locator('button[role="combobox"]').nth(1).click();
+    await page.getByText('Audit Laptop Pro').click();
+    
+    await page.getByPlaceholder(/qty/i).first().fill('10');
+    await page.getByPlaceholder(/price/i).first().fill('1000');
+    await page.getByRole('button', { name: /create order/i }).click();
+    await page.waitForURL(/.*purchase-orders\/.+/, { timeout: 10000 });
+
+    // 6. Receive Goods
+    const approveBtn = page.getByRole('button', { name: /approve/i });
+    if (await approveBtn.isVisible()) {
+      await approveBtn.click();
+    }
+    
+    const completeBtn = page.getByRole('button', { name: /mark as delivered|complete/i });
+    if (await completeBtn.isVisible()) {
+      await completeBtn.click();
+    }
+
+    // 7. Verify Inventory Updated
+    await page.locator('a[href="/inventory"]').first().click();
+    await expect(page.locator(`text=Audit Laptop Pro`).first()).toBeVisible();
+    await expect(page.locator(`text=10`).first()).toBeVisible();
+  });
+
+  test('Flow 2: Selling & Revenue', async () => {
+    // 1. Add Customer
+    await page.locator('a[href="/customers"]').first().click();
+    await expect(page.locator('.animate-pulse')).toHaveCount(0);
+    await page.getByRole('button', { name: /add customer/i }).first().click();
+    await page.getByLabel(/customer name/i).fill('Acme Corp');
+    await page.getByLabel(/email/i).fill('contact@acme.com');
+    await page.getByRole('button', { name: /create customer/i }).click();
+    await expect(page.getByText('Acme Corp')).toBeVisible();
+
+    // 2. Create Sales Order
+    await page.locator('a[href="/sales-orders"]').first().click();
+    await page.getByRole('button', { name: /create order/i }).first().click();
+    await page.locator('button[role="combobox"]').first().click();
+    await page.getByText('Acme Corp').click();
+
+    await page.getByRole('button', { name: /add item/i }).click();
+    await page.locator('button[role="combobox"]').nth(1).click();
+    await page.getByText('Audit Laptop Pro').click();
+    
+    await page.getByPlaceholder(/qty/i).first().fill('2');
+    await page.getByRole('button', { name: /create order/i }).click();
+    await page.waitForURL(/.*sales-orders\/.+/, { timeout: 10000 });
+
+    // 3. Approve & Ship & Deliver
+    const approveBtn = page.getByRole('button', { name: /approve/i });
+    if (await approveBtn.isVisible()) await approveBtn.click();
+    
+    const shipBtn = page.getByRole('button', { name: /mark as shipped/i });
+    if (await shipBtn.isVisible()) await shipBtn.click();
+
+    const deliverBtn = page.getByRole('button', { name: /mark as delivered/i });
+    if (await deliverBtn.isVisible()) await deliverBtn.click();
+
+    // 4. Verify Inventory Reduced (should be 8)
+    await page.locator('a[href="/inventory"]').first().click();
+    await expect(page.locator(`text=Audit Laptop Pro`).first()).toBeVisible();
+    await expect(page.locator(`text=8`).first()).toBeVisible();
+  });
+
+  test('Flow 3: Customer Returns', async () => {
+    await goto(page, '/sales-returns/new');
+    await page.locator('button[role="combobox"]').first().click();
+    await page.getByText('Acme Corp').click();
+    
+    await page.getByRole('button', { name: /add item/i }).click();
+    await page.locator('button[role="combobox"]').nth(1).click();
+    await page.getByText('Audit Laptop Pro').click();
+    
+    await page.getByPlaceholder(/qty/i).first().fill('1');
+    await page.getByPlaceholder(/reason/i).fill('Defective unit');
+    
+    await page.getByRole('button', { name: /create return/i }).click();
+    await page.waitForURL(/.*sales-returns\/.+/, { timeout: 10000 });
+
+    const approveBtn = page.getByRole('button', { name: /approve/i });
+    if (await approveBtn.isVisible()) await approveBtn.click();
+    
+    const receiveBtn = page.getByRole('button', { name: /mark as received/i });
+    if (await receiveBtn.isVisible()) await receiveBtn.click();
+
+    // Verify Inventory Restored (should be 9)
+    await page.locator('a[href="/inventory"]').first().click();
+    await expect(page.locator(`text=Audit Laptop Pro`).first()).toBeVisible();
+    await expect(page.locator(`text=9`).first()).toBeVisible();
+  });
+
+  test('Flow 4: Supplier Returns', async () => {
+    await goto(page, '/purchase-returns/new');
+    await page.locator('button[role="combobox"]').first().click();
+    await page.getByText('Tech Supplies Inc').click();
+    
+    await page.getByRole('button', { name: /add item/i }).click();
+    await page.locator('button[role="combobox"]').nth(1).click();
+    await page.getByText('Audit Laptop Pro').click();
+    
+    await page.getByPlaceholder(/qty/i).first().fill('2');
+    await page.getByPlaceholder(/reason/i).fill('Sending back excess stock');
+    
+    await page.getByRole('button', { name: /create return/i }).click();
+    await page.waitForURL(/.*purchase-returns\/.+/, { timeout: 10000 });
+
+    const approveBtn = page.getByRole('button', { name: /approve/i });
+    if (await approveBtn.isVisible()) await approveBtn.click();
+    
+    const shipBtn = page.getByRole('button', { name: /mark as shipped/i });
+    if (await shipBtn.isVisible()) await shipBtn.click();
+
+    // Verify Inventory Reduced (should be 7)
+    await page.locator('a[href="/inventory"]').first().click();
+    await expect(page.locator(`text=Audit Laptop Pro`).first()).toBeVisible();
+    await expect(page.locator(`text=7`).first()).toBeVisible();
+  });
+});

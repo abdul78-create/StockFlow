@@ -31,7 +31,7 @@ export interface DashboardMetrics {
   inventoryValue: number;
   lowStockCount: number;
   monthlyTransactionsCount: number;
-  dailyTransactions: { date: string; transactions: number }[];
+  dailyTransactions: { date: string; transactions: number; revenue: number; expenses: number }[];
   recentActivity: AuditLog[];
   topProducts: TopProduct[];
   recentCustomers: RecentCustomer[];
@@ -90,7 +90,7 @@ export class DashboardService {
             ],
           },
         },
-        select: { totalAmount: true },
+        select: { totalAmount: true, createdAt: true },
       }),
       prisma.purchaseOrder.findMany({
         where: {
@@ -100,7 +100,7 @@ export class DashboardService {
             in: [PurchaseOrderStatus.COMPLETED, PurchaseOrderStatus.APPROVED],
           },
         },
-        select: { totalAmount: true },
+        select: { totalAmount: true, createdAt: true },
       }),
     ]);
 
@@ -134,25 +134,49 @@ export class DashboardService {
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
-    const recentTx = await prisma.inventoryTransaction.findMany({
-      where: {
-        inventory: { product: { organizationId } },
-        createdAt: { gte: fourteenDaysAgo },
-      },
-      select: { createdAt: true },
+    const dailyMap = new Map<string, { transactions: number; revenue: number; expenses: number }>();
+    for (let i = 0; i < 14; i++) {
+      const d = new Date(fourteenDaysAgo);
+      d.setDate(d.getDate() + i + 1);
+      const dateStr = d.toISOString().split('T')[0];
+      dailyMap.set(dateStr, { transactions: 0, revenue: 0, expenses: 0 });
+    }
+
+    const recentAuditLogs = await prisma.auditLog.findMany({
+      where: { organizationId, createdAt: { gte: fourteenDaysAgo } },
     });
 
-    const dailyMap: Record<string, number> = {};
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      dailyMap[d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })] = 0;
-    }
-    recentTx.forEach((tx) => {
-      const dateStr = tx.createdAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-      if (dailyMap[dateStr] !== undefined) dailyMap[dateStr]++;
+    recentAuditLogs.forEach((log) => {
+      const dateStr = (log.createdAt as Date).toISOString().split('T')[0];
+      if (dailyMap.has(dateStr)) {
+        dailyMap.get(dateStr)!.transactions++;
+      }
     });
-    const dailyTransactions = Object.entries(dailyMap).map(([date, transactions]) => ({ date, transactions }));
+
+    salesOrders.forEach((so) => {
+      const dateStr = (so.createdAt as Date).toISOString().split('T')[0];
+      if (dailyMap.has(dateStr)) {
+        dailyMap.get(dateStr)!.revenue += Number(so.totalAmount);
+      }
+    });
+    
+    purchaseOrders.forEach((po) => {
+      const dateStr = (po.createdAt as Date).toISOString().split('T')[0];
+      if (dailyMap.has(dateStr)) {
+        dailyMap.get(dateStr)!.expenses += Number(po.totalAmount);
+      }
+    });
+
+    const dailyTransactions = Array.from(dailyMap.entries()).map((entry) => {
+      const date = entry[0];
+      const data = entry[1];
+      return {
+        date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        transactions: data.transactions,
+        revenue: data.revenue,
+        expenses: data.expenses,
+      };
+    });
 
     // 5. Recent audit logs
     const recentActivity = await prisma.auditLog.findMany({

@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, Download } from 'lucide-react';
+import { ChevronDown, Download, Upload, GripHorizontal, LayoutList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -37,6 +37,8 @@ export interface DataTableProps<TData, TValue> {
   enableColumnVisibility?: boolean;
   enableExport?: boolean;
   exportFilename?: string;
+  enableImport?: boolean;
+  onImport?: () => void;
   emptyTitle?: string;
   emptyDescription?: string;
   onRowClick?: (row: TData) => void;
@@ -87,6 +89,8 @@ export function DataTable<TData, TValue>({
   enableColumnVisibility = true,
   enableExport = false,
   exportFilename = 'export.csv',
+  enableImport = false,
+  onImport,
   emptyTitle = 'No results',
   emptyDescription = 'Try adjusting your search or filters.',
   onRowClick,
@@ -98,6 +102,15 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState('');
+  const [density, setDensity] = React.useState<'compact' | 'standard' | 'comfortable'>('standard');
+
+  const getDensityClass = () => {
+    switch (density) {
+      case 'compact': return 'py-1 px-4';
+      case 'comfortable': return 'py-4 px-4';
+      default: return 'py-2.5 px-4';
+    }
+  };
 
   const selectionColumn: ColumnDef<TData, unknown> = {
     id: 'select',
@@ -148,6 +161,9 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     enableRowSelection,
+    enableColumnResizing: true,
+    enableMultiSort: true,
+    columnResizeMode: 'onChange',
   });
 
   const selectedCount = table.getFilteredSelectedRowModel().rows.length;
@@ -191,6 +207,31 @@ export function DataTable<TData, TValue>({
               Export
             </Button>
           )}
+          {enableImport && (
+            <Button variant="outline" size="sm" icon={<Upload />} onClick={onImport}>
+              Import
+            </Button>
+          )}
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" icon={<LayoutList />}>
+                Density
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuCheckboxItem checked={density === 'compact'} onCheckedChange={() => setDensity('compact')}>
+                Compact
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem checked={density === 'standard'} onCheckedChange={() => setDensity('standard')}>
+                Standard
+              </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem checked={density === 'comfortable'} onCheckedChange={() => setDensity('comfortable')}>
+                Comfortable
+              </DropdownMenuCheckboxItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {enableColumnVisibility && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -227,7 +268,11 @@ export function DataTable<TData, TValue>({
                   {headerGroup.headers.map((header) => (
                     <th
                       key={header.id}
-                      className="h-11 px-4 text-left align-middle text-[13px] font-medium text-muted-foreground uppercase tracking-wider"
+                      style={{ width: header.getSize() }}
+                      className={cn(
+                        "relative text-left align-middle text-[13px] font-medium text-muted-foreground uppercase tracking-wider group",
+                        getDensityClass()
+                      )}
                     >
                       {header.isPlaceholder ? null : header.column.getCanSort() ? (
                         <button
@@ -250,6 +295,16 @@ export function DataTable<TData, TValue>({
                           header.getContext()
                         )
                       )}
+                      
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`absolute right-0 top-0 h-full w-1 cursor-col-resize bg-border opacity-0 hover:opacity-100 ${
+                            header.column.getIsResizing() ? 'bg-primary opacity-100' : ''
+                          }`}
+                        />
+                      )}
                     </th>
                   ))}
                 </tr>
@@ -260,7 +315,7 @@ export function DataTable<TData, TValue>({
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border">
                     {tableColumns.map((_, j) => (
-                      <td key={j} className="p-4">
+                      <td key={j} className={getDensityClass()}>
                         <Skeleton className="h-4 w-full" />
                       </td>
                     ))}
@@ -284,7 +339,7 @@ export function DataTable<TData, TValue>({
                     onClick={() => onRowClick?.(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="p-4 align-middle">
+                      <td key={cell.id} className={cn("align-middle", getDensityClass())}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}

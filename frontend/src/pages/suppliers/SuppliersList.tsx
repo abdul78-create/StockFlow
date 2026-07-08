@@ -75,7 +75,7 @@ export function SuppliersList() {
             searchKey="companyName"
             searchPlaceholder="Search suppliers..."
             enableRowSelection={false}
-            enableExport={false}
+            enableExport={true} enableImport={true} onImport={() => console.log("Importing")}
           />
         )}
       </QueryStateWrapper>

@@ -60,7 +60,7 @@ export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
       
       <div className="px-6 pb-2">
         <div className="flex items-center gap-6 border-b border-border/50 text-sm">
-          {['Revenue', 'Orders', 'Profit'].map(tab => (
+          {['Revenue', 'Orders', 'Profit', 'Expenses'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab.toLowerCase())}
@@ -112,29 +112,39 @@ export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
                   dx={-10}
                 />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--background))',
-                    borderColor: 'hsl(var(--border))',
-                    borderRadius: '12px',
-                    fontSize: 13,
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
-                    padding: '12px 16px'
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-lg border bg-background p-3 shadow-lg">
+                          <p className="mb-2 text-sm font-medium text-foreground">{label}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-primary" />
+                            <p className="text-sm text-muted-foreground capitalize">{activeTab}:</p>
+                            <p className="text-sm font-bold text-foreground">
+                              {activeTab === 'orders' 
+                                ? payload[0].value 
+                                : `$${Number(payload[0].value).toLocaleString()}`}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
-                  itemStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
-                  labelStyle={{ fontWeight: 500, color: 'hsl(var(--muted-foreground))', marginBottom: '8px' }}
-                  cursor={{ stroke: 'hsl(var(--muted-foreground))', strokeWidth: 1, strokeDasharray: '4 4' }}
                 />
                 <Area
                   type="monotone"
-                  dataKey="transactions"
-                  name={activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                  dataKey={
+                    activeTab === 'revenue' ? 'revenue' : 
+                    activeTab === 'expenses' ? 'expenses' : 
+                    activeTab === 'profit' ? (row: any) => row.revenue - row.expenses : 
+                    'transactions'
+                  }
                   stroke="hsl(var(--primary))"
-                  strokeWidth={3}
-                  fillOpacity={1}
+                  strokeWidth={2}
                   fill="url(#colorTx)"
-                  dot={false}
-                  activeDot={{ r: 6, strokeWidth: 2, stroke: 'hsl(var(--background))', fill: 'hsl(var(--primary))' }}
-                  style={{ filter: 'url(#shadow)' }}
+                  filter="url(#shadow)"
+                  activeDot={{ r: 6, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
                 />
               </AreaChart>
             </ResponsiveContainer>

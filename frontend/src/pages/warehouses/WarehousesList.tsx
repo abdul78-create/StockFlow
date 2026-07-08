@@ -69,7 +69,7 @@ export function WarehousesList() {
             searchKey="name"
             searchPlaceholder="Search warehouses..."
             enableRowSelection={false}
-            enableExport={false}
+            enableExport={true} enableImport={true} onImport={() => console.log("Importing")}
           />
         )}
       </QueryStateWrapper>

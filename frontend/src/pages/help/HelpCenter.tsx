@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Book, LifeBuoy, FileText, Keyboard, HelpCircle, Package, Truck, ShoppingCart, Activity } from 'lucide-react';
+import { Book, LifeBuoy, FileText, Keyboard, HelpCircle, Package, Truck, ShoppingCart, Activity, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -51,7 +51,7 @@ export function HelpCenter() {
     <div className="flex-1 p-4 md:p-8 pt-6 animate-in fade-in duration-300">
       <div className="mb-8">
         <h2 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-          <HelpCircle className="h-8 w-8 text-primary" />
+          <Info className="h-8 w-8 text-primary" />
           Help Center
         </h2>
         <p className="text-muted-foreground mt-2">
@@ -95,7 +95,58 @@ export function HelpCenter() {
               <div className="prose prose-sm dark:prose-invert max-w-none">
                 <h1 className="text-2xl font-bold tracking-tight border-b pb-4 mb-6">{activeTab}</h1>
                 
-                {activeTab === 'Platform Overview' && (
+                {activeTab === 'Keyboard Shortcuts' && (
+                  <div className="space-y-6">
+                    <p className="text-base text-muted-foreground">
+                      Use these keyboard shortcuts to navigate StockFlow faster. You can view this list anywhere by pressing <kbd className="px-1.5 py-0.5 bg-muted rounded border font-mono">?</kbd>.
+                    </p>
+                    <div className="space-y-4 max-w-md">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-muted-foreground">Show shortcuts</span>
+                        <kbd className="font-mono bg-muted px-2 py-1 rounded border">?</kbd>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-muted-foreground">Create record</span>
+                        <kbd className="font-mono bg-muted px-2 py-1 rounded border">c</kbd>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-muted-foreground">Search</span>
+                        <kbd className="font-mono bg-muted px-2 py-1 rounded border">s</kbd>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="text-muted-foreground">Close modals</span>
+                        <kbd className="font-mono bg-muted px-2 py-1 rounded border">esc</kbd>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {activeTab === 'Release Notes' && (
+                  <div className="space-y-8">
+                    <div className="border-l-2 border-primary pl-4">
+                      <h3 className="text-lg font-bold text-foreground">RC1.1 - Enterprise Stabilization</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Released Today</p>
+                      <ul className="list-disc pl-5 space-y-2 text-muted-foreground">
+                        <li><strong>Import/Export Engine:</strong> True CSV/XLSX support with validation and rollback.</li>
+                        <li><strong>Enterprise Dashboard:</strong> Real-time financial metrics, charts, and actionable workflow states.</li>
+                        <li><strong>Advanced Data Tables:</strong> Added column resizing, density toggles, and multi-sort.</li>
+                        <li><strong>Robust Forms:</strong> Unsaved changes warnings and real-time inline validation.</li>
+                        <li><strong>Help Center:</strong> Added Keyboard shortcuts and in-app release notes.</li>
+                      </ul>
+                    </div>
+                    
+                    <div className="border-l-2 border-muted pl-4">
+                      <h3 className="text-lg font-bold text-foreground opacity-80">RC1 - Initial Release Candidate</h3>
+                      <p className="text-sm text-muted-foreground mb-4">Released Yesterday</p>
+                      <ul className="list-disc pl-5 space-y-2 text-muted-foreground opacity-80">
+                        <li>Complete end-to-end business flows for Sales, Purchases, and Inventory.</li>
+                        <li>Global error handling middleware implemented.</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                
+                {!['Platform Overview', 'Keyboard Shortcuts', 'Release Notes'].includes(activeTab) && (
                   <div className="space-y-4 text-muted-foreground">
                     <p className="text-base">
                       StockFlow Enterprise is a unified platform for managing multi-warehouse inventory, procurement, and sales operations. 

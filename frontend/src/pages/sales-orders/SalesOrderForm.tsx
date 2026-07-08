@@ -69,7 +69,15 @@ export function SalesOrderForm() {
 
   const onSubmit = (values: FormValues) => {
     createMutation.mutate(values, {
-      onSuccess: () => navigate('/sales-orders'),
+      onSuccess: (res: any) => {
+        console.log('SO CREATION RESPONSE:', res);
+        const id = res?.id;
+        if (id) {
+          navigate(`/sales-orders/${id}`);
+        } else {
+          navigate('/sales-orders');
+        }
+      },
     });
   };
 

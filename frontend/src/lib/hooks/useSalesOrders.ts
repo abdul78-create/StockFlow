@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
-export type SalesOrderStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'PACKED' | 'DISPATCHED' | 'DELIVERED' | 'CANCELLED';
+export type SalesOrderStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
 
 export interface SalesOrderItem {
   id?: string;
@@ -60,7 +60,13 @@ export function useSalesOrders(params: {
       const response = await api.get('/sales-orders', { params });
       const data = response.data.data;
       return {
-        data: data.orders || [],
+        data: (data.orders || []).map((order: SalesOrder) => ({
+          ...order,
+          items: order.items.map(item => ({
+            ...item,
+            variantId: item.variantId === '' ? undefined : item.variantId
+          }))
+        })),
         total: data.total || 0,
         page: params.page || 1,
         limit: params.limit || 10,
@@ -93,7 +99,20 @@ export function useCreateSalesOrder() {
       notes?: string;
     }) => {
       const soNumber = `SO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      return api.post('/sales-orders', { ...data, soNumber });
+      const payload = {
+        ...data,
+        soNumber,
+        items: data.items.map(item => {
+          const newItem = { ...item };
+          if (!newItem.variantId) {
+            delete newItem.variantId;
+          }
+          return newItem;
+        })
+      };
+      const res = await api.post('/sales-orders', payload);
+      const id = res?.data?.data?.id || res?.data?.id || (res as any)?.id;
+      return { id, ...res.data };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales-orders'] });
@@ -116,7 +135,7 @@ export function useUpdateSalesOrderStatus() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sales-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['sales-order', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['sales-orders', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
       toast.success(`Sales Order status updated to ${variables.status}`);
     },
@@ -141,9 +160,9 @@ export function useDispatchSalesOrder() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sales-orders'] });
-      queryClient.invalidateQueries({ queryKey: ['sales-order', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['sales-orders', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['inventory'] });
-      toast.success('Order dispatched successfully');
+      toast.success('Order shipped successfully');
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Failed to dispatch order');

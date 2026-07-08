@@ -18,6 +18,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Select,
   SelectContent,
@@ -44,8 +45,9 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
-  } = useForm({
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ProductFormValues>({
+    // @ts-ignore
     resolver: zodResolver(productSchema),
     defaultValues: {
       sku: '',
@@ -97,9 +99,20 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
 
   const isLoading = createMutation.isPending || updateMutation.isPending || isSubmitting;
 
+  const [showConfirmClose, setShowConfirmClose] = React.useState(false);
+
+  const handleOpenChange = (openState: boolean) => {
+    if (!openState && isDirty && !isSubmitting) {
+      setShowConfirmClose(true);
+    } else {
+      onOpenChange(openState);
+    }
+  };
+
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-full sm:w-[540px] rounded-none bg-background/95 backdrop-blur-md shadow-2xl border-l border-border/50">
+    <>
+      <Drawer open={open} onOpenChange={handleOpenChange} direction="right">
+        <DrawerContent className="h-screen top-0 right-0 left-auto mt-0 w-full sm:w-[540px] rounded-none bg-background/95 backdrop-blur-md shadow-2xl border-l border-border/50">
         <DrawerHeader className="text-left border-b border-border">
           <DrawerTitle>{isEditing ? 'Edit Product' : 'Create New Product'}</DrawerTitle>
           <DrawerDescription>
@@ -206,5 +219,21 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+
+    <ConfirmDialog
+        open={showConfirmClose}
+        onOpenChange={setShowConfirmClose}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirmClose(false);
+          reset();
+          onOpenChange(false);
+        }}
+      />
+    </>
   );
 }

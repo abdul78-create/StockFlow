@@ -46,7 +46,7 @@ export function PurchaseReturnForm() {
     const fetchPOs = async () => {
       try {
         const { data } = await api.get('/purchase-orders?limit=100');
-        setPos(data.data.data || data.data || []);
+        setPos(data.data.orders || []);
       } catch (err) {
         console.error(err);
       }
@@ -113,9 +113,14 @@ export function PurchaseReturnForm() {
           unitPrice: i.unitPrice,
         })),
       };
-      await api.post('/purchase-returns', payload);
+      const res = await api.post('/purchase-returns', payload);
       toast.success('Purchase return created');
-      navigate('/purchase-returns');
+      const id = res?.data?.data?.id || res?.data?.id;
+      if (id) {
+        navigate(`/purchase-returns/${id}`);
+      } else {
+        navigate('/purchase-returns');
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to create purchase return');
     } finally {

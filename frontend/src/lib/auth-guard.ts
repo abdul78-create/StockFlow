@@ -21,6 +21,9 @@ export function isAuthorized(userRole?: Role, requiredRoles?: Role[]): boolean {
   if (!userRole) {
     return false; // User has no role, deny access
   }
+  if (userRole === 'OWNER') {
+    return true; // OWNER has access to everything
+  }
   return requiredRoles.includes(userRole);
 }
 

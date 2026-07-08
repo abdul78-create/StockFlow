@@ -7,7 +7,7 @@ export const createPOSchema = z.object({
     .array(
       z.object({
         productId: z.string().uuid({ message: 'Invalid Product ID format' }),
-        variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).optional(),
+        variantId: z.string().uuid({ message: 'Invalid Variant ID format' }).optional().or(z.literal('')).transform(val => val === '' ? undefined : val),
         quantity: z.coerce
           .number()
           .int()

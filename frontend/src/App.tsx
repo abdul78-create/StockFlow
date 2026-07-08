@@ -64,6 +64,7 @@ import { TaxRulesSettings } from '@/pages/settings/TaxRulesSettings';
 import { DemoSettings } from '@/pages/settings/DemoSettings';
 import { LandingPage } from '@/pages/public/LandingPage';
 import { HelpCenter } from '@/pages/help/HelpCenter';
+import { KeyboardShortcutsModal } from '@/components/ui/KeyboardShortcutsModal';
 
 
 import { useAuthStore } from '@/store/auth';
@@ -94,6 +95,7 @@ function App() {
   return (
     <ErrorBoundary>
     <AppProviders>
+      <KeyboardShortcutsModal />
       <BrowserRouter>
         <Routes>
           {/* Public / Auth Routes */}

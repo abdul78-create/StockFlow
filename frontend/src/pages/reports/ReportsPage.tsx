@@ -157,7 +157,7 @@ export function ReportsPage() {
                     isLoading={false}
                     searchKey="name"
                     searchPlaceholder="Search products..."
-                    enableExport={true}
+                    enableExport={true} enableImport={true} onImport={() => console.log("Importing")}
                     exportFilename="low-stock-report.csv"
                   />
                 )}
