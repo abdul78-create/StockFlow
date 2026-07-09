@@ -94,14 +94,14 @@ export function RecentActivity({ metrics }: { metrics: DashboardMetrics }) {
   });
 
   return (
-    <Card className="col-span-full lg:col-span-1 shadow-sm">
+    <Card className="col-span-full lg:col-span-1 shadow-sm h-full flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Icons.dashboard className="h-4 w-4 text-muted-foreground" />
           Recent Activity
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pt-2">
+      <CardContent className="px-6 pt-2 flex-1 flex flex-col justify-start">
         {events.length > 0 ? (
           <Timeline events={events.slice(0, 5)} />
         ) : (

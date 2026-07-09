@@ -25,6 +25,7 @@ import { useSuppliers } from '@/lib/hooks/useSuppliers';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useCreatePurchaseOrder } from '@/lib/hooks/usePurchaseOrders';
 import { Trash2, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   supplierId: z.string().min(1, 'Supplier is required'),
@@ -76,7 +77,7 @@ export function PurchaseOrderForm() {
     };
     createMutation.mutate(formattedValues, {
       onSuccess: (res: any) => {
-        console.log('PO CREATION RESPONSE:', res);
+        toast.success('Purchase order created successfully');
         const id = res?.id || res?.data?.data?.id || res?.data?.id || (res?.data && res.data.id) || (res?.data?.data && res.data.data.id);
         if (id) {
           navigate(`/purchase-orders/${id}`);
@@ -84,6 +85,9 @@ export function PurchaseOrderForm() {
           navigate('/purchase-orders');
         }
       },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Failed to create purchase order');
+      }
     });
   };
 

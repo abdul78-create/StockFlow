@@ -41,8 +41,8 @@ describe('Dashboard and Reports Service Unit Tests', () => {
       (prisma.customer.count as any).mockResolvedValue(3);
       (prisma.salesOrder.count as any).mockResolvedValue(4);
       (prisma.purchaseOrder.count as any).mockResolvedValue(6);
-      (prisma.salesOrder.findMany as any).mockResolvedValue([{ totalAmount: 250 }]);
-      (prisma.purchaseOrder.findMany as any).mockResolvedValue([{ totalAmount: 125 }]);
+      (prisma.salesOrder.findMany as any).mockResolvedValue([{ totalAmount: 250, createdAt: new Date() }]);
+      (prisma.purchaseOrder.findMany as any).mockResolvedValue([{ totalAmount: 125, createdAt: new Date() }]);
 
       // Mock inventory valuation (2 items with costPrice 100, quantity 5 -> total 1000)
       // One has minStock 10 (qty 5 <= 10 -> low stock warning)

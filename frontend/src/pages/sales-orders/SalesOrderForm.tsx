@@ -25,6 +25,7 @@ import { useCustomers } from '@/lib/hooks/useCustomers';
 import { useProducts } from '@/lib/hooks/useProducts';
 import { useCreateSalesOrder } from '@/lib/hooks/useSalesOrders';
 import { Trash2, Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
@@ -70,7 +71,7 @@ export function SalesOrderForm() {
   const onSubmit = (values: FormValues) => {
     createMutation.mutate(values, {
       onSuccess: (res: any) => {
-        console.log('SO CREATION RESPONSE:', res);
+        toast.success('Sales order created successfully');
         const id = res?.id;
         if (id) {
           navigate(`/sales-orders/${id}`);
@@ -78,6 +79,9 @@ export function SalesOrderForm() {
           navigate('/sales-orders');
         }
       },
+      onError: (err: any) => {
+        toast.error(err.response?.data?.message || 'Failed to create sales order');
+      }
     });
   };
 

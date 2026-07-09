@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Icons } from '@/lib/icons';
 import { useAuthStore } from '@/store/auth';
 
+import { api } from '@/lib/api';
+
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
@@ -37,10 +39,20 @@ export function ProfileSettings() {
       setIsLoading(true);
       setMessage(null);
       
-      // We don't have PATCH /auth/profile yet in the backend, so we mock success
-      await new Promise(r => setTimeout(r, 1000));
+      const response = await api.patch('/auth/profile', data);
       
-      setMessage({ type: 'success', text: 'Profile updated successfully. (Mocked - API not yet available)' });
+      setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      
+      // Update local state if needed (could trigger an auth re-fetch or just local update)
+      useAuthStore.setState((state) => {
+        if (state.user) {
+          return {
+            ...state,
+            user: { ...state.user, firstName: response.data.data.firstName, lastName: response.data.data.lastName }
+          };
+        }
+        return state;
+      });
     } catch (err: any) {
       setMessage({ type: 'error', text: 'Failed to update profile.' });
     } finally {

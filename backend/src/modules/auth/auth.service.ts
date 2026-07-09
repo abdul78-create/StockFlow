@@ -4,12 +4,16 @@ import { AuthRepository } from './auth.repository';
 import { ConflictError, UnauthorizedError } from '../../common/errors/app-error';
 import { SignupInput, LoginInput } from './auth.validation';
 import prisma from '../../infra/database/prisma';
+import { OAuth2Client } from 'google-auth-library';
+import { AuthProvider } from '@prisma/client';
 
 export class AuthService {
   private authRepository: AuthRepository;
+  private googleClient: OAuth2Client;
 
   constructor(authRepository = new AuthRepository()) {
     this.authRepository = authRepository;
+    this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
   }
 
   private async createSession(userId: string, reqInfo?: { ip?: string, userAgent?: string }) {
@@ -65,10 +69,12 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email or password');
     }
 
-    const isMatch = await bcrypt.compare(input.password, user.passwordHash);
-    if (!isMatch) {
+    const isMatch = await bcrypt.compare(input.password, user.passwordHash || '');
+    if (!isMatch || !user.passwordHash) {
       throw new UnauthorizedError('Invalid email or password');
     }
+
+    await this.authRepository.updateLastLogin(user.id);
 
     const { session, refreshToken } = await this.createSession(user.id, reqInfo);
 
@@ -101,6 +107,13 @@ export class AuthService {
     }));
 
     return { ...userWithoutPassword, organizations };
+  }
+
+  async updateProfile(userId: string, input: { firstName?: string; lastName?: string }) {
+    const updatedUser = await this.authRepository.updateProfile(userId, input);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _, ...userWithoutPassword } = updatedUser;
+    return userWithoutPassword;
   }
 
   async refreshToken(token: string, reqInfo?: { ip?: string, userAgent?: string }) {
@@ -153,5 +166,62 @@ export class AuthService {
         id: { not: currentSessionId }
       }
     });
+  }
+
+  async googleAuth(idToken: string, reqInfo?: { ip?: string, userAgent?: string }) {
+    let payload;
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch (error) {
+      throw new UnauthorizedError('Invalid Google ID token');
+    }
+
+    if (!payload || !payload.email) {
+      throw new UnauthorizedError('Invalid Google payload');
+    }
+
+    const { email, given_name, family_name, picture, sub: googleId } = payload;
+    
+    let user: any = await this.authRepository.findUserByEmail(email);
+    
+    if (user) {
+      await this.authRepository.updateUserGoogle(user.id, googleId, picture);
+      user = await this.authRepository.findUserByEmail(email);
+    } else {
+      await this.authRepository.createUser(
+        email,
+        null,
+        given_name || 'Google',
+        family_name || 'User',
+        AuthProvider.GOOGLE,
+        googleId,
+        picture
+      );
+      user = await this.authRepository.findUserByEmail(email);
+    }
+
+    if (!user) {
+      throw new UnauthorizedError('Failed to retrieve user after Google login');
+    }
+
+    const { session, refreshToken } = await this.createSession(user.id, reqInfo);
+    
+    const { passwordHash: _, memberships, ...userWithoutPassword } = user;
+    const organizations = memberships ? memberships.map((m: any) => ({
+      ...m.organization,
+      role: m.role,
+      membershipId: m.id
+    })) : [];
+
+    return {
+      user: userWithoutPassword,
+      organizations,
+      session,
+      refreshToken
+    };
   }
 }

@@ -59,3 +59,5 @@ export function useCreateCustomer() {
     }
   });
 }
+export function useUpdateCustomer(id: string) { const queryClient = useQueryClient(); return useMutation({ mutationFn: async (data: any) => api.put(`/customers/${id}`, data), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['customers'] }); queryClient.invalidateQueries({ queryKey: ['customer', id] }); toast.success('Customer updated'); } }); }
+

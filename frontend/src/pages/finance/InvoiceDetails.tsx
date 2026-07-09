@@ -6,7 +6,8 @@ import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,6 +50,57 @@ export function InvoiceDetails() {
       }
     );
   };
+
+  const itemColumns: ColumnDef<any>[] = [
+    {
+      id: 'product',
+      accessorFn: (row) => row.product?.name,
+      header: 'Product',
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.product?.name}</div>
+          <div className="text-xs text-muted-foreground">{row.original.product?.sku}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'quantity',
+      header: 'Qty',
+      cell: ({ row }) => <span className="text-right block">{row.original.quantity}</span>,
+    },
+    {
+      accessorKey: 'unitPrice',
+      header: 'Unit Price',
+      cell: ({ row }) => <span className="text-right block">${Number(row.original.unitPrice).toFixed(2)}</span>,
+    },
+    {
+      accessorKey: 'totalAmount',
+      header: 'Total',
+      cell: ({ row }) => <span className="text-right block font-medium">${Number(row.original.totalAmount).toFixed(2)}</span>,
+    }
+  ];
+
+  const paymentColumns: ColumnDef<any>[] = [
+    {
+      accessorKey: 'paymentDate',
+      header: 'Date',
+      cell: ({ row }) => <span>{row.original.paymentDate ? format(new Date(row.original.paymentDate), 'MMM d, yyyy p') : '—'}</span>,
+    },
+    {
+      accessorKey: 'paymentMethod',
+      header: 'Method',
+    },
+    {
+      accessorKey: 'referenceNumber',
+      header: 'Reference',
+      cell: ({ row }) => <span>{row.original.referenceNumber || '-'}</span>,
+    },
+    {
+      accessorKey: 'amount',
+      header: 'Amount',
+      cell: ({ row }) => <span className="text-right block text-emerald-600 font-medium">${Number(row.original.amount).toFixed(2)}</span>,
+    }
+  ];
 
   return (
     <QueryStateWrapper
@@ -146,79 +198,51 @@ export function InvoiceDetails() {
             </div>
           }
         >
-          <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
+          <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
             <div className="space-y-6">
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
                   <CardTitle>Invoice Items</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead className="text-right">Qty</TableHead>
-                        <TableHead className="text-right">Unit Price</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {validInvoice.items.map((item: any) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">
-                            {item.product?.name}
-                            <div className="text-xs text-muted-foreground">{item.product?.sku}</div>
-                          </TableCell>
-                          <TableCell className="text-right">{item.quantity}</TableCell>
-                          <TableCell className="text-right">${Number(item.unitPrice).toFixed(2)}</TableCell>
-                          <TableCell className="text-right">${Number(item.totalAmount).toFixed(2)}</TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-right font-bold">Total Amount</TableCell>
-                        <TableCell className="text-right font-bold">${Number(validInvoice.totalAmount).toFixed(2)}</TableCell>
-                      </TableRow>
-
-                    </TableBody>
-                  </Table>
+                  <DataTable
+                    columns={itemColumns}
+                    data={validInvoice.items || []}
+                    searchKey="product"
+                    searchPlaceholder="Search items..."
+                    emptyTitle="No items"
+                    emptyDescription="This invoice has no items."
+                  />
+                  <div className="mt-4 pt-4 border-t flex justify-end">
+                    <div className="flex justify-between items-center w-64 font-bold">
+                      <span>Total Amount:</span>
+                      <span>${Number(validInvoice.totalAmount).toFixed(2)}</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
               {validInvoice.payments?.length > 0 && (
-                <Card>
+                <Card className="shadow-sm">
                   <CardHeader>
                     <CardTitle>Payment History</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Method</TableHead>
-                          <TableHead>Reference</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {validInvoice.payments.map((payment: any) => (
-                          <TableRow key={payment.id}>
-                            <TableCell>{payment.paymentDate ? format(new Date(payment.paymentDate), 'MMM d, yyyy p') : '—'}</TableCell>
-                            <TableCell>{payment.paymentMethod}</TableCell>
-                            <TableCell>{payment.referenceNumber || '-'}</TableCell>
-                            <TableCell className="text-right text-emerald-600 font-medium">
-                              ${Number(payment.amount).toFixed(2)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <DataTable
+                      columns={paymentColumns}
+                      data={validInvoice.payments}
+                      searchKey="referenceNumber"
+                      searchPlaceholder="Search reference..."
+                      emptyTitle="No payments"
+                      emptyDescription="No payments have been recorded."
+                    />
                   </CardContent>
                 </Card>
               )}
             </div>
 
             <div className="space-y-6">
-              <Card>
+              <Card className="shadow-sm">
                 <CardHeader>
                   <CardTitle>Summary</CardTitle>
                 </CardHeader>

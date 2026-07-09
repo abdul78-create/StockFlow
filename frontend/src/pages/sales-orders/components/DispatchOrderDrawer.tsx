@@ -27,6 +27,9 @@ import {
 } from '@/components/ui/select';
 import { SalesOrder, useDispatchSalesOrder } from '@/lib/hooks/useSalesOrders';
 import { useWarehouses } from '@/lib/hooks/useInventory';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import * as React from 'react';
 
 const formSchema = z.object({
   warehouseId: z.string().min(1, 'Warehouse is required'),
@@ -43,6 +46,7 @@ interface DispatchOrderDrawerProps {
 export function DispatchOrderDrawer({ so, open, onOpenChange }: DispatchOrderDrawerProps) {
   const { data: warehousesData } = useWarehouses({ limit: 100 });
   const dispatchMutation = useDispatchSalesOrder();
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,15 +63,27 @@ export function DispatchOrderDrawer({ so, open, onOpenChange }: DispatchOrderDra
       },
       {
         onSuccess: () => {
+          toast.success('Order dispatched successfully');
           onOpenChange(false);
           form.reset();
         },
+        onError: (error: any) => {
+          toast.error(error.response?.data?.message || 'Failed to dispatch order');
+        }
       }
     );
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Dispatch Order</SheetTitle>
@@ -121,7 +137,7 @@ export function DispatchOrderDrawer({ so, open, onOpenChange }: DispatchOrderDra
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={dispatchMutation.isPending}>
@@ -132,6 +148,20 @@ export function DispatchOrderDrawer({ so, open, onOpenChange }: DispatchOrderDra
           </Form>
         </div>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

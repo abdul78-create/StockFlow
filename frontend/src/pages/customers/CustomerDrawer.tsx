@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateCustomer } from '@/lib/hooks/useCustomers';
-import { CustomerFormValues } from '@/lib/types/customer';
+import { useCreateCustomer, useUpdateCustomer } from '@/lib/hooks/useCustomers';
+import { CustomerFormValues, Customer } from '@/lib/types/customer';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const customerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -34,10 +36,14 @@ const customerSchema = z.object({
 interface CustomerDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  customer?: Customer | null;
 }
 
-export function CustomerDrawer({ open, onOpenChange }: CustomerDrawerProps) {
+export function CustomerDrawer({ open, onOpenChange, customer }: CustomerDrawerProps) {
+  const isEditing = !!customer;
   const createMutation = useCreateCustomer();
+  const updateMutation = useUpdateCustomer(customer?.id || '');
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const form = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
@@ -52,32 +58,58 @@ export function CustomerDrawer({ open, onOpenChange }: CustomerDrawerProps) {
 
   React.useEffect(() => {
     if (open) {
-      form.reset({
-        name: '',
-        email: '',
-        phone: '',
-        gst: '',
-        address: '',
-      });
+      if (customer) {
+        form.reset({
+          name: customer.name,
+          email: customer.email || '',
+          phone: customer.phone || '',
+          gst: customer.gst || '',
+          address: customer.address || '',
+        });
+      } else {
+        form.reset({
+          name: '',
+          email: '',
+          phone: '',
+          gst: '',
+          address: '',
+        });
+      }
     }
-  }, [open, form]);
+  }, [open, customer, form]);
 
   const onSubmit = async (data: CustomerFormValues) => {
     try {
-      await createMutation.mutateAsync(data);
+      if (isEditing) {
+        await updateMutation.mutateAsync(data);
+        toast.success('Customer updated successfully');
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success('Customer created successfully');
+      }
       onOpenChange(false);
-    } catch (error) {
-      // Error handled by mutation
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} customer`);
     }
+  };
+  
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create Customer</SheetTitle>
+          <SheetTitle>{isEditing ? 'Edit Customer' : 'Create Customer'}</SheetTitle>
           <SheetDescription>
-            Add a new customer to your sales network.
+            {isEditing ? 'Update the details of this customer.' : 'Add a new customer to your sales network.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -161,18 +193,32 @@ export function CustomerDrawer({ open, onOpenChange }: CustomerDrawerProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending}
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create Customer'}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Customer')}
               </Button>
             </div>
           </form>
         </Form>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

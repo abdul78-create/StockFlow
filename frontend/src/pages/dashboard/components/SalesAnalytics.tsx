@@ -25,7 +25,7 @@ export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
   };
 
   return (
-    <Card className="col-span-full xl:col-span-2 shadow-sm relative group/chart">
+    <Card className="col-span-full xl:col-span-2 shadow-sm relative group/chart h-full flex flex-col">
       <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-2">
         <div>
           <CardTitle>Sales & Revenue Analytics</CardTitle>
@@ -74,7 +74,7 @@ export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
         </div>
       </div>
 
-      <CardContent className="pt-4">
+      <CardContent className="pt-4 flex-1 flex flex-col justify-end">
         {timeRange !== '14D' && timeRange !== '7D' ? (
           <div className="h-[280px] w-full flex flex-col items-center justify-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
             <Icons.warning className="h-8 w-8 mb-2 opacity-50" />

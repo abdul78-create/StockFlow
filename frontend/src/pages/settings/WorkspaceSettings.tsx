@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icons } from '@/lib/icons';
 import { api } from '@/lib/api';
 import { useWorkspaceStore } from '@/store/workspace';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const workspaceSchema = z.object({
   name: z.string().min(2, 'Workspace name must be at least 2 characters'),
@@ -23,6 +24,7 @@ export function WorkspaceSettings() {
   const { organizations, activeWorkspaceId, setOrganizations } = useWorkspaceStore();
   const [isLoading, setIsLoading] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [showConfirmDelete, setShowConfirmDelete] = React.useState(false);
   const [message, setMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const activeWorkspace = organizations.find(o => o.id === activeWorkspaceId);
@@ -104,7 +106,6 @@ export function WorkspaceSettings() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Are you absolutely sure? This action cannot be undone.')) return;
     try {
       setIsDeleting(true);
       await api.delete(`/workspaces/details`);
@@ -213,12 +214,23 @@ export function WorkspaceSettings() {
           <p className="text-sm text-muted-foreground mb-4">
             Permanently delete this workspace and all of its data. This action cannot be undone.
           </p>
-          <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+          <Button variant="destructive" onClick={() => setShowConfirmDelete(true)} disabled={isDeleting}>
             {isDeleting && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
             Delete Workspace
           </Button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={showConfirmDelete}
+        onOpenChange={setShowConfirmDelete}
+        title="Delete Workspace"
+        description="Are you absolutely sure? This action cannot be undone. All data will be permanently removed."
+        confirmLabel="Delete Workspace"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

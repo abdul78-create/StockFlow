@@ -5,6 +5,7 @@ import { Product, ProductFormValues, productSchema } from '@/lib/types/product';
 import { useCreateProduct, useUpdateProduct } from '@/lib/hooks/useProducts';
 import { useCategories } from '@/lib/hooks/useCategories';
 import { Icons } from '@/lib/icons';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,7 @@ import {
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { FormSection } from '@/components/ui/form-section';
 import {
   Select,
   SelectContent,
@@ -89,12 +91,18 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
   }, [product, reset, open]);
 
   const onSubmit = async (data: ProductFormValues) => {
-    if (isEditing) {
-      await updateMutation.mutateAsync(data);
-    } else {
-      await createMutation.mutateAsync(data);
+    try {
+      if (isEditing) {
+        await updateMutation.mutateAsync(data);
+        toast.success('Product updated successfully');
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success('Product created successfully');
+      }
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to save product');
     }
-    onOpenChange(false);
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending || isSubmitting;
@@ -129,82 +137,84 @@ export function ProductDrawer({ open, onOpenChange, product }: ProductDrawerProp
         
         {/* We use a custom scroll area here since it can get long */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-          <form id="product-form" onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 pb-4">
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="sku">SKU <span className="text-destructive">*</span></Label>
-                <Input id="sku" {...register('sku')} placeholder="PROD-001" />
-                {errors.sku && <p className="text-xs text-destructive">{errors.sku.message}</p>}
+          <form id="product-form" onSubmit={handleSubmit(onSubmit as any)} className="space-y-8 pb-8">
+            <FormSection title="Basic Information" description="Enter the core details for this product.">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU <span className="text-destructive">*</span></Label>
+                  <Input id="sku" {...register('sku')} placeholder="PROD-001" />
+                  {errors.sku && <p className="text-xs text-destructive">{errors.sku.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="barcode">Barcode</Label>
+                  <Input id="barcode" {...register('barcode')} placeholder="888123456" />
+                  {errors.barcode && <p className="text-xs text-destructive">{errors.barcode.message}</p>}
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="barcode">Barcode</Label>
-                <Input id="barcode" {...register('barcode')} placeholder="888123456" />
-                {errors.barcode && <p className="text-xs text-destructive">{errors.barcode.message}</p>}
+
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="name">Product Name <span className="text-destructive">*</span></Label>
+                <Input id="name" {...register('name')} placeholder="Wireless Headphones" />
+                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="name">Product Name <span className="text-destructive">*</span></Label>
-              <Input id="name" {...register('name')} placeholder="Wireless Headphones" />
-              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" {...register('description')} placeholder="Detailed product description..." className="resize-none h-24" />
-              {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="costPrice">Cost Price <span className="text-destructive">*</span></Label>
-                <Input id="costPrice" type="number" step="0.01" {...register('costPrice')} />
-                {errors.costPrice && <p className="text-xs text-destructive">{errors.costPrice.message}</p>}
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="categoryId">Category <span className="text-destructive">*</span></Label>
+                <Controller
+                  control={control}
+                  name="categoryId"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || undefined}>
+                      <SelectTrigger id="categoryId" className={errors.categoryId ? 'border-destructive' : ''}>
+                        <SelectValue placeholder={isLoadingCategories ? "Loading..." : "Select a category"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat: any) => (
+                          <SelectItem key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="sellingPrice">Selling Price <span className="text-destructive">*</span></Label>
-                <Input id="sellingPrice" type="number" step="0.01" {...register('sellingPrice')} />
-                {errors.sellingPrice && <p className="text-xs text-destructive">{errors.sellingPrice.message}</p>}
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="categoryId">Category <span className="text-destructive">*</span></Label>
-              <Controller
-                control={control}
-                name="categoryId"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || undefined}>
-                    <SelectTrigger id="categoryId" className={errors.categoryId ? 'border-destructive' : ''}>
-                      <SelectValue placeholder={isLoadingCategories ? "Loading..." : "Select a category"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat: any) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.categoryId && <p className="text-xs text-destructive">{errors.categoryId.message}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minimumStock">Min Stock</Label>
-                <Input id="minimumStock" type="number" {...register('minimumStock')} />
-                {errors.minimumStock && <p className="text-xs text-destructive">{errors.minimumStock.message}</p>}
+              <div className="space-y-2 mt-4">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" {...register('description')} placeholder="Detailed product description..." className="resize-none h-24" />
+                {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="maximumStock">Max Stock</Label>
-                <Input id="maximumStock" type="number" {...register('maximumStock')} />
-                {errors.maximumStock && <p className="text-xs text-destructive">{errors.maximumStock.message}</p>}
-              </div>
-            </div>
+            </FormSection>
 
+            <FormSection title="Pricing & Inventory" description="Configure pricing and stock thresholds.">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="costPrice">Cost Price <span className="text-destructive">*</span></Label>
+                  <Input id="costPrice" type="number" step="0.01" {...register('costPrice')} />
+                  {errors.costPrice && <p className="text-xs text-destructive">{errors.costPrice.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sellingPrice">Selling Price <span className="text-destructive">*</span></Label>
+                  <Input id="sellingPrice" type="number" step="0.01" {...register('sellingPrice')} />
+                  {errors.sellingPrice && <p className="text-xs text-destructive">{errors.sellingPrice.message}</p>}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="minimumStock">Min Stock</Label>
+                  <Input id="minimumStock" type="number" {...register('minimumStock')} />
+                  {errors.minimumStock && <p className="text-xs text-destructive">{errors.minimumStock.message}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="maximumStock">Max Stock</Label>
+                  <Input id="maximumStock" type="number" {...register('maximumStock')} />
+                  {errors.maximumStock && <p className="text-xs text-destructive">{errors.maximumStock.message}</p>}
+                </div>
+              </div>
+            </FormSection>
           </form>
         </div>
 

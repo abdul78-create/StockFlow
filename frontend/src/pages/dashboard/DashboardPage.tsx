@@ -9,10 +9,12 @@ import { ExecutiveKpis } from './components/ExecutiveKpis';
 import { SalesAnalytics } from './components/SalesAnalytics';
 import { InventoryAnalytics } from './components/InventoryAnalytics';
 import { RecentActivity } from './components/RecentActivity';
-import { OrderPipeline } from './components/OrderPipeline';
-import { AIInsightsPanel } from './components/AIInsightsPanel';
-import { WorkspaceHealth } from './components/WorkspaceHealth';
+import { TopProductsPanel } from './components/TopProductsPanel';
+import { RecentCustomersPanel } from './components/RecentCustomersPanel';
 import { QuickActions } from './components/QuickActions';
+import { OrderPipeline } from './components/OrderPipeline';
+import { WorkspaceHealth } from './components/WorkspaceHealth';
+import { AIInsightsPanel } from './components/AIInsightsPanel';
 
 export function DashboardPage() {
   const { data: metrics, isLoading, error, refetch } = useDashboardMetrics();
@@ -51,19 +53,19 @@ function DashboardContent({
 
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
         <SalesAnalytics metrics={metrics} />
-        <AIInsightsPanel />
+        <InventoryAnalytics metrics={metrics} />
       </div>
 
       <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
-        <InventoryAnalytics metrics={metrics} />
+        <TopProductsPanel metrics={metrics} />
+        <RecentCustomersPanel metrics={metrics} />
+        <RecentActivity metrics={metrics} />
+      </div>
+
+      <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
         <OrderPipeline />
         <WorkspaceHealth />
-      </div>
-
-      <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
-        <RecentActivity metrics={metrics} />
-        {/* Placeholder for future expansion */}
-        <div className="xl:col-span-2" />
+        <AIInsightsPanel />
       </div>
     </div>
   );

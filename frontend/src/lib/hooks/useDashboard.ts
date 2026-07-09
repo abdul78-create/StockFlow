@@ -30,6 +30,7 @@ export interface DashboardMetrics {
   profit: number;
   inventoryValue: number;
   lowStockCount: number;
+  outOfStockCount: number;
   monthlyTransactionsCount: number;
   dailyTransactions: { date: string; transactions: number; revenue: number; expenses: number }[];
   recentActivity: {

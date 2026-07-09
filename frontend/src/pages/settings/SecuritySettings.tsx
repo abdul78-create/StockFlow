@@ -3,6 +3,8 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/lib/icons';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface Session {
   id: string;
@@ -15,6 +17,7 @@ interface Session {
 export function SecuritySettings() {
   const [sessions, setSessions] = React.useState<Session[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [showConfirmLogoutAll, setShowConfirmLogoutAll] = React.useState(false);
 
   const fetchSessions = React.useCallback(async () => {
     try {
@@ -38,19 +41,21 @@ export function SecuritySettings() {
     try {
       await api.delete(`/auth/sessions/${sessionId}`);
       fetchSessions();
+      toast.success('Session revoked successfully');
     } catch (err) {
-      alert('Failed to revoke session');
+      toast.error('Failed to revoke session');
     }
   };
 
   const handleRevokeAll = async () => {
-    if (!window.confirm('Are you sure you want to log out of all other devices?')) return;
     try {
       await api.delete('/auth/sessions');
       fetchSessions();
+      toast.success('Logged out of all other devices');
     } catch (err) {
-      alert('Failed to revoke sessions');
+      toast.error('Failed to revoke sessions');
     }
+    setShowConfirmLogoutAll(false);
   };
 
   // We assume the first session returned (most recently active) or the one that 
@@ -75,7 +80,7 @@ export function SecuritySettings() {
           </p>
         </div>
         {sessions.length > 1 && (
-          <Button variant="outline" onClick={handleRevokeAll}>
+          <Button variant="outline" onClick={() => setShowConfirmLogoutAll(true)}>
             Log out all other devices
           </Button>
         )}
@@ -128,6 +133,16 @@ export function SecuritySettings() {
           );
         })}
       </div>
+      <ConfirmDialog
+        open={showConfirmLogoutAll}
+        onOpenChange={setShowConfirmLogoutAll}
+        title="Log Out of All Devices"
+        description="Are you sure you want to log out of all other devices? This action cannot be undone."
+        confirmLabel="Log Out All"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleRevokeAll}
+      />
     </div>
   );
 }

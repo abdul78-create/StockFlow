@@ -59,3 +59,4 @@ export function useCreateSupplier() {
     }
   });
 }
+export function useUpdateSupplier(id: string) { const queryClient = useQueryClient(); return useMutation({ mutationFn: async (data: any) => api.put(`/suppliers/${id}`, data), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['suppliers'] }); queryClient.invalidateQueries({ queryKey: ['supplier', id] }); toast.success('Supplier updated'); } }); }

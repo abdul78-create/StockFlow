@@ -3,12 +3,13 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 interface TaxRule {
   id: string;
@@ -81,6 +82,49 @@ export function TaxRulesSettings() {
     }
   };
 
+  const columns: ColumnDef<TaxRule>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      accessorKey: 'taxType',
+      header: 'Type',
+    },
+    {
+      accessorKey: 'rate',
+      header: 'Rate',
+      cell: ({ row }) => <span>{row.original.rate}%</span>,
+    },
+    {
+      accessorKey: 'isDefault',
+      header: 'Status',
+      cell: ({ row }) => (
+        row.original.isDefault ? (
+          <Badge variant="default">Default</Badge>
+        ) : (
+          <Badge variant="secondary">Active</Badge>
+        )
+      ),
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => (
+        <div className="text-right">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); handleDelete(row.original.id); }}
+            className="text-destructive hover:bg-destructive/10"
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div>
@@ -88,9 +132,9 @@ export function TaxRulesSettings() {
         <p className="text-muted-foreground">Configure GST, VAT, and Sales Tax values for invoicing and orders.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-3">
         {/* Form */}
-        <Card className="md:col-span-1">
+        <Card className="xl:col-span-1 h-fit">
           <CardHeader>
             <CardTitle>Create Tax Rule</CardTitle>
             <CardDescription>Define a new rate schema.</CardDescription>
@@ -151,55 +195,21 @@ export function TaxRulesSettings() {
         </Card>
 
         {/* List */}
-        <Card className="md:col-span-2">
+        <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Configured Taxes</CardTitle>
             <CardDescription>Tax rates applicable to products and orders.</CardDescription>
           </CardHeader>
           <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-sm text-muted-foreground">Loading tax rules...</div>
-            ) : rules.length === 0 ? (
-              <div className="text-center py-8 text-sm text-muted-foreground">No tax rules configured.</div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Rate</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rules.map(rule => (
-                    <TableRow key={rule.id}>
-                      <TableCell className="font-medium">{rule.name}</TableCell>
-                      <TableCell>{rule.taxType}</TableCell>
-                      <TableCell>{rule.rate}%</TableCell>
-                      <TableCell>
-                        {rule.isDefault ? (
-                          <Badge variant="default">Default</Badge>
-                        ) : (
-                          <Badge variant="secondary">Active</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(rule.id)}
-                          className="text-destructive hover:bg-destructive/10"
-                        >
-                          Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            <DataTable
+              columns={columns}
+              data={rules}
+              isLoading={loading}
+              searchKey="name"
+              searchPlaceholder="Search tax rules..."
+              emptyTitle="No tax rules configured"
+              emptyDescription="Create a new tax rule to apply taxes on sales and purchases."
+            />
           </CardContent>
         </Card>
       </div>

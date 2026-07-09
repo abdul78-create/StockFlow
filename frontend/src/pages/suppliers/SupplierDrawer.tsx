@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateSupplier } from '@/lib/hooks/useSuppliers';
-import { SupplierFormValues } from '@/lib/types/supplier';
+import { useCreateSupplier, useUpdateSupplier } from '@/lib/hooks/useSuppliers';
+import { SupplierFormValues, Supplier } from '@/lib/types/supplier';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const supplierSchema = z.object({
   companyName: z.string().min(2, 'Company name must be at least 2 characters'),
@@ -33,10 +35,14 @@ const supplierSchema = z.object({
 interface SupplierDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  supplier?: Supplier | null;
 }
 
-export function SupplierDrawer({ open, onOpenChange }: SupplierDrawerProps) {
+export function SupplierDrawer({ open, onOpenChange, supplier }: SupplierDrawerProps) {
+  const isEditing = !!supplier;
   const createMutation = useCreateSupplier();
+  const updateMutation = useUpdateSupplier(supplier?.id || '');
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const form = useForm<SupplierFormValues>({
     resolver: zodResolver(supplierSchema),
@@ -50,31 +56,56 @@ export function SupplierDrawer({ open, onOpenChange }: SupplierDrawerProps) {
 
   React.useEffect(() => {
     if (open) {
-      form.reset({
-        companyName: '',
-        email: '',
-        phone: '',
-        address: '',
-      });
+      if (supplier) {
+        form.reset({
+          companyName: supplier.companyName,
+          email: supplier.email || '',
+          phone: supplier.phone || '',
+          address: supplier.address || '',
+        });
+      } else {
+        form.reset({
+          companyName: '',
+          email: '',
+          phone: '',
+          address: '',
+        });
+      }
     }
-  }, [open, form]);
+  }, [open, supplier, form]);
 
   const onSubmit = async (data: SupplierFormValues) => {
     try {
-      await createMutation.mutateAsync(data);
+      if (isEditing) {
+        await updateMutation.mutateAsync(data);
+        toast.success('Supplier updated successfully');
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success('Supplier created successfully');
+      }
       onOpenChange(false);
-    } catch (error) {
-      // Error handled by mutation
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} supplier`);
     }
+  };
+  
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create Supplier</SheetTitle>
+          <SheetTitle>{isEditing ? 'Edit Supplier' : 'Create Supplier'}</SheetTitle>
           <SheetDescription>
-            Add a new supplier to the procurement network.
+            {isEditing ? 'Update the details of this supplier.' : 'Add a new supplier to the procurement network.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -144,18 +175,32 @@ export function SupplierDrawer({ open, onOpenChange }: SupplierDrawerProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending}
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create Supplier'}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Supplier')}
               </Button>
             </div>
           </form>
         </Form>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

@@ -18,8 +18,7 @@ export const navigationConfig: NavItem[] = [
     isGroup: true,
     children: [
       { title: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-      { title: 'Analytics', href: '/analytics', icon: 'reports' },
-      { title: 'Reports', href: '/reports', icon: 'reports', roles: ['ADMIN', 'MANAGER'] },
+      { title: 'Reports & Analytics', href: '/reports', icon: 'reports', roles: ['ADMIN', 'MANAGER'] },
     ],
   },
   {
@@ -28,9 +27,16 @@ export const navigationConfig: NavItem[] = [
     children: [
       { title: 'Products', href: '/products', icon: 'products' },
       { title: 'Inventory', href: '/inventory', icon: 'inventory' },
-      { title: 'Purchase', href: '/purchase-orders', icon: 'purchaseOrders' },
-      { title: 'Sales', href: '/sales-orders', icon: 'salesOrders' },
-      { title: 'Returns', href: '/returns', icon: 'products' },
+      { title: 'Purchase Orders', href: '/purchase-orders', icon: 'purchaseOrders' },
+      { title: 'Sales Orders', href: '/sales-orders', icon: 'salesOrders' },
+      { 
+        title: 'Returns', 
+        icon: 'products',
+        children: [
+          { title: 'Purchase Returns', href: '/purchase-returns' },
+          { title: 'Sales Returns', href: '/sales-returns' }
+        ]
+      },
       { title: 'Warehouses', href: '/warehouses', icon: 'inventory', roles: ['ADMIN', 'MANAGER'] },
     ],
   },
@@ -46,17 +52,17 @@ export const navigationConfig: NavItem[] = [
     title: 'Finance',
     isGroup: true,
     children: [
-      { title: 'Invoices', href: '/invoices', icon: 'reports' },
-      { title: 'Bills', href: '/bills', icon: 'reports' },
-      { title: 'Taxes', href: '/taxes', icon: 'settings' },
+      { title: 'Invoices', href: '/finance/invoices', icon: 'reports' },
+      { title: 'Bills', href: '/finance/bills', icon: 'reports' },
     ],
   },
   {
     title: 'Admin',
     isGroup: true,
     children: [
-      { title: 'Users', href: '/users', icon: 'users', roles: ['ADMIN'] },
-      { title: 'Automation', href: '/automation', icon: 'settings', roles: ['ADMIN'] },
+      { title: 'Team Users', href: '/settings/team', icon: 'users', roles: ['ADMIN'] },
+      { title: 'Tax Rules', href: '/settings/tax-rules', icon: 'settings', roles: ['ADMIN'] },
+      { title: 'Automation', href: '/settings/automation', icon: 'settings', roles: ['ADMIN'] },
       { title: 'Settings', href: '/settings', icon: 'settings', roles: ['ADMIN'] },
     ],
   },

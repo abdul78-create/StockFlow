@@ -42,7 +42,8 @@ export interface DataTableProps<TData, TValue> {
   emptyTitle?: string;
   emptyDescription?: string;
   onRowClick?: (row: TData) => void;
-  bulkActions?: React.ReactNode;
+  bulkActions?: (selectedRows: TData[]) => React.ReactNode;
+  advancedFilters?: React.ReactNode;
   className?: string;
 }
 
@@ -95,6 +96,7 @@ export function DataTable<TData, TValue>({
   emptyDescription = 'Try adjusting your search or filters.',
   onRowClick,
   bulkActions,
+  advancedFilters,
   className,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -185,8 +187,11 @@ export function DataTable<TData, TValue>({
               placeholder={searchPlaceholder}
             />
           )}
+          {advancedFilters}
           {selectedCount > 0 && bulkActions && (
-            <div className="flex items-center gap-2">{bulkActions}</div>
+            <div className="flex items-center gap-2">
+              {bulkActions(table.getFilteredSelectedRowModel().rows.map(r => r.original))}
+            </div>
           )}
         </div>
 

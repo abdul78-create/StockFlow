@@ -18,7 +18,6 @@ export function ExecutiveKpis({ metrics }: { metrics: DashboardMetrics }) {
           icon="inventory"
           status="success"
           href="/reports"
-          trend={{ value: 14, label: 'vs last month', direction: 'up' }}
         />
       </div>
       <div className="lg:col-span-2">

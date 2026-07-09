@@ -28,6 +28,8 @@ import {
 } from '@/components/ui/select';
 import { PurchaseOrder, useReceivePurchaseOrder } from '@/lib/hooks/usePurchaseOrders';
 import { useWarehouses } from '@/lib/hooks/useInventory';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const formSchema = z.object({
   warehouseId: z.string().min(1, 'Warehouse is required'),
@@ -61,6 +63,7 @@ interface ReceiveGoodsDrawerProps {
 export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawerProps) {
   const { data: warehousesData } = useWarehouses();
   const receiveMutation = useReceivePurchaseOrder();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -106,15 +109,27 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
       },
       {
         onSuccess: () => {
+          toast.success('Goods received successfully');
           onOpenChange(false);
           form.reset();
         },
+        onError: (error: any) => {
+          toast.error(error.response?.data?.message || 'Failed to receive goods');
+        }
       }
     );
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Receive Goods</SheetTitle>
@@ -243,7 +258,7 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
               )}
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={receiveMutation.isPending}>
@@ -254,6 +269,20 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
           </Form>
         </div>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

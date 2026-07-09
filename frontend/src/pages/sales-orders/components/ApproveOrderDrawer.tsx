@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +27,8 @@ import {
 } from '@/components/ui/select';
 import { SalesOrder, useUpdateSalesOrderStatus } from '@/lib/hooks/useSalesOrders';
 import { useWarehouses } from '@/lib/hooks/useInventory';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const formSchema = z.object({
   warehouseId: z.string().min(1, 'Warehouse is required'),
@@ -42,6 +45,7 @@ interface ApproveOrderDrawerProps {
 export function ApproveOrderDrawer({ so, open, onOpenChange }: ApproveOrderDrawerProps) {
   const { data: warehousesData } = useWarehouses({ limit: 100 });
   const updateStatus = useUpdateSalesOrderStatus();
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -59,15 +63,27 @@ export function ApproveOrderDrawer({ so, open, onOpenChange }: ApproveOrderDrawe
       },
       {
         onSuccess: () => {
+          toast.success('Order approved successfully');
           onOpenChange(false);
           form.reset();
         },
+        onError: (error: any) => {
+          toast.error(error.response?.data?.message || 'Failed to approve order');
+        }
       }
     );
   };
 
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Approve Order</SheetTitle>
@@ -105,7 +121,7 @@ export function ApproveOrderDrawer({ so, open, onOpenChange }: ApproveOrderDrawe
               />
 
               <div className="flex justify-end gap-4 pt-4 border-t">
-                <Button variant="outline" type="button" onClick={() => onOpenChange(false)}>
+                <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={updateStatus.isPending}>
@@ -116,6 +132,20 @@ export function ApproveOrderDrawer({ so, open, onOpenChange }: ApproveOrderDrawe
           </Form>
         </div>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

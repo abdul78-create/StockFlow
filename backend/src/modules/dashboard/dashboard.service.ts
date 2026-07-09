@@ -30,6 +30,7 @@ export interface DashboardMetrics {
   profit: number;
   inventoryValue: number;
   lowStockCount: number;
+  outOfStockCount: number;
   monthlyTransactionsCount: number;
   dailyTransactions: { date: string; transactions: number; revenue: number; expenses: number }[];
   recentActivity: AuditLog[];
@@ -120,7 +121,11 @@ export class DashboardService {
     );
 
     const lowStockCount = inventoryItems.filter(
-      (item) => item.quantity <= item.product.minimumStock,
+      (item) => item.quantity > 0 && item.quantity <= item.product.minimumStock,
+    ).length;
+
+    const outOfStockCount = inventoryItems.filter(
+      (item) => item.quantity <= 0,
     ).length;
 
     // 4. Transaction activity
@@ -235,6 +240,7 @@ export class DashboardService {
       profit,
       inventoryValue,
       lowStockCount,
+      outOfStockCount,
       monthlyTransactionsCount,
       dailyTransactions,
       recentActivity,

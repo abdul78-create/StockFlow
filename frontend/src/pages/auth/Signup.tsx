@@ -27,9 +27,13 @@ const signupSchema = z.object({
 
 type SignupValues = z.infer<typeof signupSchema>;
 
+import { GoogleLogin } from '@react-oauth/google';
+
+// ... (imports remain at the top)
+
 export function Signup() {
   const navigate = useNavigate();
-  const { signup, isLoading, error } = useAuthStore();
+  const { signup, googleLogin, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
 
@@ -65,6 +69,17 @@ export function Signup() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      if (credentialResponse.credential) {
+        await googleLogin(credentialResponse.credential);
+        navigate('/onboarding/workspace', { replace: true });
+      }
+    } catch (e) {
+      // Handled by auth store error state
+    }
+  };
+
   return (
     <motion.div
       variants={pageTransition}
@@ -82,17 +97,43 @@ export function Signup() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold">Account creation failed</p>
-              <p className="text-xs opacity-90">{error}</p>
-            </div>
+      {error && (
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-semibold">Account creation failed</p>
+            <p className="text-xs opacity-90">{error}</p>
           </div>
-        )}
+        </div>
+      )}
 
+      <div className="w-full flex justify-center flex-col items-center gap-2">
+        {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => useAuthStore.setState({ error: 'Google Login failed.' })}
+            text="continue_with"
+            width="100%"
+            theme="outline"
+            size="large"
+          />
+        ) : (
+          <Button variant="outline" className="w-full h-11" disabled>
+            <span className="text-sm">Continue with Google (Not Configured)</span>
+          </Button>
+        )}
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t border-slate-200 dark:border-slate-800" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-white dark:bg-slate-950 px-2 text-slate-500">Or continue with</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="firstName" className="text-xs uppercase tracking-wider font-semibold text-slate-500">

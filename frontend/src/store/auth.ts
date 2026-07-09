@@ -16,6 +16,7 @@ interface AuthState {
   error: string | null;
   checkAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
   signup: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
   setUser: (user: User | null) => void;
   logout: () => Promise<void>;
@@ -58,6 +59,25 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Invalid email or password.';
+      set({ error: errorMessage });
+      throw new Error(errorMessage);
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  googleLogin: async (idToken) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response = await api.post('/auth/google', { idToken });
+      
+      if (response.data?.success) {
+        const data = response.data.data;
+        useWorkspaceStore.getState().setOrganizations(data.organizations || []);
+        set({ user: data.user, isAuthenticated: true });
+      }
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Google Authentication failed.';
       set({ error: errorMessage });
       throw new Error(errorMessage);
     } finally {

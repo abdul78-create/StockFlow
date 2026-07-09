@@ -1,7 +1,9 @@
 import * as React from 'react';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataTable } from '@/components/ui/data-table';
+import { QueryStateWrapper } from '@/components/ui/query-state-wrapper';
+import { ColumnDef } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -28,6 +30,7 @@ export function ExpiringStock() {
   const [batches, setBatches] = React.useState<ExpiringBatch[]>([]);
   const [days, setDays] = React.useState(30);
   const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<Error | null>(null);
 
   React.useEffect(() => {
     const fetchExpiring = async () => {
@@ -35,8 +38,8 @@ export function ExpiringStock() {
       try {
         const { data } = await api.get(`/inventory/expiring?days=${days}`);
         setBatches(data.data || []);
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        setError(err);
       } finally {
         setLoading(false);
       }
@@ -44,14 +47,59 @@ export function ExpiringStock() {
     fetchExpiring();
   }, [days]);
 
+  const columns: ColumnDef<ExpiringBatch>[] = [
+    {
+      accessorFn: (row) => row.inventory.product.name,
+      id: 'productName',
+      header: 'Product',
+      cell: ({ row }) => <span className="font-medium">{row.original.inventory.product.name}</span>,
+    },
+    {
+      accessorFn: (row) => row.inventory.product.sku,
+      id: 'sku',
+      header: 'SKU',
+    },
+    {
+      accessorKey: 'batchNumber',
+      header: 'Batch No',
+      cell: ({ row }) => <Badge variant="outline">{row.original.batchNumber}</Badge>,
+    },
+    {
+      accessorFn: (row) => row.inventory.warehouse.name,
+      id: 'warehouse',
+      header: 'Warehouse',
+    },
+    {
+      accessorKey: 'quantity',
+      header: 'Quantity',
+      cell: ({ row }) => <span>{row.original.quantity} {row.original.inventory.product.baseUnit}</span>,
+    },
+    {
+      accessorKey: 'expiryDate',
+      header: 'Expiry Date',
+      cell: ({ row }) => <span>{new Date(row.original.expiryDate).toLocaleDateString()}</span>,
+    },
+    {
+      id: 'timeLeft',
+      header: 'Time Left',
+      cell: ({ row }) => (
+        <Badge variant="destructive">
+          {formatDistanceToNow(new Date(row.original.expiryDate), { addSuffix: false })}
+        </Badge>
+      ),
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Expiring Stock</h2>
-        <p className="text-muted-foreground">Monitor product batches and lots nearing their expiry dates.</p>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Expiring Stock</h2>
+          <p className="text-muted-foreground">Monitor product batches and lots nearing their expiry dates.</p>
+        </div>
       </div>
 
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle>Soon-to-Expire Batches</CardTitle>
@@ -69,49 +117,29 @@ export function ExpiringStock() {
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">Loading expiring stock...</div>
-          ) : batches.length === 0 ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">No expiring stock found within {days} days.</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Batch No</TableHead>
-                  <TableHead>Warehouse</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Expiry Date</TableHead>
-                  <TableHead>Time Left</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {batches.map(batch => (
-                  <TableRow key={batch.id}>
-                    <TableCell className="font-medium">{batch.inventory.product.name}</TableCell>
-                    <TableCell>{batch.inventory.product.sku}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{batch.batchNumber}</Badge>
-                    </TableCell>
-                    <TableCell>{batch.inventory.warehouse.name}</TableCell>
-                    <TableCell>
-                      {batch.quantity} {batch.inventory.product.baseUnit}
-                    </TableCell>
-                    <TableCell>{new Date(batch.expiryDate).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <Badge variant="destructive">
-                        {formatDistanceToNow(new Date(batch.expiryDate), { addSuffix: false })}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <QueryStateWrapper
+            isLoading={loading}
+            error={error}
+            data={{ data: batches }}
+            isEmpty={(d) => !d.data || d.data.length === 0}
+            emptyProps={{
+              title: "No expiring stock",
+              description: `No stock found expiring within the next ${days} days.`,
+            }}
+          >
+            {(validData) => (
+              <DataTable
+                columns={columns}
+                data={validData.data}
+                searchKey="productName"
+                searchPlaceholder="Search product..."
+              />
+            )}
+          </QueryStateWrapper>
         </CardContent>
       </Card>
     </div>
   );
 }
+
 export default ExpiringStock;

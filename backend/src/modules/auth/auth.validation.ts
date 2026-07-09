@@ -12,5 +12,16 @@ export const loginSchema = z.object({
   password: z.string().min(1, { message: 'Password is required' }),
 });
 
+export const updateProfileSchema = z.object({
+  firstName: z.string().min(1, { message: 'First name is required' }).optional(),
+  lastName: z.string().min(1, { message: 'Last name is required' }).optional(),
+});
+
+export const googleAuthSchema = z.object({
+  idToken: z.string({ required_error: 'ID Token is required' }).min(1, 'ID Token cannot be empty'),
+});
+
 export type SignupInput = z.infer<typeof signupSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;

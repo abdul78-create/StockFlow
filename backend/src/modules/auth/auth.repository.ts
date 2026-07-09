@@ -1,5 +1,5 @@
 import prisma from '../../infra/database/prisma';
-import { User, Organization } from '@prisma/client';
+import { User, Organization, AuthProvider } from '@prisma/client';
 
 export class AuthRepository {
   async findUserByEmail(email: string) {
@@ -20,9 +20,12 @@ export class AuthRepository {
 
   async createUser(
     email: string,
-    passwordHash: string,
+    passwordHash: string | null,
     firstName: string,
     lastName: string,
+    provider: AuthProvider = AuthProvider.LOCAL,
+    googleId?: string,
+    avatar?: string,
   ) {
     return prisma.user.create({
       data: {
@@ -30,7 +33,39 @@ export class AuthRepository {
         passwordHash,
         firstName,
         lastName,
+        provider,
+        googleId,
+        avatar,
       },
+    });
+  }
+
+  async updateUserGoogle(
+    userId: string,
+    googleId: string,
+    avatar?: string
+  ) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: {
+        googleId,
+        ...(avatar ? { avatar } : {}),
+        lastLogin: new Date(),
+      }
+    });
+  }
+
+  async updateLastLogin(userId: string) {
+    return prisma.user.update({
+      where: { id: userId },
+      data: { lastLogin: new Date() },
+    });
+  }
+
+  async updateProfile(userId: string, data: { firstName?: string; lastName?: string }) {
+    return prisma.user.update({
+      where: { id: userId },
+      data,
     });
   }
 }

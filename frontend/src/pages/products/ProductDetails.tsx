@@ -17,7 +17,7 @@ import { ProductUOMTab } from './components/ProductUOMTab';
 import { ProductBundlesTab } from './components/ProductBundlesTab';
 import { ProductImagesTab } from './components/ProductImagesTab';
 import { BarcodeSVG } from '@/components/BarcodeSVG';
-
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbList } from '@/components/ui/breadcrumb';
 
 export function ProductDetails() {
   const { id } = useParams<{ id: string }>();
@@ -55,7 +55,23 @@ export function ProductDetails() {
       }}
     >
       {(validProduct: any) => (
-        <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex-1 space-y-6 p-4 md:p-8 pt-6">
+          <Breadcrumb className="mb-4">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/products">Products</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{validProduct.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <div className="flex items-center justify-between space-y-2">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" onClick={() => navigate('/products')} className="hover:bg-primary/10 hover:text-primary transition-colors">

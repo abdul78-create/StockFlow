@@ -47,3 +47,8 @@ Thumbs.db
 # Playwright Test outputs
 test-results/
 playwright-report/
+
+# Additional Cleanup
+coverage/
+*.tmp
+.vite/

@@ -4,7 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
 import { motion } from 'framer-motion';
@@ -24,12 +31,7 @@ export function WorkspaceIndustry() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const {
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<IndustryValues>({
+  const form = useForm<IndustryValues>({
     resolver: zodResolver(industrySchema),
     defaultValues: {
       timezone: 'UTC',
@@ -37,10 +39,6 @@ export function WorkspaceIndustry() {
       industry: '',
     }
   });
-
-  const watchIndustry = watch('industry');
-  const watchTimezone = watch('timezone');
-  const watchCurrency = watch('currency');
 
   const onSubmit = async (data: IndustryValues) => {
     try {
@@ -83,75 +81,104 @@ export function WorkspaceIndustry() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold">Configuration failed</p>
-              <p className="text-xs opacity-90">{error}</p>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold">Configuration failed</p>
+                <p className="text-xs opacity-90">{error}</p>
+              </div>
             </div>
+          )}
+
+          <FormField
+            control={form.control}
+            name="industry"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Industry</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-11">
+                      <SelectValue placeholder="Select your industry" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Retail">Retail</SelectItem>
+                    <SelectItem value="Wholesale">Wholesale</SelectItem>
+                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                    <SelectItem value="E-commerce">E-commerce</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Currency</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="INR">INR (₹)</SelectItem>
+                      <SelectItem value="AUD">AUD (A$)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="timezone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Timezone</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Select timezone" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
+                      <SelectItem value="America/New_York">New York (EST/EDT)</SelectItem>
+                      <SelectItem value="Europe/London">London (GMT/BST)</SelectItem>
+                      <SelectItem value="Asia/Kolkata">Kolkata (IST)</SelectItem>
+                      <SelectItem value="Asia/Singapore">Singapore (SGT)</SelectItem>
+                      <SelectItem value="Australia/Sydney">Sydney (AEST)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
-        )}
 
-        <div className="space-y-2">
-          <Label className="text-xs uppercase tracking-wider font-semibold text-slate-500">Industry</Label>
-          <Select onValueChange={(val) => setValue('industry', val)} value={watchIndustry}>
-            <SelectTrigger className={errors.industry ? 'border-destructive focus-visible:ring-destructive h-11' : 'h-11'}>
-              <SelectValue placeholder="Select your industry" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Retail">Retail</SelectItem>
-              <SelectItem value="Wholesale">Wholesale</SelectItem>
-              <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-              <SelectItem value="E-commerce">E-commerce</SelectItem>
-              <SelectItem value="Healthcare">Healthcare</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.industry && <p className="text-xs text-destructive">{errors.industry.message}</p>}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider font-semibold text-slate-500">Currency</Label>
-            <Select onValueChange={(val) => setValue('currency', val)} value={watchCurrency}>
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Select currency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="GBP">GBP (£)</SelectItem>
-                <SelectItem value="INR">INR (₹)</SelectItem>
-                <SelectItem value="AUD">AUD (A$)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-xs uppercase tracking-wider font-semibold text-slate-500">Timezone</Label>
-            <Select onValueChange={(val) => setValue('timezone', val)} value={watchTimezone}>
-              <SelectTrigger className="h-11">
-                <SelectValue placeholder="Select timezone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
-                <SelectItem value="America/New_York">New York (EST/EDT)</SelectItem>
-                <SelectItem value="Europe/London">London (GMT/BST)</SelectItem>
-                <SelectItem value="Asia/Kolkata">Kolkata (IST)</SelectItem>
-                <SelectItem value="Asia/Singapore">Singapore (SGT)</SelectItem>
-                <SelectItem value="Australia/Sydney">Sydney (AEST)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <Button className="w-full h-11" type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Continue
-        </Button>
-      </form>
+          <Button className="w-full h-11" type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Continue
+          </Button>
+        </form>
+      </Form>
     </motion.div>
   );
 }
+export default WorkspaceIndustry;

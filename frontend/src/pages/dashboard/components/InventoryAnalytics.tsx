@@ -13,7 +13,7 @@ export function InventoryAnalytics({ metrics }: { metrics: DashboardMetrics }) {
   };
 
   return (
-    <Card className="col-span-full xl:col-span-1 shadow-sm relative group/chart">
+    <Card className="col-span-full xl:col-span-1 shadow-sm relative group/chart h-full flex flex-col">
       <CardHeader className="flex flex-row items-start justify-between pb-4 space-y-0">
         <div>
           <CardTitle>Inventory Health</CardTitle>
@@ -29,7 +29,7 @@ export function InventoryAnalytics({ metrics }: { metrics: DashboardMetrics }) {
           <Download className="h-3.5 w-3.5" />
         </Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col justify-center">
         {metrics.totalProducts === 0 ? (
           <EmptyState
             icon={Icons.products}
@@ -62,7 +62,7 @@ export function InventoryAnalytics({ metrics }: { metrics: DashboardMetrics }) {
                   <p className="text-xs text-muted-foreground">Needs immediate restock</p>
                 </div>
               </div>
-              <span className="text-xl font-bold">0</span> {/* Stubbed as zero for now, since API doesn't split it */}
+              <span className="text-xl font-bold">{metrics.outOfStockCount}</span>
             </div>
 
             <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50 shadow-sm transition-colors hover:bg-muted/30">

@@ -43,3 +43,4 @@ export function useCreateWarehouse() {
     }
   });
 }
+export function useUpdateWarehouse(id: string) { const queryClient = useQueryClient(); return useMutation({ mutationFn: async (data: any) => api.put(`/warehouses/${id}`, data), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['warehouses'] }); queryClient.invalidateQueries({ queryKey: ['warehouse', id] }); toast.success('Warehouse updated'); } }); }

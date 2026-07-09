@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCreateWarehouse } from '@/lib/hooks/useWarehouses';
-import { WarehouseFormValues } from '@/lib/types/warehouse';
+import { useCreateWarehouse, useUpdateWarehouse } from '@/lib/hooks/useWarehouses';
+import { WarehouseFormValues, Warehouse } from '@/lib/types/warehouse';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 const warehouseSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -31,10 +33,14 @@ const warehouseSchema = z.object({
 interface WarehouseDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  warehouse?: Warehouse | null;
 }
 
-export function WarehouseDrawer({ open, onOpenChange }: WarehouseDrawerProps) {
+export function WarehouseDrawer({ open, onOpenChange, warehouse }: WarehouseDrawerProps) {
+  const isEditing = !!warehouse;
   const createMutation = useCreateWarehouse();
+  const updateMutation = useUpdateWarehouse(warehouse?.id || '');
+  const [showConfirm, setShowConfirm] = React.useState(false);
 
   const form = useForm<WarehouseFormValues>({
     resolver: zodResolver(warehouseSchema),
@@ -47,29 +53,52 @@ export function WarehouseDrawer({ open, onOpenChange }: WarehouseDrawerProps) {
   // Reset form when drawer opens
   React.useEffect(() => {
     if (open) {
-      form.reset({
-        name: '',
-        address: '',
-      });
+      if (warehouse) {
+        form.reset({
+          name: warehouse.name,
+          address: warehouse.address,
+        });
+      } else {
+        form.reset({
+          name: '',
+          address: '',
+        });
+      }
     }
-  }, [open, form]);
+  }, [open, warehouse, form]);
 
   const onSubmit = async (data: WarehouseFormValues) => {
     try {
-      await createMutation.mutateAsync(data);
+      if (isEditing) {
+        await updateMutation.mutateAsync(data);
+        toast.success('Warehouse updated successfully');
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success('Warehouse created successfully');
+      }
       onOpenChange(false);
-    } catch (error) {
-      // Error is handled by the mutation
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || `Failed to ${isEditing ? 'update' : 'create'} warehouse`);
     }
   };
 
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (!newOpen && form.formState.isDirty) {
+      setShowConfirm(true);
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent className="sm:max-w-[500px] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create Warehouse</SheetTitle>
+          <SheetTitle>{isEditing ? 'Edit Warehouse' : 'Create Warehouse'}</SheetTitle>
           <SheetDescription>
-            Add a new physical location to track inventory.
+            {isEditing ? 'Update the details of this physical location.' : 'Add a new physical location to track inventory.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -111,18 +140,32 @@ export function WarehouseDrawer({ open, onOpenChange }: WarehouseDrawerProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending}
+                onClick={() => handleOpenChange(false)}
+                disabled={isLoading}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending}>
-                {createMutation.isPending ? 'Creating...' : 'Create Warehouse'}
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? (isEditing ? 'Updating...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Warehouse')}
               </Button>
             </div>
           </form>
         </Form>
       </SheetContent>
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Unsaved Changes"
+        description="You have unsaved changes. Are you sure you want to discard them?"
+        confirmLabel="Discard Changes"
+        cancelLabel="Keep Editing"
+        variant="destructive"
+        onConfirm={() => {
+          setShowConfirm(false);
+          form.reset();
+          onOpenChange(false);
+        }}
+      />
     </Sheet>
   );
 }

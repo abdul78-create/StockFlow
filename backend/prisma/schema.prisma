@@ -65,7 +65,9 @@ model User {
   firstName    String
   lastName     String
   email        String    @unique
-  passwordHash String
+  passwordHash String?
+  provider     AuthProvider @default(LOCAL)
+  googleId     String?   @unique
   lastLogin    DateTime?
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
@@ -898,4 +900,9 @@ model Notification {
   entityId       String?
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
 }

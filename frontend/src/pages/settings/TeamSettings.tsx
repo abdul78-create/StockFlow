@@ -7,7 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Icons } from '@/lib/icons';
 import { formatDistanceToNow } from 'date-fns';
 import { MEMBER_ROLE } from '@/lib/enums';
-
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface Member {
   id: string; // OrganizationMember ID
@@ -25,11 +29,27 @@ interface Invitation {
   expiresAt: string;
 }
 
+type UnifiedTeamMember = {
+  id: string;
+  isInvite: boolean;
+  name: string;
+  email: string;
+  initials: string;
+  role: string;
+  status: string;
+  lastActive: string | null;
+  rawMember?: Member;
+  rawInvite?: Invitation;
+};
+
 export function TeamSettings() {
   const { activeWorkspaceId, organizations } = useWorkspaceStore();
   const [members, setMembers] = React.useState<Member[]>([]);
   const [invitations, setInvitations] = React.useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+
+  const [memberToRemove, setMemberToRemove] = React.useState<string | null>(null);
+  const [inviteToRevoke, setInviteToRevoke] = React.useState<string | null>(null);
 
   const activeWorkspace = organizations.find(o => o.id === activeWorkspaceId);
   const isOwner = activeWorkspace?.role === 'OWNER';
@@ -49,6 +69,7 @@ export function TeamSettings() {
       setInvitations(invData.map((inv: any) => ({ ...inv, status: 'INVITED' })));
     } catch (err) {
       console.error(err);
+      toast.error('Failed to load team data');
     } finally {
       setIsLoading(false);
     }
@@ -58,38 +79,184 @@ export function TeamSettings() {
     if (activeWorkspaceId) fetchData();
   }, [fetchData, activeWorkspaceId]);
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!window.confirm('Remove this member?')) return;
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
     try {
-      await api.delete(`/workspaces/members/${memberId}`);
+      await api.delete(`/workspaces/members/${memberToRemove}`);
+      toast.success('Member removed');
       fetchData();
     } catch (err) {
-      alert('Failed to remove member');
+      toast.error('Failed to remove member');
+    } finally {
+      setMemberToRemove(null);
     }
   };
 
   const handleChangeRole = async (memberId: string, newRole: string) => {
     try {
       await api.patch(`/workspaces/members/${memberId}`, { role: newRole });
+      toast.success('Role updated');
       fetchData();
     } catch (err) {
-      alert('Failed to change role');
+      toast.error('Failed to change role');
     }
   };
 
-  const handleRevokeInvite = async (inviteId: string) => {
-    if (!window.confirm('Revoke this invitation?')) return;
+  const handleRevokeInvite = async () => {
+    if (!inviteToRevoke) return;
     try {
-      await api.delete(`/workspaces/invitations/${inviteId}`);
+      await api.delete(`/workspaces/invitations/${inviteToRevoke}`);
+      toast.success('Invitation revoked');
       fetchData();
     } catch (err) {
-      alert('Failed to revoke invite');
+      toast.error('Failed to revoke invite');
+    } finally {
+      setInviteToRevoke(null);
     }
   };
 
-  if (isLoading) {
-    return <div className="flex h-32 items-center justify-center"><Icons.refresh className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
-  }
+  const unifiedData: UnifiedTeamMember[] = React.useMemo(() => {
+    const m = members.map(mem => ({
+      id: mem.id,
+      isInvite: false,
+      name: `${mem.user.firstName} ${mem.user.lastName}`,
+      email: mem.user.email,
+      initials: `${mem.user.firstName[0] || ''}${mem.user.lastName[0] || ''}`.toUpperCase(),
+      role: mem.role,
+      status: 'ACTIVE',
+      lastActive: mem.lastAccessedAt,
+      rawMember: mem,
+    }));
+    
+    const i = invitations.map(inv => ({
+      id: inv.id,
+      isInvite: true,
+      name: inv.email, // Using email as name for invites
+      email: inv.email,
+      initials: inv.email[0].toUpperCase(),
+      role: inv.role,
+      status: 'INVITED',
+      lastActive: null,
+      rawInvite: inv,
+    }));
+    
+    return [...m, ...i];
+  }, [members, invitations]);
+
+  const columns: ColumnDef<UnifiedTeamMember>[] = [
+    {
+      accessorKey: 'name',
+      header: 'User',
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className={item.isInvite ? "bg-muted text-muted-foreground" : "bg-primary/10 text-primary"}>
+                {item.initials}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className={item.isInvite ? "font-medium italic text-muted-foreground" : "font-medium"}>
+                {item.isInvite ? item.email : item.name}
+              </div>
+              {!item.isInvite && <div className="text-xs text-muted-foreground">{item.email}</div>}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'role',
+      header: 'Role',
+      cell: ({ row }) => {
+        const item = row.original;
+        if (item.isInvite) {
+          return (
+            <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold opacity-50">
+              {MEMBER_ROLE[item.role] ?? item.role}
+            </span>
+          );
+        }
+        
+        if (isAdmin && item.role !== 'OWNER') {
+          return (
+            <Select defaultValue={item.role} onValueChange={(val) => handleChangeRole(item.id, val)}>
+              <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="MANAGER">Manager</SelectItem>
+                <SelectItem value="STAFF">Staff</SelectItem>
+              </SelectContent>
+            </Select>
+          );
+        }
+        
+        return (
+          <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold">
+            {MEMBER_ROLE[item.role] ?? item.role}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const isInvite = row.original.isInvite;
+        return isInvite ? (
+          <Badge className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/20">Pending Invite</Badge>
+        ) : (
+          <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20">Active</Badge>
+        );
+      },
+    },
+    {
+      accessorKey: 'lastActive',
+      header: 'Last Active',
+      cell: ({ row }) => {
+        const item = row.original;
+        if (item.isInvite) return <span className="text-muted-foreground">-</span>;
+        return (
+          <span className="text-muted-foreground">
+            {item.lastActive ? formatDistanceToNow(new Date(item.lastActive), { addSuffix: true }) : 'Never'}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: () => isAdmin ? <div className="text-right">Actions</div> : null,
+      cell: ({ row }) => {
+        if (!isAdmin) return null;
+        const item = row.original;
+        
+        if (item.isInvite) {
+          return (
+            <div className="text-right">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => setInviteToRevoke(item.id)}>
+                Revoke
+              </Button>
+            </div>
+          );
+        }
+        
+        if (item.role !== 'OWNER') {
+          return (
+            <div className="text-right">
+              <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive/90 hover:bg-destructive/10" onClick={() => setMemberToRemove(item.id)}>
+                Remove
+              </Button>
+            </div>
+          );
+        }
+        
+        return null;
+      },
+    }
+  ];
 
   return (
     <div className="space-y-6">
@@ -109,111 +276,40 @@ export function TeamSettings() {
       </div>
       <hr />
 
-      <div className="rounded-md border">
-        <table className="w-full text-sm text-left">
-          <thead className="bg-muted/50 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 font-medium">User</th>
-              <th className="px-4 py-3 font-medium">Role</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Last Active</th>
-              {isAdmin && <th className="px-4 py-3 font-medium text-right">Actions</th>}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {members.map(member => (
-              <tr key={member.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary/10 text-primary">
-                        {member.user.firstName[0]}{member.user.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{member.user.firstName} {member.user.lastName}</div>
-                      <div className="text-xs text-muted-foreground">{member.user.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  {isAdmin && member.role !== 'OWNER' ? (
-                    <Select defaultValue={member.role} onValueChange={(val) => handleChangeRole(member.id, val)}>
-                      <SelectTrigger className="w-32 h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="MANAGER">Manager</SelectItem>
-                        <SelectItem value="STAFF">Staff</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold">
-                      {MEMBER_ROLE[member.role] ?? member.role}
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center rounded-full bg-green-500/10 text-green-600 px-2.5 py-0.5 text-xs font-medium">
-                    Active
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  {member.lastAccessedAt ? formatDistanceToNow(new Date(member.lastAccessedAt), { addSuffix: true }) : 'Never'}
-                </td>
-                {isAdmin && (
-                  <td className="px-4 py-3 text-right">
-                    {member.role !== 'OWNER' && (
-                      <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive/90 hover:bg-destructive/10" onClick={() => handleRemoveMember(member.id)}>
-                        Remove
-                      </Button>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-            
-            {/* Pending Invites */}
-            {invitations.map(invite => (
-              <tr key={invite.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-muted text-muted-foreground">
-                        {invite.email[0].toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium italic text-muted-foreground">{invite.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-semibold opacity-50">
-                    {MEMBER_ROLE[invite.role] ?? invite.role}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center rounded-full bg-orange-500/10 text-orange-600 px-2.5 py-0.5 text-xs font-medium">
-                    Pending Invite
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-muted-foreground">
-                  -
-                </td>
-                {isAdmin && (
-                  <td className="px-4 py-3 text-right">
-                    <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={() => handleRevokeInvite(invite.id)}>
-                      Revoke
-                    </Button>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        data={unifiedData}
+        isLoading={isLoading}
+        searchKey="name"
+        searchPlaceholder="Search team members..."
+        emptyTitle="No members found"
+        emptyDescription="Get started by inviting a new member to your workspace."
+      />
+
+      <ConfirmDialog
+        open={!!memberToRemove}
+        onOpenChange={(open) => !open && setMemberToRemove(null)}
+        title="Remove Member"
+        description="Are you sure you want to remove this member from the workspace? They will lose all access."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleRemoveMember}
+      />
+
+      <ConfirmDialog
+        open={!!inviteToRevoke}
+        onOpenChange={(open) => !open && setInviteToRevoke(null)}
+        title="Revoke Invitation"
+        description="Are you sure you want to revoke this invitation?"
+        confirmLabel="Revoke"
+        cancelLabel="Cancel"
+        variant="destructive"
+        onConfirm={handleRevokeInvite}
+      />
     </div>
   );
 }
+
+export default TeamSettings;
+

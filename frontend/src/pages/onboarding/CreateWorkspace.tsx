@@ -5,7 +5,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { api } from '@/lib/api';
 import { useWorkspaceStore } from '@/store/workspace';
 import { useAuthStore } from '@/store/auth';
@@ -24,12 +31,11 @@ export function CreateWorkspace() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<WorkspaceValues>({
+  const form = useForm<WorkspaceValues>({
     resolver: zodResolver(workspaceSchema),
+    defaultValues: {
+      name: ''
+    }
   });
 
   const onSubmit = async (data: WorkspaceValues) => {
@@ -75,38 +81,46 @@ export function CreateWorkspace() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {error && (
-          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="font-semibold">Creation failed</p>
-              <p className="text-xs opacity-90">{error}</p>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold">Creation failed</p>
+                <p className="text-xs opacity-90">{error}</p>
+              </div>
             </div>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <Label htmlFor="name" className="text-xs uppercase tracking-wider font-semibold text-slate-500">
-            Workspace Name
-          </Label>
-          <Input
-            id="name"
-            placeholder="Acme Corporation"
-            {...register('name')}
-            className={errors.name ? 'border-destructive focus-visible:ring-destructive' : 'h-11'}
-            disabled={isLoading}
-          />
-          {errors.name && (
-            <p className="text-xs text-destructive">{errors.name.message}</p>
           )}
-        </div>
 
-        <Button className="w-full h-11" type="submit" disabled={isLoading}>
-          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Continue
-        </Button>
-      </form>
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">
+                  Workspace Name
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Acme Corporation"
+                    {...field}
+                    className="h-11"
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button className="w-full h-11" type="submit" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Continue
+          </Button>
+        </form>
+      </Form>
     </motion.div>
   );
 }
+export default CreateWorkspace;

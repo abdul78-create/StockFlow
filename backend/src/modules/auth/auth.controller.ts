@@ -88,6 +88,26 @@ export class AuthController {
     }
   };
 
+  googleAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const reqInfo = this.getRequestInfo(req);
+      const result = await this.authService.googleAuth(req.body.idToken, reqInfo);
+
+      const tokenPayload: TokenPayload = {
+        id: result.user.id,
+        email: result.user.email,
+        sessionId: result.session.id,
+      };
+
+      const token = this.generateToken(tokenPayload);
+      this.sendTokenCookies(res, token, result.refreshToken);
+
+      ResponseFormatter.success(res, 200, 'Google Authentication successful', result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (req.user?.sessionId) {
@@ -113,6 +133,19 @@ export class AuthController {
 
       const profile = await this.authService.getProfile(req.user.email);
       ResponseFormatter.success(res, 200, 'Profile retrieved successfully', profile);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        return next(new UnauthorizedError('Unauthorized'));
+      }
+
+      const profile = await this.authService.updateProfile(req.user.id, req.body);
+      ResponseFormatter.success(res, 200, 'Profile updated successfully', profile);
     } catch (error) {
       next(error);
     }
