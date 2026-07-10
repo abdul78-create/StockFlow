@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
-import { motion } from 'framer-motion';
-import { pageTransition } from '@/lib/motion';
 import { Loader2, AlertCircle, BarChart } from 'lucide-react';
 
 const industrySchema = z.object({
@@ -45,7 +43,6 @@ export function WorkspaceIndustry() {
       setIsLoading(true);
       setError(null);
 
-      // Update details for the active workspace context
       await api.patch('/workspaces/details', { 
         industry: data.industry,
         timezone: data.timezone,
@@ -61,124 +58,139 @@ export function WorkspaceIndustry() {
   };
 
   return (
-    <motion.div
-      variants={pageTransition}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-6"
-    >
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-        <BarChart className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background ambient lighting */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none select-none" />
 
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Configure business details
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          This helps configure currencies, date formats, and defaults
-        </p>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold">Configuration failed</p>
-                <p className="text-xs opacity-90">{error}</p>
-              </div>
-            </div>
-          )}
-
-          <FormField
-            control={form.control}
-            name="industry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Industry</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Select your industry" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Retail">Retail</SelectItem>
-                    <SelectItem value="Wholesale">Wholesale</SelectItem>
-                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                    <SelectItem value="E-commerce">E-commerce</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Currency</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                      <SelectItem value="INR">INR (₹)</SelectItem>
-                      <SelectItem value="AUD">AUD (A$)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="timezone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-xs uppercase tracking-wider font-semibold text-slate-500">Timezone</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-11">
-                        <SelectValue placeholder="Select timezone" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="UTC">UTC (Universal Time)</SelectItem>
-                      <SelectItem value="America/New_York">New York (EST/EDT)</SelectItem>
-                      <SelectItem value="Europe/London">London (GMT/BST)</SelectItem>
-                      <SelectItem value="Asia/Kolkata">Kolkata (IST)</SelectItem>
-                      <SelectItem value="Asia/Singapore">Singapore (SGT)</SelectItem>
-                      <SelectItem value="Australia/Sydney">Sydney (AEST)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <div className="w-full max-w-[440px] space-y-8 animate-fade-in-up z-10">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white shadow-inner">
+            <BarChart className="h-5 w-5" />
           </div>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Configure business details
+            </h1>
+            <p className="text-xs text-slate-400">
+              This helps configure currencies, date formats, and regional defaults.
+            </p>
+          </div>
+        </div>
 
-          <Button className="w-full h-11" type="submit" disabled={isLoading}>
-            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Continue
-          </Button>
-        </form>
-      </Form>
-    </motion.div>
+        {error && (
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive flex items-start gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-semibold">Configuration failed</p>
+              <p className="opacity-90">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Card Wrapper */}
+        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem className="space-y-1.5">
+                    <FormLabel className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Industry</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="h-10 border-white/10 bg-slate-950/50 text-white">
+                          <SelectValue placeholder="Select your industry" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Retail">Retail</SelectItem>
+                        <SelectItem value="Wholesale">Wholesale</SelectItem>
+                        <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="E-commerce">E-commerce</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage className="text-[11px]" />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="currency"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Currency</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-10 border-white/10 bg-slate-950/50 text-white">
+                            <SelectValue placeholder="Select currency" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="USD">USD ($)</SelectItem>
+                          <SelectItem value="EUR">EUR (€)</SelectItem>
+                          <SelectItem value="GBP">GBP (£)</SelectItem>
+                          <SelectItem value="INR">INR (₹)</SelectItem>
+                          <SelectItem value="AUD">AUD (A$)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-[11px]" />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="timezone"
+                  render={({ field }) => (
+                    <FormItem className="space-y-1.5">
+                      <FormLabel className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Timezone</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="h-10 border-white/10 bg-slate-950/50 text-white">
+                            <SelectValue placeholder="Select timezone" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="UTC">UTC</SelectItem>
+                          <SelectItem value="EST">EST (GMT-5)</SelectItem>
+                          <SelectItem value="PST">PST (GMT-8)</SelectItem>
+                          <SelectItem value="IST">IST (GMT+5:30)</SelectItem>
+                          <SelectItem value="AEST">AEST (GMT+10)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="text-[11px]" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200 mt-2" type="submit" disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Continue'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="flex justify-center items-center gap-1.5 pt-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-white/20 transition-all duration-300" />
+          <span className="h-1.5 w-6 rounded-full bg-white transition-all duration-300" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/20 transition-all duration-300" />
+        </div>
+      </div>
+    </div>
   );
 }
 export default WorkspaceIndustry;

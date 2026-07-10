@@ -37,6 +37,20 @@ import {
   SearchCode,
   Shield,
   Mail,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  Truck,
+  Warehouse,
+  BookOpen,
+  HelpCircle,
+  Zap,
+  Globe,
+  BarChart3,
+  ClipboardList,
+  RotateCcw,
+  FileCheck,
+  Receipt,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -51,8 +65,9 @@ export const Icons = {
   salesOrders: FileText,
   customers: Users,
   warehouse: Building2,
-  reports: FileText,
+  reports: BarChart3,
   settings: Settings,
+  help: HelpCircle,
 
   // Shell / Layout
   notifications: Bell,
@@ -64,7 +79,7 @@ export const Icons = {
   chevronLeft: ChevronLeft,
   moreVertical: MoreVertical,
   moreHorizontal: MoreHorizontal,
-  
+
   // User / Auth
   user: User,
   logout: LogOut,
@@ -83,14 +98,17 @@ export const Icons = {
   download: Download,
   upload: Upload,
   refresh: RefreshCw,
+  reset: RotateCcw,
 
   // Status / Feedback
   success: Check,
   warning: AlertCircle,
   error: AlertCircle,
+  alert: AlertTriangle,
   info: Info,
-  trendUp: ArrowUpRight,
-  trendDown: ArrowDownRight,
+  trendUp: TrendingUp,
+  trendDown: TrendingDown,
+  check: Check,
 
   // Misc
   emptySearch: SearchCode,
@@ -99,6 +117,14 @@ export const Icons = {
   shield: Shield,
   mail: Mail,
   cart: ShoppingCart,
-  truck: Package, // using Package for suppliers since Truck is not imported
+  truck: Truck,
   building: Building2,
+  warehouseAlt: Warehouse,
+  book: BookOpen,
+  zap: Zap,
+  globe: Globe,
+  chart: BarChart3,
+  clipboard: ClipboardList,
+  fileCheck: FileCheck,
+  receipt: Receipt,
 } as const;

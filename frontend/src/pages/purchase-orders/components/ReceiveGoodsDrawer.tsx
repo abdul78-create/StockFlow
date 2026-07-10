@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
   Form,
   FormControl,
@@ -190,13 +192,14 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
                               Quantity to Receive
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="number"
+                              <NumericInput
                                 className="w-24 h-8"
-                                min="0"
+                                min={0}
                                 max={remaining}
-                                {...inputField}
-                                onChange={(e) => inputField.onChange(parseInt(e.target.value, 10) || 0)}
+                                precision={0}
+                                thousands={false}
+                                value={inputField.value}
+                                onChange={(val) => inputField.onChange(val || 0)}
                               />
                             </FormControl>
                             <FormMessage className="col-span-2" />
@@ -226,7 +229,7 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
                             <FormItem>
                               <FormLabel className="text-xs">Mfg Date</FormLabel>
                               <FormControl>
-                                <Input type="date" className="h-8 text-xs" {...inputField} />
+                                <DatePicker value={inputField.value} onChange={inputField.onChange} className="h-8 text-xs pl-8" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -239,7 +242,7 @@ export function ReceiveGoodsDrawer({ po, open, onOpenChange }: ReceiveGoodsDrawe
                             <FormItem>
                               <FormLabel className="text-xs">Expiry Date</FormLabel>
                               <FormControl>
-                                <Input type="date" className="h-8 text-xs" {...inputField} />
+                                <DatePicker value={inputField.value} onChange={inputField.onChange} className="h-8 text-xs pl-8" />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

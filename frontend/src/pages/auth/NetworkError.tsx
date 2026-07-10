@@ -1,8 +1,6 @@
 import * as React from 'react';
-import { Icons } from '@/lib/icons';
 import { Button } from '@/components/ui/button';
-import { motion } from 'framer-motion';
-import { pageTransition } from '@/lib/motion';
+import { WifiOff, RefreshCw } from 'lucide-react';
 
 export function NetworkError() {
   const handleRetry = () => {
@@ -10,24 +8,24 @@ export function NetworkError() {
   };
 
   return (
-    <motion.div
-      variants={pageTransition}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="flex min-h-[60vh] flex-col items-center justify-center text-center px-4"
-    >
-      <div className="rounded-full bg-destructive/10 p-6 mb-6 text-destructive">
-        <Icons.error className="h-12 w-12" />
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      <div className="w-full max-w-[400px] bg-slate-900/40 border border-white/5 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-xl space-y-6">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 border border-destructive/20 text-destructive animate-pulse">
+          <WifiOff className="h-6 w-6" />
+        </div>
+        
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-bold text-white">Connection Interrupted</h1>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            We cannot connect to the server right now. This is likely a temporary network issue or the server is undergoing maintenance.
+          </p>
+        </div>
+
+        <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200" onClick={handleRetry}>
+          <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry Connection
+        </Button>
       </div>
-      <h1 className="text-3xl font-bold tracking-tight mb-2">Service Unavailable</h1>
-      <p className="text-muted-foreground max-w-md mb-8">
-        We cannot connect to the server right now. This is likely a temporary network issue or the server is undergoing maintenance.
-      </p>
-      <Button size="lg" onClick={handleRetry}>
-        <Icons.refresh className="mr-2 h-4 w-4" />
-        Retry Connection
-      </Button>
-    </motion.div>
+    </div>
   );
 }
+export default NetworkError;

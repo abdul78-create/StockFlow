@@ -2,9 +2,8 @@ import * as React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
 import { Button } from '@/components/ui/button';
-import { Icons } from '@/lib/icons';
 import { api } from '@/lib/api';
-import { useWorkspaceStore } from '@/store/workspace';
+import { Loader2, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 export function InvitationAcceptance() {
   const { token } = useParams<{ token: string }>();
@@ -15,17 +14,11 @@ export function InvitationAcceptance() {
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState(false);
 
-  // Note: We ideally need an unauthenticated endpoint to fetch invite details by token
-  // to show the org name to the user before they log in. Since we don't have that in Phase A,
-  // we will just show a generic message if they are not logged in.
-
   const handleAccept = async () => {
     try {
       setIsLoading(true);
       setError(null);
       await api.post('/workspaces/invitations/accept', { token });
-      
-      // Refresh user to get new memberships
       await checkAuth();
       setSuccess(true);
     } catch (err: any) {
@@ -37,18 +30,20 @@ export function InvitationAcceptance() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-        <div className="w-full max-w-md rounded-xl border bg-card text-card-foreground shadow p-8 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 mb-6">
-            <Icons.success className="h-8 w-8 text-green-600" />
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <div className="w-full max-w-[400px] bg-slate-900/40 border border-white/5 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-xl space-y-6">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <CheckCircle2 className="h-6 w-6" />
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight mb-2">
-            Invitation Accepted
-          </h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            You are now a member of the workspace.
-          </p>
-          <Button className="w-full" onClick={() => navigate('/dashboard')}>
+          <div className="space-y-1.5">
+            <h1 className="text-xl font-bold text-white">
+              Invitation Accepted
+            </h1>
+            <p className="text-xs text-slate-400">
+              You are now a member of the workspace.
+            </p>
+          </div>
+          <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200" onClick={() => navigate('/dashboard')}>
             Go to Dashboard
           </Button>
         </div>
@@ -58,24 +53,24 @@ export function InvitationAcceptance() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-        <div className="w-full max-w-md rounded-xl border bg-card text-card-foreground shadow p-8 text-center">
-          <div className="mb-8 flex justify-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-md">
-              <span className="text-xl font-bold text-primary-foreground">SF</span>
-            </div>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <div className="w-full max-w-[400px] bg-slate-900/40 border border-white/5 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-xl space-y-6">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-950 font-bold text-base shadow-sm mx-auto">
+            SF
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight mb-2">
-            You've been invited!
-          </h1>
-          <p className="text-sm text-muted-foreground mb-8">
-            Please sign in or create an account to accept your invitation.
-          </p>
-          <div className="space-y-4">
-            <Button className="w-full" onClick={() => navigate('/login', { state: { from: { pathname: `/invite/${token}` } } })}>
+          <div className="space-y-1.5">
+            <h1 className="text-xl font-bold text-white">
+              You've been invited!
+            </h1>
+            <p className="text-xs text-slate-400">
+              Please sign in or create an account to accept your invitation.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200" onClick={() => navigate('/login', { state: { from: { pathname: `/invite/${token}` } } })}>
               Sign In
             </Button>
-            <Button variant="outline" className="w-full" onClick={() => navigate('/signup')}>
+            <Button variant="outline" className="w-full h-10 text-xs font-semibold border-white/10 bg-transparent text-white hover:bg-white/5" onClick={() => navigate('/signup')}>
               Create an Account
             </Button>
           </div>
@@ -85,34 +80,40 @@ export function InvitationAcceptance() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <div className="w-full max-w-md rounded-xl border bg-card text-card-foreground shadow p-8 text-center">
-        <div className="mb-6 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-md">
-            <span className="text-xl font-bold text-primary-foreground">SF</span>
-          </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      <div className="w-full max-w-[400px] bg-slate-900/40 border border-white/5 rounded-2xl p-8 text-center shadow-2xl backdrop-blur-xl space-y-6">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-950 font-bold text-base shadow-sm mx-auto">
+          SF
         </div>
         
-        <h1 className="text-2xl font-semibold tracking-tight mb-2">
-          Accept Invitation
-        </h1>
-        <p className="text-sm text-muted-foreground mb-6">
-          Logged in as <strong>{user?.email}</strong>
-        </p>
+        <div className="space-y-1.5">
+          <h1 className="text-xl font-bold text-white">
+            Accept Invitation
+          </h1>
+          <p className="text-xs text-slate-400">
+            Logged in as <strong className="text-slate-200">{user?.email}</strong>
+          </p>
+        </div>
 
         {error && (
-          <div className="mb-6 rounded-md bg-destructive/15 p-3 text-sm text-destructive flex items-center gap-2 text-left">
-            <Icons.error className="h-4 w-4 shrink-0" />
-            {error}
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive flex items-start gap-2.5 text-left">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <p className="opacity-90">{error}</p>
           </div>
         )}
 
-        <div className="space-y-4">
-          <Button className="w-full" onClick={handleAccept} disabled={isLoading}>
-            {isLoading && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
-            Accept Invitation
+        <div className="space-y-3">
+          <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200" onClick={handleAccept} disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Accepting...
+              </>
+            ) : (
+              'Accept Invitation'
+            )}
           </Button>
-          <Button variant="ghost" className="w-full" onClick={() => navigate('/dashboard')}>
+          <Button variant="ghost" className="w-full h-10 text-xs text-slate-400 hover:text-white" onClick={() => navigate('/dashboard')}>
             Cancel
           </Button>
         </div>
@@ -120,3 +121,4 @@ export function InvitationAcceptance() {
     </div>
   );
 }
+export default InvitationAcceptance;

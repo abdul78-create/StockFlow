@@ -8,154 +8,165 @@ import {
   Tooltip,
   CartesianGrid,
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Icons } from '@/lib/icons';
-import { Download } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { DashboardMetrics } from '@/lib/hooks/useDashboard';
+import { Icons } from '@/lib/icons';
+
+type TabKey = 'revenue' | 'orders' | 'profit' | 'expenses';
+
+const TABS: { key: TabKey; label: string; color: string }[] = [
+  { key: 'revenue', label: 'Revenue', color: 'hsl(142 71% 45%)' },
+  { key: 'orders', label: 'Orders', color: 'hsl(217 91% 60%)' },
+  { key: 'profit', label: 'Profit', color: 'hsl(262 83% 58%)' },
+  { key: 'expenses', label: 'Expenses', color: 'hsl(0 84% 60%)' },
+];
+
+function formatAxis(value: number, tab: TabKey): string {
+  if (tab === 'orders') return String(value);
+  if (value >= 1000) return `$${(value / 1000).toFixed(0)}K`;
+  return `$${value}`;
+}
+
+function formatTooltip(value: number | string, tab: TabKey): string {
+  const n = Number(value);
+  if (tab === 'orders') return `${n} orders`;
+  return `$${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function getDataKey(tab: TabKey, row: { transactions: number; revenue: number; expenses: number }) {
+  if (tab === 'revenue') return row.revenue;
+  if (tab === 'orders') return row.transactions;
+  if (tab === 'expenses') return row.expenses;
+  return Math.max(0, row.revenue - row.expenses); // profit
+}
 
 export function SalesAnalytics({ metrics }: { metrics: DashboardMetrics }) {
-  const chartData = metrics.dailyTransactions ?? [];
-  const [activeTab, setActiveTab] = React.useState('revenue');
-  const [timeRange, setTimeRange] = React.useState('14D'); // Currently API only supports 14 days easily
+  const [activeTab, setActiveTab] = React.useState<TabKey>('revenue');
+  const rawData = metrics.dailyTransactions ?? [];
 
-  const handleExport = () => {
-    // Basic UI stub for export as requested.
-    console.log('Exporting Sales CSV...');
-  };
+  // Build data with computed values
+  const chartData = rawData.map(d => ({
+    ...d,
+    profit: Math.max(0, d.revenue - d.expenses),
+  }));
+
+  const currentTab = TABS.find(t => t.key === activeTab) ?? TABS[0];
+  const hasData = chartData.length > 0 && chartData.some(d => d.transactions > 0 || d.revenue > 0);
 
   return (
-    <Card className="col-span-full xl:col-span-2 shadow-sm relative group/chart h-full flex flex-col">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-2">
+    <div className="col-span-full xl:col-span-2 rounded-xl border border-border/60 bg-card">
+      {/* Header */}
+      <div className="flex items-start justify-between px-5 pt-5 pb-0">
         <div>
-          <CardTitle>Sales & Revenue Analytics</CardTitle>
-          <CardDescription>Daily performance across your organization</CardDescription>
-        </div>
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover/chart:opacity-100 transition-opacity"
-            onClick={handleExport}
-            title="Export CSV Data"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export
-          </Button>
-          <div className="flex bg-muted/50 p-1 rounded-lg">
-            {['7D', '14D', '30D', '90D', '1Y'].map(range => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                  timeRange === range ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <div className="px-6 pb-2">
-        <div className="flex items-center gap-6 border-b border-border/50 text-sm">
-          {['Revenue', 'Orders', 'Profit', 'Expenses'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab.toLowerCase())}
-              className={`pb-3 font-medium transition-colors border-b-2 ${
-                activeTab === tab.toLowerCase() ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+          <h3 className="text-sm font-semibold text-foreground">Sales & Revenue Analytics</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">Daily performance — last 14 days</p>
         </div>
       </div>
 
-      <CardContent className="pt-4 flex-1 flex flex-col justify-end">
-        {timeRange !== '14D' && timeRange !== '7D' ? (
-          <div className="h-[280px] w-full flex flex-col items-center justify-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
-            <Icons.warning className="h-8 w-8 mb-2 opacity-50" />
-            <p className="font-medium text-sm">Data range not available</p>
-            <p className="text-xs">The current API only provides up to 14 days of transaction history.</p>
-          </div>
-        ) : chartData.length > 0 && chartData.some((d) => d.transactions > 0) ? (
-          <div className="h-[280px] w-full">
+      {/* Tab switcher */}
+      <div className="flex items-center gap-0 border-b border-border/60 px-5 mt-4">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={cn(
+              'relative pb-3 pr-5 text-xs font-medium transition-colors duration-150',
+              activeTab === tab.key
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab.label}
+            {activeTab === tab.key && (
+              <span
+                className="absolute bottom-0 left-0 right-5 h-0.5 rounded-full"
+                style={{ backgroundColor: tab.color }}
+              />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Chart */}
+      <div className="p-5 pt-4">
+        {hasData ? (
+          <div className="h-[240px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart
+                data={chartData}
+                margin={{ top: 10, right: 4, left: -16, bottom: 0 }}
+              >
                 <defs>
-                  <linearGradient id="colorTx" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.0} />
+                  <linearGradient id={`grad-${activeTab}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={currentTab.color} stopOpacity={0.25} />
+                    <stop offset="100%" stopColor={currentTab.color} stopOpacity={0.02} />
                   </linearGradient>
-                  <filter id="shadow" height="200%">
-                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="hsl(var(--primary))" floodOpacity="0.2" />
-                  </filter>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.5} />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  vertical={false}
+                  stroke="hsl(var(--border))"
+                  opacity={0.6}
+                />
                 <XAxis
                   dataKey="date"
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontWeight: 500 }}
-                  dy={10}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 500 }}
+                  dy={8}
                   interval="preserveStartEnd"
-                  minTickGap={30}
+                  minTickGap={40}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12, fontWeight: 500 }}
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11, fontWeight: 500 }}
+                  tickFormatter={v => formatAxis(v, activeTab)}
                   allowDecimals={false}
-                  dx={-10}
+                  width={56}
                 />
                 <Tooltip
+                  cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1 }}
                   content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="rounded-lg border bg-background p-3 shadow-lg">
-                          <p className="mb-2 text-sm font-medium text-foreground">{label}</p>
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-primary" />
-                            <p className="text-sm text-muted-foreground capitalize">{activeTab}:</p>
-                            <p className="text-sm font-bold text-foreground">
-                              {activeTab === 'orders' 
-                                ? payload[0].value 
-                                : `$${Number(payload[0].value).toLocaleString()}`}
-                            </p>
-                          </div>
+                    if (!active || !payload?.length) return null;
+                    return (
+                      <div className="rounded-lg border border-border bg-card px-3 py-2.5 shadow-lg text-xs">
+                        <p className="font-semibold text-foreground mb-1.5">{label}</p>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="h-2 w-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: currentTab.color }}
+                          />
+                          <span className="text-muted-foreground capitalize">{activeTab}:</span>
+                          <span className="font-bold text-foreground">
+                            {formatTooltip(payload[0].value as number, activeTab)}
+                          </span>
                         </div>
-                      );
-                    }
-                    return null;
+                      </div>
+                    );
                   }}
                 />
                 <Area
                   type="monotone"
-                  dataKey={
-                    activeTab === 'revenue' ? 'revenue' : 
-                    activeTab === 'expenses' ? 'expenses' : 
-                    activeTab === 'profit' ? (row: any) => row.revenue - row.expenses : 
-                    'transactions'
-                  }
-                  stroke="hsl(var(--primary))"
+                  dataKey={(row: any) => getDataKey(activeTab, row)}
+                  stroke={currentTab.color}
                   strokeWidth={2}
-                  fill="url(#colorTx)"
-                  filter="url(#shadow)"
-                  activeDot={{ r: 6, strokeWidth: 0, fill: 'hsl(var(--primary))' }}
+                  fill={`url(#grad-${activeTab})`}
+                  activeDot={{ r: 5, strokeWidth: 0, fill: currentTab.color }}
+                  animationDuration={400}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-[280px] w-full flex flex-col items-center justify-center gap-2 text-muted-foreground bg-muted/10 rounded-xl border border-dashed border-border/50">
-            <Icons.inventory className="h-10 w-10 opacity-20" />
-            <p className="text-sm font-medium">No transactions recorded</p>
+          <div className="h-[240px] flex flex-col items-center justify-center gap-2 text-muted-foreground rounded-xl border border-dashed border-border/50">
+            <Icons.inventory className="h-8 w-8 opacity-20" />
+            <p className="text-sm font-medium">No transaction data yet</p>
+            <p className="text-xs opacity-60">Start creating orders to see analytics</p>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

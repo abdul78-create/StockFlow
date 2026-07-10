@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PageTemplate } from '@/components/layout/PageTemplate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { NumericInput } from '@/components/ui/numeric-input';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -219,11 +221,12 @@ export function PurchaseOrderForm() {
                       <FormItem className="w-32">
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            min="1"
-                            {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
+                          <NumericInput
+                            min={1}
+                            precision={0}
+                            thousands={false}
+                            value={field.value}
+                            onChange={(val) => field.onChange(val || 0)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -238,12 +241,11 @@ export function PurchaseOrderForm() {
                       <FormItem className="w-32">
                         <FormLabel>Unit Price ($)</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          <NumericInput
+                            min={0}
+                            precision={2}
+                            value={field.value}
+                            onChange={(val) => field.onChange(val || 0)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -279,7 +281,7 @@ export function PurchaseOrderForm() {
                     <FormItem>
                       <FormLabel>Shipping Cost ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <NumericInput min={0} precision={2} value={field.value} onChange={val => field.onChange(val || 0)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -292,7 +294,7 @@ export function PurchaseOrderForm() {
                     <FormItem>
                       <FormLabel>Tax Amount ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <NumericInput min={0} precision={2} value={field.value} onChange={val => field.onChange(val || 0)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -305,7 +307,7 @@ export function PurchaseOrderForm() {
                     <FormItem>
                       <FormLabel>Other Costs ($)</FormLabel>
                       <FormControl>
-                        <Input type="number" step="0.01" min="0" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                        <NumericInput min={0} precision={2} value={field.value} onChange={val => field.onChange(val || 0)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -320,7 +322,7 @@ export function PurchaseOrderForm() {
                     <FormItem>
                       <FormLabel>Expected Delivery Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <DatePicker value={field.value} onChange={field.onChange} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

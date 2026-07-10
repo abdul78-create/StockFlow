@@ -6,9 +6,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Icons } from '@/lib/icons';
-import { motion } from 'framer-motion';
-import { pageTransition } from '@/lib/motion';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -28,67 +26,82 @@ export function ForgotPassword() {
   });
 
   const onSubmit = async (data: ForgotPasswordValues) => {
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
     console.log('Reset password for:', data.email);
     setIsSubmitted(true);
   };
 
   return (
-    <motion.div
-      variants={pageTransition}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="rounded-xl border bg-card text-card-foreground shadow p-8"
-    >
-      <div className="flex flex-col space-y-2 text-center mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Forgot Password
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+      {/* Background ambient lighting */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none select-none" />
 
-      {isSubmitted ? (
-        <div className="flex flex-col items-center space-y-4 text-center">
-          <div className="rounded-full bg-success/10 p-3 text-success">
-            <Icons.success className="h-6 w-6" />
+      <div className="w-full max-w-[400px] space-y-8 animate-fade-in-up z-10">
+        <div className="space-y-3 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-slate-950 font-bold text-base shadow-sm mx-auto">
+            SF
           </div>
-          <p className="text-sm">
-            If an account exists for that email, we have sent a password reset link.
-          </p>
-          <Button variant="outline" className="w-full mt-4" asChild>
-            <Link to="/login">Return to Login</Link>
-          </Button>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Forgot Password
+            </h1>
+            <p className="text-xs text-slate-400">
+              Enter your email address and we'll send you a link to reset your password.
+            </p>
+          </div>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              {...register('email')}
-              className={errors.email ? 'border-destructive focus-visible:ring-destructive' : ''}
-            />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            )}
-          </div>
-          <Button className="w-full" type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Icons.refresh className="mr-2 h-4 w-4 animate-spin" />}
-            Send Reset Link
-          </Button>
-          <div className="text-center text-sm">
-            <Link to="/login" className="text-primary hover:underline font-medium">
-              Back to Login
-            </Link>
-          </div>
-        </form>
-      )}
-    </motion.div>
+
+        {/* Card wrapper */}
+        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
+          {isSubmitted ? (
+            <div className="flex flex-col items-center space-y-4 text-center">
+              <div className="rounded-full bg-emerald-500/10 border border-emerald-500/20 p-3 text-emerald-400">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                If an account exists for that email, we have sent a password reset link.
+              </p>
+              <Link to="/login" className="w-full">
+                <Button variant="outline" className="w-full h-10 text-xs font-semibold border-white/10 hover:bg-white/5">
+                  Return to Login
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@company.com"
+                  {...register('email')}
+                  className={errors.email ? 'border-destructive focus-visible:ring-destructive' : 'h-10 border-white/10 bg-slate-950/50 text-white placeholder:text-slate-650'}
+                />
+                {errors.email && (
+                  <p className="text-[11px] text-destructive">{errors.email.message}</p>
+                )}
+              </div>
+              <Button className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200 mt-2" type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending link...
+                  </>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </Button>
+              <div className="text-center text-xs">
+                <Link to="/login" className="font-bold text-slate-400 hover:text-white transition-colors">
+                  Back to Login
+                </Link>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
+export default ForgotPassword;

@@ -14,8 +14,6 @@ import {
 } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/lib/api';
-import { motion } from 'framer-motion';
-import { pageTransition } from '@/lib/motion';
 import { Loader2, AlertCircle, Plus, Trash2, Users, ArrowRight } from 'lucide-react';
 
 const inviteSchema = z.object({
@@ -51,7 +49,6 @@ export function WorkspaceInvite() {
       setIsLoading(true);
       setError(null);
 
-      // Check for duplicate emails in the list
       const emails = data.invites.map((i) => i.email.trim().toLowerCase());
       const uniqueEmails = new Set(emails);
       if (uniqueEmails.size !== emails.length) {
@@ -66,7 +63,6 @@ export function WorkspaceInvite() {
         return;
       }
 
-      // Execute all invitation requests
       const results = await Promise.all(
         validInvites.map(async (invite) => {
           try {
@@ -84,14 +80,12 @@ export function WorkspaceInvite() {
       const failures = results.filter((r) => !r.success);
       
       if (failures.length > 0) {
-        // Keep only failed rows in the form
         const remainingInvites = failures.map((f) => ({ email: f.email, role: f.role as any }));
         form.setValue('invites', remainingInvites);
 
         const failedEmails = failures.map((f) => f.email).join(', ');
         setError(`Failed to send invitations to: ${failedEmails}. Please correct or skip.`);
       } else {
-        // All succeeded
         navigate('/dashboard', { replace: true });
       }
     } catch (err: any) {
@@ -106,129 +100,147 @@ export function WorkspaceInvite() {
   };
 
   return (
-    <motion.div
-      variants={pageTransition}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      className="space-y-6"
-    >
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-        <Users className="h-6 w-6 text-slate-700 dark:text-slate-300" />
-      </div>
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+      {/* Background ambient lighting */}
+      <div className="absolute top-[10%] left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] pointer-events-none select-none" />
 
-      <div className="space-y-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-          Invite your team
-        </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Invite members to collaborate in your organization workspace
-        </p>
-      </div>
+      <div className="w-full max-w-[460px] space-y-8 animate-fade-in-up z-10">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-white shadow-inner">
+            <Users className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-xl font-bold tracking-tight text-white">
+              Invite your team
+            </h1>
+            <p className="text-xs text-slate-400">
+              Invite members to collaborate in your organization workspace.
+            </p>
+          </div>
+        </div>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          {error && (
-            <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold">Invitation failed</p>
-                <p className="text-xs opacity-90">{error}</p>
-              </div>
+        {error && (
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive flex items-start gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div className="space-y-0.5">
+              <p className="font-semibold">Invitation failed</p>
+              <p className="opacity-90">{error}</p>
             </div>
-          )}
+          </div>
+        )}
 
-          <div className="space-y-3">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-2.5">
-                <FormField
-                  control={form.control}
-                  name={`invites.${index}.email`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormControl>
-                        <Input
-                          placeholder="teammate@company.com"
-                          {...field}
-                          className="h-11"
-                          disabled={isLoading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+        {/* Card Wrapper */}
+        <div className="bg-slate-900/40 border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl backdrop-blur-xl">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2">
+                    <FormField
+                      control={form.control}
+                      name={`invites.${index}.email`}
+                      render={({ field: inputField }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input
+                              placeholder="teammate@company.com"
+                              {...inputField}
+                              className="h-9 border-white/10 bg-slate-950/50 text-white text-xs placeholder:text-slate-650"
+                              disabled={isLoading}
+                            />
+                          </FormControl>
+                          <FormMessage className="text-[10px]" />
+                        </FormItem>
+                      )}
+                    />
 
-                <FormField
-                  control={form.control}
-                  name={`invites.${index}.role`}
-                  render={({ field }) => (
-                    <FormItem className="w-[120px]">
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
+                    <FormField
+                      control={form.control}
+                      name={`invites.${index}.role`}
+                      render={({ field: inputField }) => (
+                        <FormItem className="w-[100px]">
+                          <Select
+                            onValueChange={inputField.onChange}
+                            defaultValue={inputField.value}
+                            disabled={isLoading}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-9 border-white/10 bg-slate-950/50 text-white text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="ADMIN">Admin</SelectItem>
+                              <SelectItem value="MANAGER">Manager</SelectItem>
+                              <SelectItem value="STAFF">Staff</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage className="text-[10px]" />
+                        </FormItem>
+                      )}
+                    />
+
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        className="h-9 w-9 text-slate-500 hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
                         disabled={isLoading}
                       >
-                        <FormControl>
-                          <SelectTrigger className="h-11">
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ADMIN">Admin</SelectItem>
-                          <SelectItem value="MANAGER">Manager</SelectItem>
-                          <SelectItem value="STAFF">Staff</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {fields.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => remove(index)}
-                    className="h-11 w-11 text-slate-400 hover:text-destructive transition-colors shrink-0"
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full border-dashed h-11"
-            onClick={() => append({ email: '', role: 'STAFF' })}
-            disabled={isLoading}
-          >
-            <Plus className="mr-2 h-4 w-4" /> Add Another Invitee
-          </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-dashed border-white/10 bg-transparent text-xs h-9 hover:bg-white/5"
+                onClick={() => append({ email: '', role: 'STAFF' })}
+                disabled={isLoading}
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" /> Add Another Invitee
+              </Button>
 
-          <div className="flex gap-4 pt-2">
-            <Button 
-              type="button" 
-              variant="ghost" 
-              className="w-full h-11 text-slate-500 hover:text-slate-900"
-              onClick={handleSkip}
-              disabled={isLoading}
-            >
-              Skip for now
-            </Button>
-            <Button type="submit" className="w-full h-11" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Send Invites <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </form>
-      </Form>
-    </motion.div>
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full h-10 text-xs text-slate-400 hover:text-white"
+                  onClick={handleSkip}
+                  disabled={isLoading}
+                >
+                  Skip for now
+                </Button>
+                <Button type="submit" className="w-full h-10 text-xs font-semibold bg-white text-slate-950 hover:bg-slate-200" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      Send Invites <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </div>
+
+        {/* Progress indicator */}
+        <div className="flex justify-center items-center gap-1.5 pt-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-white/20 transition-all duration-300" />
+          <span className="h-1.5 w-1.5 rounded-full bg-white/20 transition-all duration-300" />
+          <span className="h-1.5 w-6 rounded-full bg-white transition-all duration-300" />
+        </div>
+      </div>
+    </div>
   );
 }
 export default WorkspaceInvite;
