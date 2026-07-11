@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "./lib/store/auth";
 import { useWorkspaceStore } from "./lib/store/workspace";
+import { useThemeStore } from "./lib/store/theme";
+import api from "./lib/api";
 
 // Public / Auth Pages
 import { LandingPage } from "./pages/LandingPage";
@@ -11,12 +14,7 @@ import { ResetPassword } from "./pages/ResetPassword";
 import { VerifyEmail } from "./pages/VerifyEmail";
 import { Onboarding } from "./pages/Onboarding";
 
-function AuthRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
-  return <>{children}</>;
-}
-
+// Protected Pages
 import { AppShell } from "./components/layout/AppShell";
 import { Dashboard } from "./pages/Dashboard";
 import { Products } from "./pages/Products";
@@ -29,21 +27,32 @@ import { SalesOrders } from "./pages/SalesOrders";
 import { Finance } from "./pages/Finance";
 import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
-import { useThemeStore } from "./lib/store/theme";
-import { useEffect } from "react";
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  // Guest users are allowed to see login/signup. We do NOT force redirect if authenticated,
+  // to ensure users can explicitly navigate to /login and /signup.
+  return <>{children}</>;
+}
+
+function ProtectedRoute({ children, requireWorkspace = true }: { children: React.ReactNode, requireWorkspace?: boolean }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
 
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (!activeWorkspace) return <Navigate to="/onboarding" replace />;
+  
+  if (requireWorkspace && !activeWorkspace) {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   return <AppShell>{children}</AppShell>;
 }
 
 export default function App() {
   const isDark = useThemeStore((s) => s.isDark);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
+  const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
     if (isDark) {
@@ -53,17 +62,53 @@ export default function App() {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    const verifySession = async () => {
+      try {
+        const res = await api.get("/auth/me");
+        const user = res.data.data;
+        const organizations = user.organizations || [];
+        
+        setAuth(user);
+
+        const activeWorkspaceId = localStorage.getItem("activeWorkspaceId");
+        if (organizations.length > 0) {
+          const active = organizations.find((o: any) => o.id === activeWorkspaceId) || organizations[0];
+          setActiveWorkspace({ id: active.id, name: active.name });
+        } else {
+          setActiveWorkspace(null);
+        }
+      } catch (err) {
+        clearAuth();
+        setActiveWorkspace(null);
+      } finally {
+        setIsVerifying(false);
+      }
+    };
+    verifySession();
+  }, [setAuth, clearAuth, setActiveWorkspace]);
+
+  if (isVerifying) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
-      <Route path="/signup" element={<AuthRoute><Signup /></AuthRoute>} />
-      <Route path="/forgot-password" element={<AuthRoute><ForgotPassword /></AuthRoute>} />
-      <Route path="/reset-password" element={<AuthRoute><ResetPassword /></AuthRoute>} />
+      <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+      <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
+      <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+      <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
       <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/onboarding" element={<Onboarding />} />
       
-      {/* Protected Routes */}
+      {/* Onboarding is protected but does NOT require a workspace */}
+      <Route path="/onboarding" element={<ProtectedRoute requireWorkspace={false}><Onboarding /></ProtectedRoute>} />
+      
+      {/* Protected Routes (Require Workspace) */}
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
       <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
@@ -75,7 +120,7 @@ export default function App() {
       <Route path="/finance" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-      <Route path="*" element={<div className="flex h-screen items-center justify-center text-gray-500 font-medium">App modules are being rebuilt...</div>} />
+      <Route path="*" element={<div className="flex h-screen items-center justify-center text-gray-500 font-medium">Page not found</div>} />
     </Routes>
   );
 }

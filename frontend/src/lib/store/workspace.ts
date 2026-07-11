@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface Workspace {
   id: string;
@@ -17,23 +16,16 @@ interface WorkspaceState {
   setWorkspaces: (workspaces: Workspace[]) => void;
 }
 
-export const useWorkspaceStore = create<WorkspaceState>()(
-  persist(
-    (set) => ({
-      activeWorkspace: null,
-      workspaces: [],
-      setActiveWorkspace: (workspace) => {
-        if (workspace) {
-          localStorage.setItem("activeWorkspaceId", workspace.id);
-        } else {
-          localStorage.removeItem("activeWorkspaceId");
-        }
-        set({ activeWorkspace: workspace });
-      },
-      setWorkspaces: (workspaces) => set({ workspaces }),
-    }),
-    {
-      name: "workspace-storage",
+export const useWorkspaceStore = create<WorkspaceState>((set) => ({
+  activeWorkspace: null,
+  workspaces: [],
+  setActiveWorkspace: (workspace) => {
+    if (workspace) {
+      localStorage.setItem("activeWorkspaceId", workspace.id);
+    } else {
+      localStorage.removeItem("activeWorkspaceId");
     }
-  )
-);
+    set({ activeWorkspace: workspace });
+  },
+  setWorkspaces: (workspaces) => set({ workspaces }),
+}));

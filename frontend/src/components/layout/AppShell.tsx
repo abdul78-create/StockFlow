@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package, ShoppingCart, Users, Truck, LogOut, Settings, Factory, DollarSign, FileText, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../lib/store/auth";
 import { useWorkspaceStore } from "../../lib/store/workspace";
+import api from "../../lib/api";
 
 const NAVIGATION = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -24,10 +25,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+  const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
 
-  const handleLogout = () => {
-    clearAuth();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (e) {
+      // ignore
+    } finally {
+      clearAuth();
+      setActiveWorkspace(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      navigate("/");
+    }
   };
 
   return (

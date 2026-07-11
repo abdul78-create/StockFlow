@@ -35,7 +35,6 @@ api.interceptors.response.use(
         // Clear state and redirect to login if refresh fails
         if (typeof window !== "undefined") {
           localStorage.removeItem("activeWorkspaceId");
-          localStorage.removeItem("auth-storage");
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);
