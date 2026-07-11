@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { Button } from "../components/ui/Button";
@@ -17,6 +17,11 @@ export function Onboarding() {
   const [industry, setIndustry] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // If the user's session is dead (e.g., db reset), this will trigger the 401 interceptor and log them out
+  useEffect(() => {
+    api.get("/workspaces").catch(() => {});
+  }, []);
 
   const handleLogout = async () => {
     try {
