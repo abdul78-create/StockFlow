@@ -1,0 +1,14 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+EXPOSE 5174
+
+# Run npm install to ensure linux-musl native bindings are present, then start vite
+CMD ["sh", "-c", "npm install && npm run dev -- --host"]

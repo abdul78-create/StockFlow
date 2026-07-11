@@ -1,4 +1,5 @@
-FROM node:20-alpine AS builder
+# Build Stage
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
@@ -6,35 +7,24 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+
+# We allow passing VITE_API_URL during build for production API
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
+# Production Stage
 FROM nginx:alpine
 
-# Copy built assets from builder
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
 
-# Add custom Nginx configuration to support React Router
-RUN echo 'server { \
-    listen       80; \
-    server_name  localhost; \
-    gzip on; \
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript; \
-    location / { \
-        root   /usr/share/nginx/html; \
-        index  index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-        gzip_static on; \
-    } \
-    location /api/ { \
-        proxy_pass http://backend:3000; \
-        proxy_set_header Host $host; \
-        proxy_set_header X-Real-IP $remote_addr; \
-    } \
-    error_page   500 502 503 504  /50x.html; \
-    location = /50x.html { \
-        root   /usr/share/nginx/html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Copy built assets from the build stage
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy our custom nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

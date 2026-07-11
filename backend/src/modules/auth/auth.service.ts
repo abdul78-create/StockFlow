@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { config } from '../../infra/config';
 import { AuthRepository } from './auth.repository';
 import { ConflictError, UnauthorizedError } from '../../common/errors/app-error';
 import { SignupInput, LoginInput } from './auth.validation';
@@ -223,5 +225,69 @@ export class AuthService {
       session,
       refreshToken
     };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.authRepository.findUserByEmail(email);
+    if (!user) {
+      return { message: "Password reset link sent to your email" };
+    }
+
+    const token = jwt.sign({ email, type: 'reset-password' }, config.JWT_SECRET, { expiresIn: '15m' });
+    console.log(`[DEVELOPMENT] Password reset token for ${email}: ${token}`);
+    
+    return { 
+      message: "Password reset link sent to your email",
+      devToken: config.NODE_ENV === 'development' || process.env.DEMO_MODE === 'true' ? token : undefined 
+    };
+  }
+
+  async resetPassword(token: string, passwordHash: string) {
+    try {
+      const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+      if (decoded.type !== 'reset-password') {
+        throw new UnauthorizedError('Invalid reset token type');
+      }
+
+      const user = await this.authRepository.findUserByEmail(decoded.email);
+      if (!user) {
+        throw new UnauthorizedError('User not found');
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      const newHash = await bcrypt.hash(passwordHash, salt);
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: newHash }
+      });
+
+      return { message: "Password has been reset successfully" };
+    } catch (err: any) {
+      throw new UnauthorizedError(err.message || 'Invalid or expired reset token');
+    }
+  }
+
+  async verifyEmail(token: string) {
+    try {
+      const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+      if (decoded.type !== 'verify-email') {
+        throw new UnauthorizedError('Invalid verification token type');
+      }
+
+      const user = await this.authRepository.findUserByEmail(decoded.email);
+      if (!user) {
+        throw new UnauthorizedError('User not found');
+      }
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isActive: true }
+      });
+
+      return { message: "Email verified successfully" };
+    } catch (err: any) {
+      throw new UnauthorizedError(err.message || 'Invalid or expired verification token');
+    }
   }
 }

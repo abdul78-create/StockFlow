@@ -16,31 +16,31 @@ export class DemoSeedService {
     const catOff  = await this._upsertCategory(organizationId, 'Office Supplies');
 
     // ── 2. Warehouses ──────────────────────────────────────────
-    const wh1 = await this._upsertWarehouse(organizationId, 'DEMO Main Warehouse', 'Dubai, UAE', 10000);
-    const wh2 = await this._upsertWarehouse(organizationId, 'DEMO Secondary Store', 'Abu Dhabi, UAE', 5000);
+    const wh1 = await this._upsertWarehouse(organizationId, 'Main Distribution Center', 'Mumbai, India', 10000);
+    const wh2 = await this._upsertWarehouse(organizationId, 'Secondary Retail Store', 'Delhi, India', 5000);
 
     // ── 3. Suppliers ───────────────────────────────────────────
-    const sup1 = await this._upsertSupplier(organizationId, 'DEMO TechCorp Distribution', 'tech@techcorp.ae', '+971501234567');
-    const sup2 = await this._upsertSupplier(organizationId, 'DEMO Gulf Office Supplies', 'orders@gulfoffice.ae', '+971502345678');
-    const sup3 = await this._upsertSupplier(organizationId, 'DEMO Premium Furniture Co.', 'sales@premiumfurn.ae', '+971503456789');
+    const sup1 = await this._upsertSupplier(organizationId, 'TechCorp Distribution', 'tech@techcorp.in', '+919876543210');
+    const sup2 = await this._upsertSupplier(organizationId, 'Global Office Supplies', 'orders@globaloffice.in', '+919876543211');
+    const sup3 = await this._upsertSupplier(organizationId, 'Premium Furniture Co.', 'sales@premiumfurn.in', '+919876543212');
 
     // ── 4. Customers ───────────────────────────────────────────
-    const cust1 = await this._upsertCustomer(organizationId, 'DEMO Al Fardan Group', 'purchasing@alfardan.ae', '+971504567890');
-    const cust2 = await this._upsertCustomer(organizationId, 'DEMO Emirates Retail LLC', 'orders@emiratesretail.ae', '+971505678901');
-    const cust3 = await this._upsertCustomer(organizationId, 'DEMO Majid Al Futtaim', 'supply@maf.ae', '+971506789012');
+    const cust1 = await this._upsertCustomer(organizationId, 'Reliance Retail', 'purchasing@reliance.in', '+919876543220');
+    const cust2 = await this._upsertCustomer(organizationId, 'Tata Enterprises', 'orders@tata.in', '+919876543221');
+    const cust3 = await this._upsertCustomer(organizationId, 'Future Group', 'supply@future.in', '+919876543222');
 
     // ── 5. Products ────────────────────────────────────────────
     const products = await Promise.all([
-      this._upsertProduct(organizationId, catElec.id, 'DEMO Laptop Pro 15"',              'DEMO-LAP-001', 2800, 3499),
-      this._upsertProduct(organizationId, catElec.id, 'DEMO Wireless Keyboard',            'DEMO-KEY-001', 45,   89),
-      this._upsertProduct(organizationId, catElec.id, 'DEMO 4K Monitor 27"',              'DEMO-MON-001', 320,  599),
-      this._upsertProduct(organizationId, catFurn.id, 'DEMO Ergonomic Chair',             'DEMO-CHR-001', 280,  549),
-      this._upsertProduct(organizationId, catFurn.id, 'DEMO Standing Desk',               'DEMO-DSK-001', 420,  799),
-      this._upsertProduct(organizationId, catOff.id,  'DEMO A4 Paper Ream (500 sheets)',  'DEMO-PAP-001', 4,    9),
-      this._upsertProduct(organizationId, catOff.id,  'DEMO Ballpoint Pens (Box of 50)',  'DEMO-PEN-001', 6,    14),
-      this._upsertProduct(organizationId, catOff.id,  'DEMO Stapler Heavy Duty',          'DEMO-STA-001', 12,   29),
-      this._upsertProduct(organizationId, catElec.id, 'DEMO USB-C Hub 7-Port',            'DEMO-USB-001', 22,   49),
-      this._upsertProduct(organizationId, catElec.id, 'DEMO Noise-Cancelling Headset',    'DEMO-HDS-001', 85,   179),
+      this._upsertProduct(organizationId, catElec.id, 'MacBook Pro 16" M3 Max',           'MBP-16-M3', 250000, 319900),
+      this._upsertProduct(organizationId, catElec.id, 'Logitech MX Master 3S',            'LOG-MX3S', 6500,   8999),
+      this._upsertProduct(organizationId, catElec.id, 'Dell UltraSharp 27" 4K',           'DELL-U27', 35000,  45900),
+      this._upsertProduct(organizationId, catFurn.id, 'Herman Miller Aeron Chair',        'HM-AERON', 95000,  125000),
+      this._upsertProduct(organizationId, catFurn.id, 'Ergo Desk Motorized Standing',     'ERGO-DSK', 28000,  35500),
+      this._upsertProduct(organizationId, catOff.id,  'JK Copier A4 Paper (500 sheets)',  'JK-A4',    280,    350),
+      this._upsertProduct(organizationId, catOff.id,  'Parker Vector Pen (Box of 10)',    'PKR-PEN',  1500,   2500),
+      this._upsertProduct(organizationId, catOff.id,  'Kangaro Heavy Duty Stapler',       'KAN-STA',  800,    1200),
+      this._upsertProduct(organizationId, catElec.id, 'Anker USB-C 7-in-1 Hub',           'ANK-HUB',  3500,   5499),
+      this._upsertProduct(organizationId, catElec.id, 'Sony WH-1000XM5 Headphones',       'SNY-XM5',  24000,  29990),
     ]);
 
     // ── 6. Inventory ────────────────────────────────────────────
@@ -69,7 +69,7 @@ export class DemoSeedService {
 
     // ── 7. Purchase Orders (skip if demo POs already exist) ───
     const existingPO = await prisma.purchaseOrder.findFirst({
-      where: { organizationId, notes: { startsWith: 'DEMO' } },
+      where: { organizationId, notes: { startsWith: 'TechCorp' } },
     });
     if (!existingPO) {
       await prisma.purchaseOrder.createMany({
@@ -77,38 +77,38 @@ export class DemoSeedService {
           {
             organizationId,
             supplierId: sup1.id,
-            poNumber: `DEMO-PO-001-${Date.now()}`,
+            poNumber: `PO-${Date.now()}-1`,
             status: 'DRAFT',
             expectedDate: new Date(Date.now() + 7 * 86400000),
-            shippingCost: 50,
-            taxAmount: 140,
+            shippingCost: 500,
+            taxAmount: 14000,
             otherCosts: 0,
-            totalAmount: 3080,
-            notes: 'DEMO Electronics restock',
+            totalAmount: 308000,
+            notes: 'TechCorp Electronics restock',
           },
           {
             organizationId,
             supplierId: sup2.id,
-            poNumber: `DEMO-PO-002-${Date.now()}`,
+            poNumber: `PO-${Date.now()}-2`,
             status: 'APPROVED',
             expectedDate: new Date(Date.now() + 3 * 86400000),
-            shippingCost: 20,
-            taxAmount: 25,
+            shippingCost: 200,
+            taxAmount: 2500,
             otherCosts: 0,
-            totalAmount: 535,
-            notes: 'DEMO Office supplies order',
+            totalAmount: 53500,
+            notes: 'Office supplies order',
           },
           {
             organizationId,
             supplierId: sup3.id,
-            poNumber: `DEMO-PO-003-${Date.now()}`,
+            poNumber: `PO-${Date.now()}-3`,
             status: 'COMPLETED',
             expectedDate: new Date(Date.now() - 2 * 86400000),
-            shippingCost: 80,
-            taxAmount: 84,
+            shippingCost: 800,
+            taxAmount: 8400,
             otherCosts: 0,
-            totalAmount: 1764,
-            notes: 'DEMO Furniture shipment',
+            totalAmount: 176400,
+            notes: 'Furniture shipment',
           },
         ],
       });
@@ -116,7 +116,7 @@ export class DemoSeedService {
 
     // ── 8. Sales Orders (skip if demo SOs already exist) ──────
     const existingSO = await prisma.salesOrder.findFirst({
-      where: { organizationId, notes: { startsWith: 'DEMO' } },
+      where: { organizationId, notes: { startsWith: 'Reliance' } },
     });
     if (!existingSO) {
       await prisma.salesOrder.createMany({
@@ -124,35 +124,35 @@ export class DemoSeedService {
           {
             organizationId,
             customerId: cust1.id,
-            soNumber: `DEMO-SO-001-${Date.now()}`,
+            soNumber: `SO-${Date.now()}-1`,
             status: 'DRAFT',
-            shippingCost: 30,
-            taxAmount: 175,
-            discountAmount: 50,
-            totalAmount: 3654,
-            notes: 'DEMO Laptop purchase order',
+            shippingCost: 300,
+            taxAmount: 17500,
+            discountAmount: 5000,
+            totalAmount: 365400,
+            notes: 'Reliance Laptop purchase order',
           },
           {
             organizationId,
             customerId: cust2.id,
-            soNumber: `DEMO-SO-002-${Date.now()}`,
+            soNumber: `SO-${Date.now()}-2`,
             status: 'APPROVED',
             shippingCost: 0,
-            taxAmount: 45,
+            taxAmount: 4500,
             discountAmount: 0,
-            totalAmount: 715,
-            notes: 'DEMO Peripherals bundle',
+            totalAmount: 71500,
+            notes: 'Tata Peripherals bundle',
           },
           {
             organizationId,
             customerId: cust3.id,
-            soNumber: `DEMO-SO-003-${Date.now()}`,
+            soNumber: `SO-${Date.now()}-3`,
             status: 'DELIVERED',
-            shippingCost: 50,
-            taxAmount: 110,
-            discountAmount: 100,
-            totalAmount: 2248,
-            notes: 'DEMO Office furniture setup',
+            shippingCost: 500,
+            taxAmount: 11000,
+            discountAmount: 10000,
+            totalAmount: 224800,
+            notes: 'Future Group Office furniture setup',
           },
         ],
       });

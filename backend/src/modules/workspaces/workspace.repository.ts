@@ -3,7 +3,8 @@ import { Organization, OrganizationMember, Invitation } from '@prisma/client';
 
 export class WorkspaceRepository {
   async createWorkspace(userId: string, data: { name: string; industry?: string; timezone?: string; currency?: string; country?: string }) {
-    const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const baseSlug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug = baseSlug ? `${baseSlug}-${Date.now().toString(36)}` : `org-${Date.now()}`;
     return prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
         data: {

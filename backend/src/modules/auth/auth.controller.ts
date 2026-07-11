@@ -111,9 +111,14 @@ export class AuthController {
   logout = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       if (req.user?.sessionId) {
-        await prisma.session.delete({
-          where: { id: req.user.sessionId }
-        }).catch(() => {});
+        try {
+          await prisma.session.delete({
+            where: { id: req.user.sessionId }
+          });
+          console.log(`Deleted session ${req.user.sessionId}`);
+        } catch (e) {
+          console.error(`Failed to delete session ${req.user.sessionId}`, e);
+        }
       }
 
       res.cookie('token', '', { httpOnly: true, expires: new Date(0) });
@@ -195,5 +200,32 @@ export class AuthController {
       await this.authService.revokeAllSessions(req.user.id, req.user.sessionId);
       ResponseFormatter.success(res, 200, 'All other sessions revoked', null);
     } catch (error) { next(error); }
+  };
+
+  forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.authService.forgotPassword(req.body.email);
+      ResponseFormatter.success(res, 200, result.message, { devToken: result.devToken });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.authService.resetPassword(req.body.token, req.body.password);
+      ResponseFormatter.success(res, 200, result.message, null);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await this.authService.verifyEmail(req.body.token);
+      ResponseFormatter.success(res, 200, result.message, null);
+    } catch (error) {
+      next(error);
+    }
   };
 }

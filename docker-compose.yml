@@ -25,27 +25,37 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
   backend:
     build: 
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: stockflow_backend
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - DEMO_MODE=true
       - PORT=3000
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/stockflow_dev?schema=public
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET:-super-secret-key-for-dev-only}
       - JWT_EXPIRES_IN=7d
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:5174}
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
     depends_on:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/v1/health"]
       interval: 30s
@@ -54,20 +64,27 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
+    build: 
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: stockflow_frontend
     ports:
-      - "5173:80"
+      - "5174:5174"
+    environment:
+      - VITE_API_URL=http://backend:3000/api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:5174"]
       interval: 30s
       timeout: 10s
       retries: 5
     restart: unless-stopped
+
 
 volumes:
   postgres_data:

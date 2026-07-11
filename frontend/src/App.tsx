@@ -1,204 +1,81 @@
-import * as React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProviders } from '@/app/providers';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { DesignSystemShowcase } from '@/pages/design-system/DesignSystemShowcase';
-import { DashboardLayout } from '@/components/layout/layouts/DashboardLayout';
-import { AuthLayout } from '@/components/layout/layouts/AuthLayout';
-import { BlankLayout } from '@/components/layout/layouts/BlankLayout';
-import { DashboardPage } from '@/pages/dashboard/DashboardPage';
-import { ReportsPage } from '@/pages/reports/ReportsPage';
-import { Login } from '@/pages/auth/Login';
-import { PurchaseOrderList } from '@/pages/purchase-orders/PurchaseOrderList';
-import { PurchaseOrderForm } from '@/pages/purchase-orders/PurchaseOrderForm';
-import { PurchaseOrderDetails } from '@/pages/purchase-orders/PurchaseOrderDetails';
-import { SalesOrderList } from '@/pages/sales-orders/SalesOrderList';
-import { SalesOrderForm } from '@/pages/sales-orders/SalesOrderForm';
-import { SalesOrderDetails } from '@/pages/sales-orders/SalesOrderDetails';
-import { InvoicesList } from '@/pages/finance/InvoicesList';
-import { InvoiceDetails } from '@/pages/finance/InvoiceDetails';
-import { BillsList } from '@/pages/finance/BillsList';
-import { BillDetails } from '@/pages/finance/BillDetails';
-import { ForgotPassword } from '@/pages/auth/ForgotPassword';
-import { Unauthorized } from '@/pages/auth/Unauthorized';
-import { Forbidden } from '@/pages/auth/Forbidden';
-import { NetworkError } from '@/pages/auth/NetworkError';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { ProductsList } from '@/pages/products/ProductsList';
-import { ProductDetails } from '@/pages/products/ProductDetails';
-import { InventoryDashboard } from '@/pages/inventory/InventoryDashboard';
-import { CycleCounts } from '@/pages/inventory/CycleCounts';
-import { WarehousesList } from '@/pages/warehouses/WarehousesList';
-import { WarehouseDetails } from '@/pages/warehouses/WarehouseDetails';
-import { SuppliersList } from '@/pages/suppliers/SuppliersList';
-import { SupplierDetails } from '@/pages/suppliers/SupplierDetails';
-import { CustomersList } from '@/pages/customers/CustomersList';
-import { CustomerDetails } from '@/pages/customers/CustomerDetails';
-import { Signup } from '@/pages/auth/Signup';
-import { VerifyEmail } from '@/pages/onboarding/VerifyEmail';
-import { CreateWorkspace } from '@/pages/onboarding/CreateWorkspace';
-import { WorkspaceIndustry } from '@/pages/onboarding/WorkspaceIndustry';
-import { WorkspaceInvite } from '@/pages/onboarding/WorkspaceInvite';
-import { SettingsLayout } from '@/pages/settings/SettingsLayout';
-import { WorkspaceSettings } from '@/pages/settings/WorkspaceSettings';
-import { TeamSettings } from '@/pages/settings/TeamSettings';
-import { SecuritySettings } from '@/pages/settings/SecuritySettings';
-import { ProfileSettings } from '@/pages/settings/ProfileSettings';
-import { BillingSettings } from '@/pages/settings/BillingSettings';
-import { AutomationSettings } from '@/pages/settings/AutomationSettings';
-import { IntegrationsSettings } from '@/pages/settings/IntegrationsSettings';
-import { InvitationAcceptance } from '@/pages/onboarding/InvitationAcceptance';
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuthStore } from "./lib/store/auth";
+import { useWorkspaceStore } from "./lib/store/workspace";
 
-// New business feature views
-import { PurchaseReturnList } from '@/pages/purchase-returns/PurchaseReturnList';
-import { PurchaseReturnForm } from '@/pages/purchase-returns/PurchaseReturnForm';
-import { PurchaseReturnDetails } from '@/pages/purchase-returns/PurchaseReturnDetails';
-import { SalesReturnList } from '@/pages/sales-returns/SalesReturnList';
-import { SalesReturnForm } from '@/pages/sales-returns/SalesReturnForm';
-import { SalesReturnDetails } from '@/pages/sales-returns/SalesReturnDetails';
-import { QuotationList } from '@/pages/quotations/QuotationList';
-import { QuotationForm } from '@/pages/quotations/QuotationForm';
-import { QuotationDetails } from '@/pages/quotations/QuotationDetails';
-import { ExpiringStock } from '@/pages/inventory/ExpiringStock';
-import { TaxRulesSettings } from '@/pages/settings/TaxRulesSettings';
-import { DemoSettings } from '@/pages/settings/DemoSettings';
-import { LandingPage } from '@/pages/public/LandingPage';
-import { HelpCenter } from '@/pages/help/HelpCenter';
-import { KeyboardShortcutsModal } from '@/components/ui/KeyboardShortcutsModal';
+// Public / Auth Pages
+import { LandingPage } from "./pages/LandingPage";
+import { Login } from "./pages/Login";
+import { Signup } from "./pages/Signup";
+import { ForgotPassword } from "./pages/ForgotPassword";
+import { ResetPassword } from "./pages/ResetPassword";
+import { VerifyEmail } from "./pages/VerifyEmail";
+import { Onboarding } from "./pages/Onboarding";
 
-
-import { useAuthStore } from '@/store/auth';
-
-function App() {
-  const { checkAuth } = useAuthStore();
-  const [isInitializing, setIsInitializing] = React.useState(true);
-
-  React.useEffect(() => {
-    checkAuth().finally(() => setIsInitializing(false));
-  }, [checkAuth]);
-
-  if (isInitializing) {
-    return (
-      <div id="app-loader" className="flex min-h-screen flex-col items-center justify-center bg-background gap-4">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-lg select-none">
-          SF
-        </div>
-        <div className="space-y-2 w-48">
-          <div className="h-2 w-full animate-pulse rounded-full bg-muted" />
-          <div className="h-2 w-3/4 animate-pulse rounded-full bg-muted" />
-          <div className="h-2 w-1/2 animate-pulse rounded-full bg-muted" />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ErrorBoundary>
-    <AppProviders>
-      <KeyboardShortcutsModal />
-      <BrowserRouter>
-        <Routes>
-          {/* Public / Auth Routes */}
-          <Route path="/" element={<LandingPage />} />
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            
-            {/* Onboarding Routes - In a real app these might have a specific ProtectedRoute variant */}
-            <Route path="/onboarding/verify-email" element={<VerifyEmail />} />
-            <Route path="/onboarding/workspace" element={<CreateWorkspace />} />
-            <Route path="/onboarding/industry" element={<WorkspaceIndustry />} />
-            <Route path="/onboarding/invite" element={<WorkspaceInvite />} />
-          </Route>
-
-          <Route element={<BlankLayout />}>
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="/forbidden" element={<Forbidden />} />
-            <Route path="/network-error" element={<NetworkError />} />
-          </Route>
-
-          {/* Development / Testing */}
-          <Route path="/design-system" element={<DesignSystemShowcase />} />
-
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/reports" element={<ReportsPage />} />
-              
-              {/* Product Management */}
-              <Route path="/products" element={<ProductsList />} />
-              <Route path="/products/:id" element={<ProductDetails />} />
-              
-              {/* Inventory Management */}
-              <Route path="/inventory" element={<InventoryDashboard />} />
-              <Route path="/inventory/cycle-counts" element={<CycleCounts />} />
-              <Route path="/inventory/expiring" element={<ExpiringStock />} />
-              <Route path="/warehouses" element={<WarehousesList />} />
-              <Route path="/warehouses/:id" element={<WarehouseDetails />} />
-
-              {/* CRM / Suppliers */}
-              <Route path="/suppliers" element={<SuppliersList />} />
-              <Route path="/suppliers/:id" element={<SupplierDetails />} />
-              <Route path="/customers" element={<CustomersList />} />
-              <Route path="/customers/:id" element={<CustomerDetails />} />
-
-              {/* Purchase Orders */}
-              <Route path="/purchase-orders" element={<PurchaseOrderList />} />
-              <Route path="/purchase-orders/new" element={<PurchaseOrderForm />} />
-              <Route path="/purchase-orders/:id" element={<PurchaseOrderDetails />} />
-              <Route path="/purchase-returns" element={<PurchaseReturnList />} />
-              <Route path="/purchase-returns/new" element={<PurchaseReturnForm />} />
-              <Route path="/purchase-returns/:id" element={<PurchaseReturnDetails />} />
-
-              {/* Sales Orders */}
-              <Route path="/sales-orders" element={<SalesOrderList />} />
-              <Route path="/sales-orders/new" element={<SalesOrderForm />} />
-              <Route path="/sales-orders/:id" element={<SalesOrderDetails />} />
-              <Route path="/sales-returns" element={<SalesReturnList />} />
-              <Route path="/sales-returns/new" element={<SalesReturnForm />} />
-              <Route path="/sales-returns/:id" element={<SalesReturnDetails />} />
-
-              {/* Quotations */}
-              <Route path="/quotations" element={<QuotationList />} />
-              <Route path="/quotations/new" element={<QuotationForm />} />
-              <Route path="/quotations/:id" element={<QuotationDetails />} />
-
-              {/* Finance */}
-              <Route path="/finance/invoices" element={<InvoicesList />} />
-              <Route path="/finance/invoices/:id" element={<InvoiceDetails />} />
-              <Route path="/finance/bills" element={<BillsList />} />
-              <Route path="/finance/bills/:id" element={<BillDetails />} />
-              {/* Help Center */}
-              <Route path="/help" element={<HelpCenter />} />
-
-              {/* Settings */}
-              <Route path="/settings" element={<SettingsLayout />}>
-                <Route index element={<Navigate to="/settings/workspace" replace />} />
-                <Route path="workspace" element={<WorkspaceSettings />} />
-                <Route path="team" element={<TeamSettings />} />
-                <Route path="security" element={<SecuritySettings />} />
-                <Route path="profile" element={<ProfileSettings />} />
-                <Route path="billing" element={<BillingSettings />} />
-                <Route path="automation" element={<AutomationSettings />} />
-                <Route path="integrations" element={<IntegrationsSettings />} />
-                <Route path="tax-rules" element={<TaxRulesSettings />} />
-                <Route path="demo" element={<DemoSettings />} />
-              </Route>
-            </Route>
-          </Route>
-
-          {/* Invitation Acceptance (Public/Protected hybrid) */}
-          <Route path="/invite/:token" element={<InvitationAcceptance />} />
-
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/unauthorized" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AppProviders>
-    </ErrorBoundary>
-  );
+function AuthRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
 }
 
-export default App;
+import { AppShell } from "./components/layout/AppShell";
+import { Dashboard } from "./pages/Dashboard";
+import { Products } from "./pages/Products";
+import { Inventory } from "./pages/Inventory";
+import { Warehouses } from "./pages/Warehouses";
+import { Customers } from "./pages/Customers";
+import { Suppliers } from "./pages/Suppliers";
+import { PurchaseOrders } from "./pages/PurchaseOrders";
+import { SalesOrders } from "./pages/SalesOrders";
+import { Finance } from "./pages/Finance";
+import { Reports } from "./pages/Reports";
+import { Settings } from "./pages/Settings";
+import { useThemeStore } from "./lib/store/theme";
+import { useEffect } from "react";
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!activeWorkspace) return <Navigate to="/onboarding" replace />;
+
+  return <AppShell>{children}</AppShell>;
+}
+
+export default function App() {
+  const isDark = useThemeStore((s) => s.isDark);
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
+      <Route path="/signup" element={<AuthRoute><Signup /></AuthRoute>} />
+      <Route path="/forgot-password" element={<AuthRoute><ForgotPassword /></AuthRoute>} />
+      <Route path="/reset-password" element={<AuthRoute><ResetPassword /></AuthRoute>} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/onboarding" element={<Onboarding />} />
+      
+      {/* Protected Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
+      <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
+      <Route path="/warehouses" element={<ProtectedRoute><Warehouses /></ProtectedRoute>} />
+      <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+      <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
+      <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
+      <Route path="/sales-orders" element={<ProtectedRoute><SalesOrders /></ProtectedRoute>} />
+      <Route path="/finance" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
+      <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="*" element={<div className="flex h-screen items-center justify-center text-gray-500 font-medium">App modules are being rebuilt...</div>} />
+    </Routes>
+  );
+}

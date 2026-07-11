@@ -28,6 +28,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
 
     // Workspace Context
     const orgId = req.headers['x-organization-id'] as string;
+    console.log('Middleware received orgId:', orgId, 'for userId:', decoded.id);
     if (orgId) {
       const membership = await prisma.organizationMember.findUnique({
         where: {
@@ -37,6 +38,7 @@ export const authenticate = async (req: Request, _res: Response, next: NextFunct
           }
         }
       });
+      console.log('Membership found:', membership?.id, membership?.status);
 
       if (membership && membership.status === 'ACTIVE') {
         req.workspace = {

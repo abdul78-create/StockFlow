@@ -1,49 +1,49 @@
-import axios from 'axios';
-import { useWorkspaceStore } from '../store/workspace';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-
-export const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true, // Important for cookies/sessions
+const api = axios.create({
+  baseURL: "/api/v1",
+  withCredentials: true, // required for HTTP-only cookies
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
-// Interceptor to inject workspace ID
+// Request Interceptor: Inject Workspace ID from localStorage
 api.interceptors.request.use((config) => {
-  try {
-    // Primary: read directly from in-memory Zustand store (no localStorage race condition)
-    const activeWorkspaceId = useWorkspaceStore.getState().activeWorkspaceId;
+  if (typeof window !== "undefined") {
+    const activeWorkspaceId = localStorage.getItem("activeWorkspaceId");
     if (activeWorkspaceId) {
-      config.headers['x-organization-id'] = activeWorkspaceId;
-    } else {
-      // Fallback: read from persisted localStorage in case store isn't hydrated yet
-      const workspaceData = localStorage.getItem('stockflow-workspace');
-      if (workspaceData) {
-        const { state } = JSON.parse(workspaceData);
-        if (state?.activeWorkspaceId) {
-          config.headers['x-organization-id'] = state.activeWorkspaceId;
-        }
-      }
+      config.headers["x-organization-id"] = activeWorkspaceId;
     }
-  } catch (e) {
-    // ignore
   }
   return config;
 });
 
-// Interceptor to handle global API errors
+// Response Interceptor: Handle Token Refresh on 401
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      const publicPaths = ['/', '/login', '/signup', '/forgot-password'];
-      if (!publicPaths.includes(window.location.pathname)) {
-        window.location.href = '/login';
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Trigger token refresh if 401 is encountered and we haven't retried yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        await axios.post("/api/v1/auth/refresh", {}, { withCredentials: true });
+        return api(originalRequest);
+      } catch (refreshError) {
+        // Clear state and redirect to login if refresh fails
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("activeWorkspaceId");
+          localStorage.removeItem("auth-storage");
+          window.location.href = "/login";
+        }
+        return Promise.reject(refreshError);
       }
     }
+
     return Promise.reject(error);
   }
 );
+
+export default api;
