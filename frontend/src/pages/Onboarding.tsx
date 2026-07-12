@@ -6,6 +6,7 @@ import { Input } from "../components/ui/Input";
 import { useAuthStore } from "../lib/store/auth";
 import { useWorkspaceStore } from "../lib/store/workspace";
 import api from "../lib/api";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 
 export function Onboarding() {
   const navigate = useNavigate();
@@ -78,13 +79,16 @@ export function Onboarding() {
             <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Welcome to StockFlow</h1>
             <p className="text-sm text-gray-500 mt-2">Let's set up your workspace to get started.</p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors mt-2"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign Out
-          </button>
+          <div className="flex items-center gap-4 mt-2">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          </div>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">

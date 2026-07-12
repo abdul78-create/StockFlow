@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import api from "../lib/api";
 
 export function ResetPassword() {
@@ -46,8 +47,11 @@ export function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 relative">
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-10 h-10 bg-gray-900 rounded-md flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-sm tracking-tighter">SF</span>

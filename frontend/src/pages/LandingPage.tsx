@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Package,
@@ -156,6 +157,7 @@ export function LandingPage() {
           <span className="text-lg font-bold tracking-tight text-gray-900">StockFlow</span>
         </div>
         <div className="flex items-center gap-6">
+          <ThemeToggle />
           <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
             Sign In
           </Link>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package, ShoppingCart, Users, Truck, LogOut, Settings, Factory, DollarSign, FileText, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../lib/store/auth";
 import { useWorkspaceStore } from "../../lib/store/workspace";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import api from "../../lib/api";
 
 const NAVIGATION = [
@@ -93,9 +94,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="text-xs text-gray-500 truncate max-w-[100px]">{user?.email}</p>
               </div>
             </div>
-            <button onClick={handleLogout} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-md hover:bg-gray-100" title="Log out">
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <button onClick={handleLogout} className="p-1.5 text-gray-400 hover:text-gray-900 rounded-md hover:bg-gray-100" title="Log out">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -105,7 +109,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Mobile Header */}
         <header className="h-16 flex items-center justify-between px-4 border-b border-gray-200 bg-white md:hidden">
           <span className="font-semibold text-gray-900">StockFlow</span>
-          <button onClick={handleLogout} className="text-sm font-medium text-gray-600">Logout</button>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <button onClick={handleLogout} className="text-sm font-medium text-gray-600">Logout</button>
+          </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">

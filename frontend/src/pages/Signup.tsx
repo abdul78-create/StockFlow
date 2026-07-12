@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuthStore } from "../lib/store/auth";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import api from "../lib/api";
 
 export function Signup() {
@@ -33,7 +34,10 @@ export function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 relative">
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="w-10 h-10 bg-gray-900 rounded-md flex items-center justify-center mx-auto mb-4">

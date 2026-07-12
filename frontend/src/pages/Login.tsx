@@ -15,6 +15,7 @@ import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { useAuthStore } from "../lib/store/auth";
 import { useWorkspaceStore } from "../lib/store/workspace";
+import { ThemeToggle } from "../components/ui/ThemeToggle";
 import api from "../lib/api";
 
 const FEATURES = [
@@ -119,6 +120,10 @@ export function Login() {
 
       {/* ─── RIGHT PANEL — Form ─── */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white relative">
+        <div className="absolute top-6 right-6">
+          <ThemeToggle />
+        </div>
+        
         <div className="lg:hidden flex items-center gap-2 mb-12">
           <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center">
             <span className="text-white font-bold text-xs tracking-tighter">SF</span>
