@@ -4,30 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Package,
   BarChart3,
-  Truck,
   ShoppingCart,
-  Users,
   Shield,
-  Zap,
   Globe,
   ArrowRight,
-  Factory,
   CheckCircle2,
   ChevronDown,
   Star,
-  Activity,
-  Boxes
+  Activity
 } from "lucide-react";
 
 // --- ANIMATION VARIANTS ---
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  show: (delay = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] } }),
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  show: (delay = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.5, delay, ease: [0.16, 1, 0.3, 1] as const } }),
 };
 
 // --- DATA ---
