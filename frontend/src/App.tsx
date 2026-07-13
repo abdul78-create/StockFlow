@@ -52,6 +52,7 @@ export default function App() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
+  const setWorkspaces = useWorkspaceStore((s) => s.setWorkspaces);
   const [isVerifying, setIsVerifying] = useState(true);
 
   useEffect(() => {
@@ -73,20 +74,28 @@ export default function App() {
 
         const activeWorkspaceId = localStorage.getItem("activeWorkspaceId");
         if (organizations.length > 0) {
+          const formattedWorkspaces = organizations.map((o: any) => ({
+            id: o.id,
+            name: o.name,
+          }));
+          setWorkspaces(formattedWorkspaces);
+
           const active = organizations.find((o: any) => o.id === activeWorkspaceId) || organizations[0];
           setActiveWorkspace({ id: active.id, name: active.name });
         } else {
+          setWorkspaces([]);
           setActiveWorkspace(null);
         }
       } catch (err) {
         clearAuth();
         setActiveWorkspace(null);
+        setWorkspaces([]);
       } finally {
         setIsVerifying(false);
       }
     };
     verifySession();
-  }, [setAuth, clearAuth, setActiveWorkspace]);
+  }, [setAuth, clearAuth, setActiveWorkspace, setWorkspaces]);
 
   if (isVerifying) {
     return (
