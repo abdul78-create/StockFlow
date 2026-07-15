@@ -35,7 +35,8 @@ api.interceptors.response.use(
         // Clear state and redirect to login if refresh fails
         if (typeof window !== "undefined") {
           localStorage.removeItem("activeWorkspaceId");
-          if (window.location.pathname !== "/login" && window.location.pathname !== "/signup") {
+          const publicPaths = ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/verify-email"];
+          if (!publicPaths.includes(window.location.pathname)) {
             window.location.href = "/login";
           }
         }
