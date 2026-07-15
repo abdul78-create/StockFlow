@@ -35,7 +35,9 @@ api.interceptors.response.use(
         // Clear state and redirect to login if refresh fails
         if (typeof window !== "undefined") {
           localStorage.removeItem("activeWorkspaceId");
-          window.location.href = "/login";
+          if (window.location.pathname !== "/login" && window.location.pathname !== "/signup") {
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(refreshError);
       }

@@ -35,6 +35,73 @@ const router = Router();
  *                   type: string
  *                   example: 1.0.0
  */
+function formatUptime(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  
+  const parts = [];
+  if (h > 0) parts.push(`${h}h`);
+  if (m > 0) parts.push(`${m}m`);
+  parts.push(`${s}s`);
+  return parts.join(' ');
+}
+
+/**
+ * @openapi
+ * /:
+ *   get:
+ *     summary: Retrieve professional API root info
+ *     description: Returns server version, database/redis connection status, and links.
+ *     responses:
+ *       200:
+ *         description: Server is healthy and running.
+ */
+router.get('/', async (_req: Request, res: Response) => {
+  let dbStatus = 'disconnected';
+  try {
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Database timeout')), 1500)),
+    ]);
+    dbStatus = 'connected';
+  } catch (error) {
+    logger.warn({ error }, 'Root check: Database unreachable');
+  }
+
+  let redisStatus = 'disconnected';
+  try {
+    const cachePing = await cacheService.ping();
+    redisStatus = cachePing ? 'connected' : 'disconnected';
+  } catch (error) {
+    logger.warn({ error }, 'Root check: Redis unreachable');
+  }
+
+  const isHealthy = dbStatus === 'connected' && redisStatus === 'connected';
+
+  res.status(isHealthy ? 200 : 500).json({
+    application: 'StockFlow ERP API',
+    version: '1.0.0',
+    status: isHealthy ? 'healthy' : 'unhealthy',
+    database: dbStatus,
+    redis: redisStatus,
+    environment: config.NODE_ENV || 'development',
+    timestamp: new Date().toISOString(),
+    documentation: '/api-docs',
+    health: '/health',
+  });
+});
+
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: Retrieve system liveness status
+ *     description: Active verification check of Express, PostgreSQL, and Redis connections.
+ *     responses:
+ *       200:
+ *         description: Service is healthy.
+ */
 router.get('/health', async (_req: Request, res: Response) => {
   let dbStatus = 'disconnected';
   try {
@@ -47,12 +114,21 @@ router.get('/health', async (_req: Request, res: Response) => {
     logger.warn({ error }, 'Health check: Database unreachable');
   }
 
-  res.status(200).json({
-    status: 'ok',
+  let redisStatus = 'disconnected';
+  try {
+    const cachePing = await cacheService.ping();
+    redisStatus = cachePing ? 'connected' : 'disconnected';
+  } catch (error) {
+    logger.warn({ error }, 'Health check: Redis unreachable');
+  }
+
+  const isHealthy = dbStatus === 'connected' && redisStatus === 'connected';
+
+  res.status(isHealthy ? 200 : 500).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
     database: dbStatus,
-    uptime: Math.round(process.uptime()),
-    version: '1.0.0',
-    env: config.NODE_ENV,
+    redis: redisStatus,
+    uptime: formatUptime(process.uptime()),
     timestamp: new Date().toISOString(),
   });
 });

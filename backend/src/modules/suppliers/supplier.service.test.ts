@@ -37,6 +37,8 @@ describe('SupplierService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
+        gst: null,
+        paymentTerms: null,
       };
 
       mockRepository.create.mockResolvedValue(mockResponse);
@@ -60,6 +62,8 @@ describe('SupplierService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
+        gst: null,
+        paymentTerms: null,
       };
 
       mockRepository.findById.mockResolvedValue(mockResponse);

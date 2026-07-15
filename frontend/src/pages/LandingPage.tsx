@@ -52,7 +52,7 @@ const BENTO_FEATURES = [
 const PRICING = [
   {
     name: "Starter",
-    price: "$0",
+    price: "₹0",
     period: "forever",
     desc: "Perfect for small businesses getting started.",
     features: ["Up to 1,000 SKUs", "2 Warehouses", "Basic Reporting", "Community Support"],
@@ -60,7 +60,7 @@ const PRICING = [
   },
   {
     name: "Pro",
-    price: "$49",
+    price: "₹2,999",
     period: "per user / mo",
     desc: "For growing teams needing advanced workflows.",
     features: ["Unlimited SKUs", "Unlimited Warehouses", "Advanced Analytics", "Priority Support", "Role-based Access"],
@@ -78,18 +78,18 @@ const PRICING = [
 
 const TESTIMONIALS = [
   {
-    name: "Sarah Jenkins",
-    role: "Head of Operations, TechCorp",
+    name: "Priya Sharma",
+    role: "Head of Operations, Reliance Industries",
     content: "StockFlow replaced 3 different legacy systems for us. The speed and design are unmatched.",
   },
   {
-    name: "David Chen",
-    role: "Founder, Peak Supply",
+    name: "Arjun Mehta",
+    role: "Founder, Peak Supply Co.",
     content: "Finally, an inventory tool that doesn't look like it was built in 1995. It's a joy to use daily.",
   },
   {
-    name: "Elena Rodriguez",
-    role: "Supply Chain Manager, GlobalNet",
+    name: "Kavya Nair",
+    role: "Supply Chain Manager, Tata Enterprises",
     content: "The multi-warehouse synchronization is flawless. It saved us hundreds of hours of manual entry.",
   },
 ];

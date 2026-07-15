@@ -14,7 +14,10 @@ const NAVIGATION = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Suppliers", href: "/suppliers", icon: Truck },
   { name: "Purchase Orders", href: "/purchase-orders", icon: ShoppingCart },
+  { name: "Purchase Returns", href: "/purchase-returns", icon: Truck },
+  { name: "Quotations", href: "/quotations", icon: FileText },
   { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+  { name: "Sales Returns", href: "/sales-returns", icon: Truck },
   { name: "Finance", href: "/finance", icon: DollarSign },
   { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
@@ -51,7 +54,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
-    } catch (e) {
+    } catch {
       // ignore
     } finally {
       clearAuth();

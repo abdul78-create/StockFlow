@@ -1,7 +1,7 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { cn } from "./Button";
+import { cn } from "../../lib/utils";
 
 export function Drawer({ open, onOpenChange, children }: { open?: boolean; onOpenChange?: (open: boolean) => void; children: React.ReactNode }) {
   return (
@@ -49,5 +49,10 @@ export function DrawerContent({
   );
 }
 
-export const DrawerTrigger = Dialog.Trigger;
-export const DrawerClose = Dialog.Close;
+export function DrawerTrigger({ children, ...props }: Dialog.DialogTriggerProps & React.RefAttributes<HTMLButtonElement>) {
+  return <Dialog.Trigger {...props}>{children}</Dialog.Trigger>;
+}
+
+export function DrawerClose({ children, ...props }: Dialog.DialogCloseProps & React.RefAttributes<HTMLButtonElement>) {
+  return <Dialog.Close {...props}>{children}</Dialog.Close>;
+}

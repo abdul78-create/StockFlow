@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { Factory, Plus, Search, X, MapPin, Pencil, Trash2, RefreshCw } from "lucide-react";
+import { Factory, Plus, Search, X, MapPin, Pencil, Trash2, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -26,6 +26,9 @@ export function Warehouses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(null);
@@ -117,6 +120,9 @@ export function Warehouses() {
     (w.address || "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -140,11 +146,14 @@ export function Warehouses() {
                 placeholder="Search warehouses…"
                 icon={<Search className="w-4 h-4" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             {search && (
-              <Button variant="ghost" size="sm" onClick={() => setSearch("")}>
+              <Button variant="ghost" size="sm" onClick={() => { setSearch(""); setCurrentPage(1); }}>
                 <X className="w-3.5 h-3.5" /> Clear
               </Button>
             )}
@@ -196,7 +205,7 @@ export function Warehouses() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((w) => (
+                    {paginated.map((w) => (
                       <motion.tr
                         key={w.id}
                         initial={{ opacity: 0 }}
@@ -248,6 +257,38 @@ export function Warehouses() {
               </Table>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

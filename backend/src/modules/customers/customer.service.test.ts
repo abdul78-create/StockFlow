@@ -33,6 +33,7 @@ describe('CustomerService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
+        creditLimit: null,
       };
 
       mockRepository.create.mockResolvedValue(mockResponse);
@@ -66,6 +67,7 @@ describe('CustomerService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
+        creditLimit: null,
       };
 
       mockRepository.findById.mockResolvedValue(mockResponse);

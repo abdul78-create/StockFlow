@@ -13,6 +13,8 @@ import {
   Trash2,
   RefreshCw,
   Building,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -31,6 +33,7 @@ interface Customer {
   phone: string | null;
   gst: string | null;
   address: string | null;
+  creditLimit: number | null;
   createdAt: string;
 }
 
@@ -40,6 +43,7 @@ const INITIAL_FORM = {
   phone: "",
   gst: "",
   address: "",
+  creditLimit: "",
 };
 
 export function Customers() {
@@ -47,6 +51,9 @@ export function Customers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -87,6 +94,7 @@ export function Customers() {
       phone: c.phone || "",
       gst: c.gst || "",
       address: c.address || "",
+      creditLimit: c.creditLimit !== null && c.creditLimit !== undefined ? String(c.creditLimit) : "",
     });
     setFormErrors({});
     setDrawerOpen(true);
@@ -111,6 +119,7 @@ export function Customers() {
         phone: form.phone.trim() || undefined,
         gst: form.gst.trim() || undefined,
         address: form.address.trim() || undefined,
+        creditLimit: form.creditLimit.trim() !== "" ? Number(form.creditLimit) : null,
       };
       
       if (editingCustomer) {
@@ -151,6 +160,9 @@ export function Customers() {
     (c.gst || "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="flex flex-col h-full font-sans selection:bg-gray-900 selection:text-white">
       {/* Header */}
@@ -174,12 +186,15 @@ export function Customers() {
                 placeholder="Search by name, email, phone, or Tax ID…"
                 icon={<Search className="w-4 h-4 text-gray-400" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="bg-white shadow-sm h-9 text-sm border-gray-200 focus:border-gray-300 focus:ring-0"
               />
               {search && (
                 <button 
-                  onClick={() => setSearch("")} 
+                  onClick={() => { setSearch(""); setCurrentPage(1); }} 
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -236,13 +251,14 @@ export function Customers() {
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tax ID (GST/VAT)</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Credit Limit</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right pr-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((c) => (
+                    {paginated.map((c) => (
                       <motion.tr
                         key={c.id}
                         initial={{ opacity: 0 }}
@@ -286,6 +302,11 @@ export function Customers() {
                             <span className="text-sm text-gray-400">—</span>
                           )}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <span className="text-sm font-semibold text-gray-900 font-mono">
+                            {c.creditLimit !== null && c.creditLimit !== undefined ? `₹${Number(c.creditLimit).toLocaleString("en-IN")}` : "—"}
+                          </span>
+                        </TableCell>
                         <TableCell>
                           {c.address ? (
                             <div className="flex items-start gap-2 text-sm text-gray-600 font-medium max-w-[200px]">
@@ -318,6 +339,38 @@ export function Customers() {
               </Table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> customers
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 h-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 h-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -382,6 +435,16 @@ export function Customers() {
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                 placeholder="Full address"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold text-gray-900">Credit Limit (₹)</label>
+              <Input
+                type="number"
+                value={form.creditLimit}
+                onChange={(e) => setForm((f) => ({ ...f, creditLimit: e.target.value }))}
+                placeholder="Credit Limit amount in ₹"
               />
             </div>
 

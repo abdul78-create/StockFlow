@@ -52,6 +52,7 @@ export class CustomerRepository {
         phone: input.phone || null,
         gst: input.gst || null,
         address: input.address || null,
+        creditLimit: input.creditLimit !== undefined ? input.creditLimit : null,
         organizationId,
       },
     });
@@ -69,6 +70,7 @@ export class CustomerRepository {
         phone: input.phone === '' ? null : input.phone,
         gst: input.gst === '' ? null : input.gst,
         address: input.address === '' ? null : input.address,
+        creditLimit: input.creditLimit === undefined ? undefined : (input.creditLimit === null ? null : input.creditLimit),
       },
     });
   }

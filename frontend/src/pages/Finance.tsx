@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -6,7 +6,9 @@ import {
   X,
   RefreshCw,
   FileText,
-  CreditCard
+  CreditCard,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -43,6 +45,9 @@ export function Finance() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FinanceItem | null>(null);
@@ -119,6 +124,9 @@ export function Finance() {
     d.entityName?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="flex flex-col h-full font-sans selection:bg-gray-900 selection:text-white">
       <div className="px-6 md:px-10 pt-8 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -132,13 +140,13 @@ export function Finance() {
         {/* Tabs */}
         <div className="flex items-center gap-6 mb-6 border-b border-gray-200">
           <button 
-            onClick={() => setActiveTab('INVOICES')}
+            onClick={() => { setActiveTab('INVOICES'); setCurrentPage(1); }}
             className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'INVOICES' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Invoices (AR)
           </button>
           <button 
-            onClick={() => setActiveTab('BILLS')}
+            onClick={() => { setActiveTab('BILLS'); setCurrentPage(1); }}
             className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${activeTab === 'BILLS' ? 'border-gray-900 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
           >
             Bills (AP)
@@ -152,11 +160,14 @@ export function Finance() {
                 placeholder="Search by number or name…"
                 icon={<Search className="w-4 h-4 text-gray-400" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="bg-white shadow-sm h-9 text-sm border-gray-200 focus:border-gray-300 focus:ring-0"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm">
+                <button onClick={() => { setSearch(""); setCurrentPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -199,7 +210,7 @@ export function Finance() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((item) => {
+                    {paginated.map((item) => {
                       const balance = item.totalAmount - item.paidAmount;
                       return (
                         <motion.tr
@@ -242,6 +253,38 @@ export function Finance() {
               </Table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> records
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 h-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 h-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -252,7 +295,7 @@ export function Finance() {
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-gray-900">Amount</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">$</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">₹</span>
                 <Input 
                   required 
                   type="number" 
@@ -264,7 +307,7 @@ export function Finance() {
                   className="pl-7"
                 />
               </div>
-              <p className="text-xs text-gray-500">Balance remaining: ${selectedItem ? (selectedItem.totalAmount - selectedItem.paidAmount).toFixed(2) : '0.00'}</p>
+              <p className="text-xs text-gray-500">Balance remaining: ₹{selectedItem ? (selectedItem.totalAmount - selectedItem.paidAmount).toFixed(2) : '0.00'}</p>
             </div>
             
             <div className="space-y-1.5">

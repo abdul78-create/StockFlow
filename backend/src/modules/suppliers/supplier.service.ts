@@ -15,6 +15,8 @@ export class SupplierService {
     email?: string;
     phone?: string;
     address?: string;
+    gst?: string;
+    paymentTerms?: string;
     organizationId: string;
   }) {
     logger.info({ organizationId: data.organizationId }, 'Creating new supplier');
@@ -88,6 +90,8 @@ export class SupplierService {
       email?: string;
       phone?: string;
       address?: string;
+      gst?: string;
+      paymentTerms?: string;
     },
   ) {
     logger.info({ supplierId: id }, 'Updating supplier');

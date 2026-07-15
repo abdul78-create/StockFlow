@@ -12,6 +12,8 @@ import {
   Pencil,
   Trash2,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -29,6 +31,8 @@ interface Supplier {
   email: string | null;
   phone: string | null;
   address: string | null;
+  gst: string | null;
+  paymentTerms: string | null;
   createdAt: string;
 }
 
@@ -37,6 +41,8 @@ const INITIAL_FORM = {
   email: "",
   phone: "",
   address: "",
+  gst: "",
+  paymentTerms: "",
 };
 
 export function Suppliers() {
@@ -44,6 +50,9 @@ export function Suppliers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -83,6 +92,8 @@ export function Suppliers() {
       email: s.email || "",
       phone: s.phone || "",
       address: s.address || "",
+      gst: s.gst || "",
+      paymentTerms: s.paymentTerms || "",
     });
     setFormErrors({});
     setDrawerOpen(true);
@@ -106,6 +117,8 @@ export function Suppliers() {
         email: form.email.trim() || undefined,
         phone: form.phone.trim() || undefined,
         address: form.address.trim() || undefined,
+        gst: form.gst.trim() || undefined,
+        paymentTerms: form.paymentTerms.trim() || undefined,
       };
       
       if (editingSupplier) {
@@ -145,6 +158,9 @@ export function Suppliers() {
     (s.phone || "").toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="flex flex-col h-full font-sans selection:bg-gray-900 selection:text-white">
       {/* Header */}
@@ -168,12 +184,15 @@ export function Suppliers() {
                 placeholder="Search by company name, email, or phone…"
                 icon={<Search className="w-4 h-4 text-gray-400" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="bg-white shadow-sm h-9 text-sm border-gray-200 focus:border-gray-300 focus:ring-0"
               />
               {search && (
                 <button 
-                  onClick={() => setSearch("")} 
+                  onClick={() => { setSearch(""); setCurrentPage(1); }} 
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -229,13 +248,15 @@ export function Suppliers() {
                   <TableRow className="border-b border-gray-100">
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Supplier</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact Info</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">GSTIN</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Payment Terms</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Address</TableHead>
                     <TableHead className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right pr-6">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((s) => (
+                    {paginated.map((s) => (
                       <motion.tr
                         key={s.id}
                         initial={{ opacity: 0 }}
@@ -270,6 +291,12 @@ export function Suppliers() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <span className="text-sm font-medium text-gray-600 font-mono">{s.gst || "—"}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium text-gray-600">{s.paymentTerms || "—"}</span>
+                        </TableCell>
+                        <TableCell>
                           {s.address ? (
                             <div className="flex items-start gap-2 text-sm text-gray-600 font-medium max-w-[250px]">
                               <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
@@ -301,6 +328,38 @@ export function Suppliers() {
               </Table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> suppliers
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 h-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 h-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -357,6 +416,26 @@ export function Suppliers() {
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                 placeholder="Full address"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-gray-900">GSTIN</label>
+                <Input
+                  value={form.gst}
+                  onChange={(e) => setForm((f) => ({ ...f, gst: e.target.value }))}
+                  placeholder="36AAAAA1234A1Z1"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-sm font-semibold text-gray-900">Payment Terms</label>
+                <Input
+                  value={form.paymentTerms}
+                  onChange={(e) => setForm((f) => ({ ...f, paymentTerms: e.target.value }))}
+                  placeholder="Net 30"
+                />
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">

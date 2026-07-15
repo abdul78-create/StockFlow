@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AuthService } from './modules/auth/auth.service';
 import { DemoSeedService } from './modules/system/demo.service';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 const authService = new AuthService();
@@ -8,7 +9,7 @@ const demoService = new DemoSeedService();
 
 async function main() {
   const email = 'viva@stockflow.com';
-  const password = 'password123';
+  const password = 'Password123';
 
   console.log('Seeding Viva Presentation Data...');
 
@@ -25,6 +26,13 @@ async function main() {
     console.log('Created user:', email);
   } else {
     console.log('User already exists:', email);
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash, firstName: 'Viva', lastName: 'Examiner' },
+    });
+    console.log('Updated user password to ' + password);
   }
 
   // 2. Create Organization

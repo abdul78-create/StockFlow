@@ -9,6 +9,8 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -30,8 +32,17 @@ interface Product {
   sellingPrice: number;
   baseUnit: string;
   minimumStock: number;
+  maximumStock: number;
+  reorderLevel: number;
+  brand: string | null;
+  barcode: string | null;
+  description: string | null;
+  taxRate: number;
+  imageUrl: string | null;
   categoryId: string;
   category?: { id: string; name: string };
+  supplierId: string | null;
+  supplier?: { id: string; companyName: string };
   createdAt: string;
 }
 
@@ -64,7 +75,13 @@ const INITIAL_FORM = {
   sellingPrice: "",
   minimumStock: "0",
   maximumStock: "100",
+  reorderLevel: "0",
+  brand: "",
+  barcode: "",
+  imageUrl: "",
+  supplierId: "",
   baseUnit: "pcs",
+  taxRate: "18",
   categoryId: "",
   status: "ACTIVE" as "ACTIVE" | "DRAFT" | "ARCHIVED",
 };
@@ -72,11 +89,16 @@ const INITIAL_FORM = {
 export function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [suppliers, setSuppliers] = useState<{ id: string; companyName: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "name", dir: "asc" });
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Drawer state
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -93,12 +115,14 @@ export function Products() {
     try {
       setLoading(true);
       setError("");
-      const [productRes, catRes] = await Promise.all([
+      const [productRes, catRes, supplierRes] = await Promise.all([
         api.get("/products"),
         api.get("/categories"),
+        api.get("/suppliers"),
       ]);
       setProducts(productRes.data.data?.products || []);
       setCategories(catRes.data.data || []);
+      setSuppliers(supplierRes.data.data?.suppliers || supplierRes.data.data || []);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load products");
     } finally {
@@ -122,12 +146,18 @@ export function Products() {
     setForm({
       name: p.name,
       sku: p.sku,
-      description: "",
+      description: p.description || "",
       costPrice: String(p.costPrice),
       sellingPrice: String(p.sellingPrice),
       minimumStock: String(p.minimumStock),
-      maximumStock: "100",
+      maximumStock: String(p.maximumStock || 100),
+      reorderLevel: String(p.reorderLevel || 0),
+      brand: p.brand || "",
+      barcode: p.barcode || "",
+      imageUrl: p.imageUrl || "",
+      supplierId: p.supplierId || "",
       baseUnit: p.baseUnit,
+      taxRate: String(p.taxRate || 18),
       categoryId: p.categoryId,
       status: p.status,
     });
@@ -161,7 +191,13 @@ export function Products() {
         sellingPrice: Number(form.sellingPrice),
         minimumStock: Number(form.minimumStock),
         maximumStock: Number(form.maximumStock),
+        reorderLevel: Number(form.reorderLevel),
+        brand: form.brand.trim() || undefined,
+        barcode: form.barcode.trim() || undefined,
+        imageUrl: form.imageUrl.trim() || undefined,
+        supplierId: form.supplierId || undefined,
         baseUnit: form.baseUnit.trim() || "pcs",
+        taxRate: Number(form.taxRate),
         categoryId: form.categoryId,
         status: form.status,
       };
@@ -219,6 +255,9 @@ export function Products() {
       return String(a[sort.key]).localeCompare(String(b[sort.key])) * dir;
     });
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   const field = (
     key: keyof typeof form,
     label: string,
@@ -262,12 +301,18 @@ export function Products() {
                 placeholder="Search by name or SKU…"
                 icon={<Search className="w-4 h-4" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="input-base h-9 w-full sm:w-auto text-sm"
             >
               <option value="">All Statuses</option>
@@ -279,7 +324,11 @@ export function Products() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSearch(""); setStatusFilter(""); }}
+                onClick={() => { 
+                  setSearch(""); 
+                  setStatusFilter(""); 
+                  setCurrentPage(1);
+                }}
               >
                 <X className="w-3.5 h-3.5" />
                 Clear
@@ -341,7 +390,7 @@ export function Products() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((p) => {
+                    {paginated.map((p) => {
                       const s = STATUS_LABELS[p.status];
                       return (
                         <motion.tr
@@ -394,6 +443,38 @@ export function Products() {
               </Table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -407,30 +488,44 @@ export function Products() {
         >
           <form onSubmit={handleSubmit} className="space-y-5 pt-4" noValidate>
             <div className="grid grid-cols-2 gap-4">
-              {field("name", "Product Name", { required: true, placeholder: "e.g. Blue T-Shirt" })}
-              {field("sku", "SKU", { required: true, placeholder: "e.g. BLU-TSHIRT-M" })}
+              {field("name", "Product Name", { required: true, placeholder: "e.g. Basmati Rice 5kg" })}
+              {field("sku", "SKU", { required: true, placeholder: "e.g. GR-RICE-025" })}
             </div>
 
-            {/* Category */}
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
-                Category <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={form.categoryId}
-                onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
-                className={`input-base h-9 text-sm ${formErrors.categoryId ? "border-red-400" : ""}`}
-                required
-              >
-                <option value="">Select a category…</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-              {formErrors.categoryId && <p className="text-xs text-red-600">{formErrors.categoryId}</p>}
-              {categories.length === 0 && (
-                <p className="text-xs text-amber-600">No categories found. Create a category first.</p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Category */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">
+                  Category <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => setForm((f) => ({ ...f, categoryId: e.target.value }))}
+                  className={`input-base h-9 text-sm ${formErrors.categoryId ? "border-red-400" : ""}`}
+                  required
+                >
+                  <option value="">Select a category…</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                {formErrors.categoryId && <p className="text-xs text-red-600">{formErrors.categoryId}</p>}
+              </div>
+
+              {/* Supplier */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Supplier</label>
+                <select
+                  value={form.supplierId}
+                  onChange={(e) => setForm((f) => ({ ...f, supplierId: e.target.value }))}
+                  className="input-base h-9 text-sm"
+                >
+                  <option value="">Select a supplier…</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>{s.companyName}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -439,22 +534,47 @@ export function Products() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              {field("minimumStock", "Min. Stock", { type: "number", min: "0", step: "1" })}
-              {field("baseUnit", "Unit", { placeholder: "pcs, kg, liter…" })}
+              {field("taxRate", "GST (%)", { type: "number", min: "0", max: "100", step: "0.1", placeholder: "18" })}
+              {field("brand", "Brand", { placeholder: "e.g. Tata, Amul, India Gate" })}
             </div>
 
-            {/* Status */}
+            <div className="grid grid-cols-3 gap-4">
+              {field("minimumStock", "Min. Stock", { type: "number", min: "0", step: "1" })}
+              {field("maximumStock", "Max. Stock", { type: "number", min: "0", step: "1" })}
+              {field("reorderLevel", "Reorder Level", { type: "number", min: "0", step: "1" })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {field("barcode", "Barcode", { placeholder: "EAN / UPC code" })}
+              {field("baseUnit", "Unit", { placeholder: "pcs, kg, L, pack…" })}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {field("imageUrl", "Image URL", { placeholder: "https://images..." })}
+              
+              {/* Status */}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as typeof form.status }))}
+                  className="input-base h-9 text-sm"
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+              </div>
+            </div>
+
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">Status</label>
-              <select
-                value={form.status}
-                onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as typeof form.status }))}
-                className="input-base h-9 text-sm"
-              >
-                <option value="ACTIVE">Active</option>
-                <option value="DRAFT">Draft</option>
-                <option value="ARCHIVED">Archived</option>
-              </select>
+              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                className="input-base text-sm min-h-[80px] p-2"
+                placeholder="Product description..."
+              />
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

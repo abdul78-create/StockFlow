@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -8,6 +8,8 @@ import {
   X,
   Truck,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -54,6 +56,9 @@ export function PurchaseOrders() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
@@ -81,7 +86,7 @@ export function PurchaseOrders() {
       setLoading(true);
       setError("");
       const res = await api.get("/purchase-orders");
-      setPos(res.data.data?.purchaseOrders || res.data.data || []);
+      setPos(res.data.data?.orders || (Array.isArray(res.data.data) ? res.data.data : []));
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load purchase orders");
     } finally {
@@ -99,7 +104,7 @@ export function PurchaseOrders() {
       setSuppliers(supRes.data.data?.suppliers || supRes.data.data || []);
       setProducts(prodRes.data.data?.products || prodRes.data.data || []);
       setWarehouses(whRes.data.data?.warehouses || whRes.data.data || []);
-    } catch (err) {
+    } catch {
       console.error("Failed to load dependencies");
     }
   };
@@ -188,6 +193,9 @@ export function PurchaseOrders() {
     p.supplier?.companyName?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="flex flex-col h-full font-sans selection:bg-gray-900 selection:text-white">
       <div className="px-6 md:px-10 pt-8 pb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -209,11 +217,14 @@ export function PurchaseOrders() {
                 placeholder="Search by PO Number or Supplier…"
                 icon={<Search className="w-4 h-4 text-gray-400" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="bg-white shadow-sm h-9 text-sm border-gray-200 focus:border-gray-300 focus:ring-0"
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm">
+                <button onClick={() => { setSearch(""); setCurrentPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 rounded-sm">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -257,7 +268,7 @@ export function PurchaseOrders() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((po) => (
+                    {paginated.map((po) => (
                       <motion.tr
                         key={po.id}
                         initial={{ opacity: 0 }}
@@ -301,6 +312,38 @@ export function PurchaseOrders() {
               </Table>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> orders
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2 h-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2 h-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

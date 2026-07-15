@@ -1,7 +1,7 @@
 import React from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { cn } from "./Button";
+import { cn } from "../../lib/utils";
 
 export function Modal({ open, onOpenChange, children }: { open?: boolean; onOpenChange?: (o: boolean) => void; children: React.ReactNode }) {
   return (
@@ -33,5 +33,10 @@ export function ModalContent({ className, title, description, children, ...props
   );
 }
 
-export const ModalTrigger = Dialog.Trigger;
-export const ModalClose = Dialog.Close;
+export function ModalTrigger({ children, ...props }: Dialog.DialogTriggerProps & React.RefAttributes<HTMLButtonElement>) {
+  return <Dialog.Trigger {...props}>{children}</Dialog.Trigger>;
+}
+
+export function ModalClose({ children, ...props }: Dialog.DialogCloseProps & React.RefAttributes<HTMLButtonElement>) {
+  return <Dialog.Close {...props}>{children}</Dialog.Close>;
+}

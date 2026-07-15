@@ -5,6 +5,8 @@ export const createSupplierSchema = z.object({
   email: z.string().email('Invalid email address').optional().or(z.literal('')),
   phone: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
+  gst: z.string().optional().or(z.literal('')),
+  paymentTerms: z.string().optional().or(z.literal('')),
 });
 
 export const updateSupplierSchema = createSupplierSchema.partial();

@@ -1,14 +1,12 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Settings as SettingsIcon, Shield, Bell, Key, Users, AlertTriangle } from "lucide-react";
 import api from "../lib/api";
-import { useAuthStore } from "../lib/store/auth";
 import { useWorkspaceStore } from "../lib/store/workspace";
 import { Button } from "../components/ui/Button";
 
 export function Settings() {
   const navigate = useNavigate();
-  const clearAuth = useAuthStore((s) => s.clearAuth);
   const activeWorkspace = useWorkspaceStore((s) => s.activeWorkspace);
   const setActiveWorkspace = useWorkspaceStore((s) => s.setActiveWorkspace);
   

@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   CheckCircle,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
@@ -73,6 +75,10 @@ export function Inventory() {
   const [warehouseFilter, setWarehouseFilter] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "productName", dir: "asc" });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Adjust drawer
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [adjustType, setAdjustType] = useState<AdjustType>("ADJUSTMENT");
@@ -132,26 +138,31 @@ export function Inventory() {
     if (!validate()) return;
     try {
       setSubmitting(true);
-      const endpoint =
-        adjustType === "RECEIVE"
-          ? "/inventory/receive"
-          : adjustType === "DISPATCH"
-          ? "/inventory/dispatch"
-          : "/inventory/adjust";
-
-      await api.post(endpoint, {
-        productId: form.productId,
-        warehouseId: form.warehouseId,
-        quantity: Number(form.quantity),
-        notes: form.notes || undefined,
-      });
-      toast.success(
-        adjustType === "RECEIVE"
-          ? "Stock received successfully"
-          : adjustType === "DISPATCH"
-          ? "Stock dispatched successfully"
-          : "Stock adjusted successfully"
-      );
+      if (adjustType === "ADJUSTMENT") {
+        await api.post("/inventory/adjust", {
+          productId: form.productId,
+          warehouseId: form.warehouseId,
+          quantityDelta: Number(form.quantity),
+          reason: form.notes || "Manual adjustment",
+        });
+        toast.success("Stock adjusted successfully");
+      } else if (adjustType === "RECEIVE") {
+        await api.post("/inventory/receive", {
+          productId: form.productId,
+          warehouseId: form.warehouseId,
+          quantity: Number(form.quantity),
+          reason: form.notes || "Manual receive",
+        });
+        toast.success("Stock received successfully");
+      } else {
+        await api.post("/inventory/dispatch", {
+          productId: form.productId,
+          warehouseId: form.warehouseId,
+          quantity: Number(form.quantity),
+          reason: form.notes || "Manual dispatch",
+        });
+        toast.success("Stock dispatched successfully");
+      }
       setDrawerOpen(false);
       fetchData();
     } catch (err: any) {
@@ -182,6 +193,9 @@ export function Inventory() {
         return a.warehouse.name.localeCompare(b.warehouse.name) * dir;
       return a.product.name.localeCompare(b.product.name) * dir;
     });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const outOfStock = balances.filter((b) => b.quantity <= 0).length;
   const lowStock = balances.filter((b) => b.quantity > 0 && b.quantity <= b.product.minimumStock).length;
@@ -237,12 +251,18 @@ export function Inventory() {
                 placeholder="Search by product name or SKU…"
                 icon={<Search className="w-4 h-4" />}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <select
               value={warehouseFilter}
-              onChange={(e) => setWarehouseFilter(e.target.value)}
+              onChange={(e) => {
+                setWarehouseFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="input-base h-9 w-full sm:w-auto text-sm"
             >
               <option value="">All Warehouses</option>
@@ -254,7 +274,11 @@ export function Inventory() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => { setSearch(""); setWarehouseFilter(""); }}
+                onClick={() => { 
+                  setSearch(""); 
+                  setWarehouseFilter(""); 
+                  setCurrentPage(1);
+                }}
               >
                 <X className="w-3.5 h-3.5" />
                 Clear
@@ -318,7 +342,7 @@ export function Inventory() {
                 </TableHeader>
                 <TableBody>
                   <AnimatePresence initial={false}>
-                    {filtered.map((b) => {
+                    {paginated.map((b) => {
                       const available = b.quantity - (b.allocatedQuantity || 0);
                       const isOutOfStock = b.quantity <= 0;
                       const isLow = !isOutOfStock && b.quantity <= b.product.minimumStock;
@@ -373,6 +397,38 @@ export function Inventory() {
               </Table>
             )}
           </div>
+          
+          {/* Pagination Controls */}
+          {!loading && !error && filtered.length > 0 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+              <div className="hidden sm:block text-sm text-gray-500">
+                Showing <span className="font-medium text-gray-900">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, filtered.length)}</span> of <span className="font-medium text-gray-900">{filtered.length}</span> results
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <div className="text-sm font-medium text-gray-700 px-2">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-2"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

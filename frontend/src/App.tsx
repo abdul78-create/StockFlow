@@ -27,6 +27,9 @@ import { SalesOrders } from "./pages/SalesOrders";
 import { Finance } from "./pages/Finance";
 import { Reports } from "./pages/Reports";
 import { Settings } from "./pages/Settings";
+import { Quotations } from "./pages/Quotations";
+import { PurchaseReturns } from "./pages/PurchaseReturns";
+import { SalesReturns } from "./pages/SalesReturns";
 
 function GuestRoute({ children }: { children: React.ReactNode }) {
   // Guest users are allowed to see login/signup. We do NOT force redirect if authenticated,
@@ -86,7 +89,7 @@ export default function App() {
           setWorkspaces([]);
           setActiveWorkspace(null);
         }
-      } catch (err) {
+      } catch {
         clearAuth();
         setActiveWorkspace(null);
         setWorkspaces([]);
@@ -126,6 +129,9 @@ export default function App() {
       <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
       <Route path="/purchase-orders" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
       <Route path="/sales-orders" element={<ProtectedRoute><SalesOrders /></ProtectedRoute>} />
+      <Route path="/quotations" element={<ProtectedRoute><Quotations /></ProtectedRoute>} />
+      <Route path="/purchase-returns" element={<ProtectedRoute><PurchaseReturns /></ProtectedRoute>} />
+      <Route path="/sales-returns" element={<ProtectedRoute><SalesReturns /></ProtectedRoute>} />
       <Route path="/finance" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

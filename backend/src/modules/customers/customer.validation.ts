@@ -6,6 +6,7 @@ export const createCustomerSchema = z.object({
   phone: z.string().optional().or(z.literal('')),
   gst: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
+  creditLimit: z.coerce.number().nonnegative().optional().nullable(),
 });
 
 export const updateCustomerSchema = z.object({
@@ -14,6 +15,7 @@ export const updateCustomerSchema = z.object({
   phone: z.string().optional().or(z.literal('')),
   gst: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
+  creditLimit: z.coerce.number().nonnegative().optional().nullable(),
 });
 
 export const customerIdParamSchema = z.object({
