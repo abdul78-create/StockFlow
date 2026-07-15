@@ -17,12 +17,13 @@ async function main() {
   await prisma.cycleCountItem.deleteMany({});
   await prisma.cycleCount.deleteMany({});
   
+  await prisma.paymentReceived.deleteMany({});
+  await prisma.paymentMade.deleteMany({});
+  
   await prisma.invoiceItem.deleteMany({});
   await prisma.invoice.deleteMany({});
   await prisma.billItem.deleteMany({});
   await prisma.bill.deleteMany({});
-  await prisma.paymentReceived.deleteMany({});
-  await prisma.paymentMade.deleteMany({});
   
   await prisma.purchaseReturnItem.deleteMany({});
   await prisma.purchaseReturn.deleteMany({});
@@ -444,13 +445,13 @@ async function main() {
   const poStatuses = [
     PurchaseOrderStatus.COMPLETED,
     PurchaseOrderStatus.COMPLETED,
-    PurchaseOrderStatus.RECEIVED,
+    PurchaseOrderStatus.COMPLETED,
     PurchaseOrderStatus.COMPLETED,
     PurchaseOrderStatus.APPROVED,
     PurchaseOrderStatus.PENDING,
     PurchaseOrderStatus.DRAFT,
     PurchaseOrderStatus.COMPLETED,
-    PurchaseOrderStatus.RECEIVED,
+    PurchaseOrderStatus.COMPLETED,
     PurchaseOrderStatus.COMPLETED,
     PurchaseOrderStatus.APPROVED,
     PurchaseOrderStatus.PENDING,
@@ -507,20 +508,20 @@ async function main() {
               productId: p1.id,
               quantity: qty1,
               unitPrice: p1.costPrice,
-              receivedQuantity: (status === PurchaseOrderStatus.RECEIVED || status === PurchaseOrderStatus.COMPLETED) ? qty1 : 0,
+              receivedQuantity: status === PurchaseOrderStatus.COMPLETED ? qty1 : 0,
             },
             {
               productId: p2.id,
               quantity: qty2,
               unitPrice: p2.costPrice,
-              receivedQuantity: (status === PurchaseOrderStatus.RECEIVED || status === PurchaseOrderStatus.COMPLETED) ? qty2 : 0,
+              receivedQuantity: status === PurchaseOrderStatus.COMPLETED ? qty2 : 0,
             }
           ]
         }
       }
     });
 
-    if (status === PurchaseOrderStatus.RECEIVED || status === PurchaseOrderStatus.COMPLETED) {
+    if (status === PurchaseOrderStatus.COMPLETED) {
       await recordStockMovement(p1.id, warehouses[0].id, TransactionType.PURCHASE, qty1, `Received PO ${poNumber}`, poDate);
       await recordStockMovement(p2.id, warehouses[0].id, TransactionType.PURCHASE, qty2, `Received PO ${poNumber}`, poDate);
       
@@ -575,26 +576,26 @@ async function main() {
   console.log('📈 Seeding 20 Sales Orders...');
 
   const soStatuses = [
-    SalesOrderStatus.COMPLETED,
-    SalesOrderStatus.COMPLETED,
-    SalesOrderStatus.DISPATCHED,
-    SalesOrderStatus.COMPLETED,
+    SalesOrderStatus.DELIVERED,
+    SalesOrderStatus.DELIVERED,
+    SalesOrderStatus.SHIPPED,
+    SalesOrderStatus.DELIVERED,
     SalesOrderStatus.APPROVED,
     SalesOrderStatus.PENDING,
     SalesOrderStatus.DRAFT,
-    SalesOrderStatus.COMPLETED,
-    SalesOrderStatus.DISPATCHED,
-    SalesOrderStatus.COMPLETED,
+    SalesOrderStatus.DELIVERED,
+    SalesOrderStatus.SHIPPED,
+    SalesOrderStatus.DELIVERED,
     SalesOrderStatus.APPROVED,
     SalesOrderStatus.PENDING,
     SalesOrderStatus.DRAFT,
-    SalesOrderStatus.COMPLETED,
-    SalesOrderStatus.COMPLETED,
-    SalesOrderStatus.COMPLETED,
+    SalesOrderStatus.DELIVERED,
+    SalesOrderStatus.DELIVERED,
+    SalesOrderStatus.DELIVERED,
     SalesOrderStatus.APPROVED,
     SalesOrderStatus.PENDING,
     SalesOrderStatus.DRAFT,
-    SalesOrderStatus.COMPLETED
+    SalesOrderStatus.DELIVERED
   ];
 
   for (let i = 0; i < 20; i++) {
@@ -638,14 +639,14 @@ async function main() {
               productId: p1.id,
               quantity: qty1,
               unitPrice: p1.sellingPrice,
-              shippedQuantity: (status === SalesOrderStatus.DISPATCHED || status === SalesOrderStatus.COMPLETED) ? qty1 : 0,
+              shippedQuantity: (status === SalesOrderStatus.SHIPPED || status === SalesOrderStatus.DELIVERED) ? qty1 : 0,
               taxAmount: amount1 * (Number(p1.taxRate) / 100),
             },
             {
               productId: p2.id,
               quantity: qty2,
               unitPrice: p2.sellingPrice,
-              shippedQuantity: (status === SalesOrderStatus.DISPATCHED || status === SalesOrderStatus.COMPLETED) ? qty2 : 0,
+              shippedQuantity: (status === SalesOrderStatus.SHIPPED || status === SalesOrderStatus.DELIVERED) ? qty2 : 0,
               taxAmount: amount2 * (Number(p2.taxRate) / 100),
             }
           ]
@@ -653,11 +654,11 @@ async function main() {
       }
     });
 
-    if (status === SalesOrderStatus.DISPATCHED || status === SalesOrderStatus.COMPLETED) {
+    if (status === SalesOrderStatus.SHIPPED || status === SalesOrderStatus.DELIVERED) {
       await recordStockMovement(p1.id, warehouses[0].id, TransactionType.SALE, qty1, `Shipped SO ${soNumber}`, soDate);
       await recordStockMovement(p2.id, warehouses[0].id, TransactionType.SALE, qty2, `Shipped SO ${soNumber}`, soDate);
       
-      const invStatus = status === SalesOrderStatus.COMPLETED ? InvoiceStatus.PAID : (i % 2 === 0 ? InvoiceStatus.PARTIAL : InvoiceStatus.SENT);
+      const invStatus = status === SalesOrderStatus.DELIVERED ? InvoiceStatus.PAID : (i % 2 === 0 ? InvoiceStatus.PARTIAL : InvoiceStatus.SENT);
       const paid = invStatus === InvoiceStatus.PAID ? grandTotal : (invStatus === InvoiceStatus.PARTIAL ? grandTotal / 2 : 0);
       const balance = grandTotal - paid;
       
